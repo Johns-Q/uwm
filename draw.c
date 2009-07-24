@@ -33,6 +33,7 @@
 #include <xcb/xcb.h>
 #include <xcb/xcbext.h>
 #include <xcb/xcb_event.h>
+#include <xcb/xcb_aux.h>
 
 #include "uwm.h"
 #include "draw.h"
@@ -72,6 +73,16 @@ const char *xcb_event_get_error_label(uint8_t type);
 **
 **	- Len8 Delta8 String8 ...
 **
+**	@param c	connection to x11 server
+**	@param drawable	X11 drawable pixmap/window
+**	@param gc	graphical context to draw the text
+**	@param x	starting x-coordinate
+**	@param y	starting y-coordinate
+**
+**	@todo not correct!
+**
+**	@param len	text length
+**	@param str	string to draw
 */
 xcb_void_cookie_t xcb_poly_text_8_simple(xcb_connection_t * c,
     xcb_drawable_t drawable, xcb_gcontext_t gc, int16_t x, int16_t y,
@@ -115,6 +126,545 @@ xcb_void_cookie_t xcb_poly_text_8_simple(xcb_connection_t * c,
 }
 
 // ------------------------------------------------------------------------ //
+// Color
+// ------------------------------------------------------------------------ //
+
+///
+///	@defgroup color The color module.
+///
+///	This module handles loading colors.
+///
+///	Depends on xcb.
+///
+/// @{
+
+#define COLOR_DELTA 45			///< for lighten / darken
+
+/**
+**	Color table with all used colors.
+**
+**	@see /usr/share/X11/rgb.txt for x11 color-names
+*/
+ColorTable Colors = {
+    .TitleFG = {"title-fg", NULL, 0UL, "black"}
+    ,
+    .TitleBG1 = {"title-bg1", NULL, 0UL, "gray"}
+    ,
+    .TitleBG2 = {"title-bg2", NULL, 0UL, "dark gray"}
+    ,
+
+    .TitleActiveFG = {"title-active-fg", NULL, 0UL, "black"}
+    ,
+    .TitleActiveBG1 = {"title-active-bg1", NULL, 0UL, "red"}
+    ,
+    .TitleActiveBG2 = {"title-active-bg1", NULL, 0UL, "red"}
+    ,
+
+    .BorderLine = {"border-line", NULL, 0UL, "black"}
+    ,
+    .BorderActiveLine = {"border-active-line", NULL, 0UL, "black"}
+    ,
+
+    .PanelFG = {"panel-fg", NULL, 0UL, "black"}
+    ,
+    .PanelBG = {"panel-bg", NULL, 0UL, "gray"}
+    ,
+
+    .TaskFG = {"task-fg", NULL, 0UL, "black"}
+    ,
+    .TaskBG1 = {"task-bg1", NULL, 0UL, "gray"}
+    ,
+    .TaskBG2 = {"task-bg2", NULL, 0UL, "gray"}
+    ,
+    .TaskActiveFG = {"task-active-fg", NULL, 0UL, "white"}
+    ,
+    .TaskActiveBG1 = {"task-active-bg1", NULL, 0UL, "red"}
+    ,
+    .TaskActiveBG2 = {"task-active-bg2", NULL, 0UL, "red"}
+    ,
+
+    .PagerFG = {"pager-fg", NULL, 0UL, "gray"}
+    ,
+    .PagerBG = {"pager-bg", NULL, 0UL, "black"}
+    ,
+    .PagerActiveFG = {"pager-active-fg", NULL, 0UL, "red"}
+    ,
+    .PagerActiveBG = {"pager-active-bg", NULL, 0UL, "red"}
+    ,
+    .PagerOutline = {"pager-outline", NULL, 0UL, "black"}
+    ,
+    .PagerText = {"pager-text", NULL, 0UL, "black"}
+    ,
+
+    .MenuFG = {"menu-fg", NULL, 0UL, "black"}
+    ,
+    .MenuBG = {"menu-bg", NULL, 0UL, "gray"}
+    ,
+    .MenuActiveFG = {"menu-active-fg", NULL, 0UL, "white"}
+    ,
+    .MenuActiveBG1 = {"menu-active-bg1", NULL, 0UL, "red"}
+    ,
+    .MenuActiveBG2 = {"menu-active-bg2", NULL, 0UL, "red"}
+    ,
+    .MenuActiveOutline = {"menu-active-outline", NULL, 0UL, "black"}
+    ,
+
+    .TooltipFG = {"tooltip-fg", NULL, 0UL, "black"}
+    ,
+    .TooltipBG = {"tooltip-bg", NULL, 0UL, "yellow"}
+    ,
+    .TooltipOutline = {"tooltip-outline", NULL, 0UL, "black"}
+    ,
+
+    .PanelButtonFG = {"button-fg", NULL, 0UL, "black"}
+    ,
+    .PanelButtonBG = {"button-bg", NULL, 0UL, "gray"}
+    ,
+
+    .ClockFG = {"clock-fg", NULL, 0UL, "black"}
+    ,
+    .ClockBG = {"clock-bg", NULL, 0UL, "gray"}
+    ,
+};
+
+static int RedShift;			///< shift for x11 pixel
+static int GreenShift;			///< shift for x11 pixel
+static int BlueShift;			///< shift for x11 pixel
+static uint32_t RedMask;		///< mask for x11 pixel
+static uint32_t GreenMask;		///< mask for x11 pixel
+static uint32_t BlueMask;		///< mask for x11 pixel
+
+    /// map a linear 8-bit RGB space to pixel values
+static uint32_t *ColorRgb8Map;
+
+    /// map 8-bit pixel values to a 24-bit linear RGB space
+static uint32_t *ColorReverseMap;
+
+/**
+**	Compute the pixel value from RGB components.
+**
+**	xcb_coloritem_t.red + ... -> xcb_coloritem_t.pixel
+**
+**	@param c	X11 color item (rgb + pixel)
+*/
+static void ColorGetDirectPixel(xcb_coloritem_t * c)
+{
+    uint32_t red;
+    uint32_t green;
+    uint32_t blue;
+
+    // normalise
+    red = c->red << 16;
+    green = c->green << 16;
+    blue = c->blue << 16;
+
+    // shift to the correct offsets and mask
+    red = (red >> RedShift) & RedMask;
+    green = (green >> GreenShift) & GreenMask;
+    blue = (blue >> BlueShift) & BlueMask;
+
+    // combine
+    c->pixel = red | green | blue;
+}
+
+/**
+**	Compute the pixel value from RGB components.
+**
+**	ColorRgb8Map -> xcb_coloritem_t.pixel
+**
+**	@param c	X11 color item (rgb + pixel)
+*/
+static void ColorGetMappedPixel(xcb_coloritem_t * c)
+{
+    ColorGetDirectPixel(c);
+    c->pixel = ColorRgb8Map[c->pixel];
+}
+
+/**
+**	Compute the pixel value from RGB components.
+**
+**	xcb_coloritem_t.red ... -> xcb_coloritem_t.pixel
+**
+**	@param c	X11 color item (rgb + pixel)
+*/
+void ColorGetPixel(xcb_coloritem_t * c)
+{
+    switch (RootVisualType->_class) {
+	case XCB_VISUAL_CLASS_DIRECT_COLOR:
+	case XCB_VISUAL_CLASS_TRUE_COLOR:
+	    ColorGetDirectPixel(c);
+	    return;
+	default:
+	    ColorGetMappedPixel(c);
+	    return;
+    }
+}
+
+/**
+**	Look up a color by name.
+**
+**	@param color_name	color name
+**	@param c		X11 color item (rgb + pixel)
+**
+**	@todo split request and reply
+*/
+static int ColorGetByName(const char *color_name, xcb_coloritem_t * c)
+{
+    xcb_lookup_color_reply_t *reply;
+    xcb_lookup_color_cookie_t cookie;
+
+    cookie =
+	xcb_lookup_color_unchecked(Connection, RootColormap,
+	strlen(color_name), color_name);
+    reply = xcb_lookup_color_reply(Connection, cookie, NULL);
+    if (reply) {
+	c->red = reply->exact_red;
+	c->green = reply->exact_green;
+	c->blue = reply->exact_blue;
+	c->flags =
+	    XCB_COLOR_FLAG_RED | XCB_COLOR_FLAG_GREEN | XCB_COLOR_FLAG_BLUE;
+
+	free(reply);
+	return 1;
+    }
+    return 0;
+}
+
+/**
+**	Parse a color for a component.
+**
+**	@param value	color name or \#hex triple
+**	@param[out] c	xcb color item
+*/
+int ColorParse(const char *value, xcb_coloritem_t * c)
+{
+    if (!value) {
+	return 0;
+    }
+    if (xcb_aux_parse_color((char *)value, &c->red, &c->green, &c->blue)) {
+	c->flags =
+	    XCB_COLOR_FLAG_RED | XCB_COLOR_FLAG_GREEN | XCB_COLOR_FLAG_BLUE;
+    } else {
+	if (!ColorGetByName(value, c)) {
+	    Warning("bad color: \"%s\"\n", value);
+	    return 0;
+	}
+    }
+    ColorGetPixel(c);
+    return 1;
+}
+
+/**
+**	Compute the RGB components from an index into our RGB colormap.
+**
+**	@param c	X11 color item (rgb + pixel)
+*/
+static void ColorGetFromIndex(xcb_coloritem_t * c)
+{
+    uint32_t red;
+    uint32_t green;
+    uint32_t blue;
+
+    red = (c->pixel & RedMask) << RedShift;
+    green = (c->pixel & GreenMask) << GreenShift;
+    blue = (c->pixel & BlueMask) << BlueShift;
+    c->red = red >> 16;
+    c->green = green >> 16;
+    c->blue = blue >> 16;
+}
+
+/**
+**	Get the RGB components from a pixel value.
+**
+**	@param c	X11 color item (rgb + pixel)
+*/
+void ColorGetFromPixel(xcb_coloritem_t * c)
+{
+    switch (RootVisualType->_class) {
+	case XCB_VISUAL_CLASS_DIRECT_COLOR:
+	case XCB_VISUAL_CLASS_TRUE_COLOR:
+	    // nothing to do
+	    break;
+	default:
+	    // convert from a pixel value to a linear RGB space.
+	    c->pixel = ColorReverseMap[c->pixel & 255];
+	    break;
+    }
+
+    // extract the RGB components from the linear RGB pixel value
+    ColorGetFromIndex(c);
+}
+
+/**
+**	Get a RGB pixel value from RGB components.
+**
+**	xcb_coloritem_t.red + ... -> xcb_coloritem_t.pixel
+**
+**	@param c	X11 color item (rgb + pixel)
+*/
+void ColorGetIndex(xcb_coloritem_t * c)
+{
+    ColorGetDirectPixel(c);
+}
+
+/**
+**	Compute a color lighter than the input.
+**
+**	@param orig		orignal base color
+**	@param[out] dest	lighter color result
+*/
+static void ColorLighten(Color * orig, Color * dest)
+{
+    xcb_coloritem_t temp;
+    unsigned u;
+
+    if (orig->Value) {
+	ColorParse(orig->Value, &temp);
+    } else if (orig->Default) {
+	ColorParse(orig->Default, &temp);
+    }
+    // temp contains now r/g/b
+
+    // * 1.45
+    u = temp.red * (100 + COLOR_DELTA);
+    temp.red = u > 6553500 ? 65535 : (u / 100);
+    u = temp.green * (100 + COLOR_DELTA);
+    temp.green = u > 6553500 ? 65535 : (u / 100);
+    u = temp.blue * (100 + COLOR_DELTA);
+    temp.blue = u > 6553500 ? 65535 : (u / 100);
+
+    ColorGetPixel(&temp);
+    dest->Pixel = temp.pixel;
+}
+
+/**
+**	Compute a color darker than the input.
+**
+**	@param orig		orignal base color
+**	@param[out] dest	darker color result
+*/
+static void ColorDarken(Color * orig, Color * dest)
+{
+    xcb_coloritem_t temp;
+    unsigned u;
+
+    if (orig->Value) {
+	ColorParse(orig->Value, &temp);
+    } else if (orig->Default) {
+	ColorParse(orig->Default, &temp);
+    }
+    // temp contains now r/g/b
+
+    // * 0.55
+    u = temp.red * (100 - COLOR_DELTA);
+    temp.red = u / 100;
+    u = temp.green * (100 - COLOR_DELTA);
+    temp.green = u / 100;
+    u = temp.blue * (100 - COLOR_DELTA);
+    temp.blue = u / 100;
+
+    ColorGetPixel(&temp);
+    dest->Pixel = temp.pixel;
+}
+
+/**
+**	Compute the mask for computing colors in a linear RGB colormap.
+*/
+static void ColorShiftMask(uint32_t mask, int *shift)
+{
+    int i;
+
+    //	Components are stored in 16 bits.
+    //
+    //	When computing pixels, we'll first shift left 16 bits
+    //	so to the shift will be an offset from that 32 bit entity.
+    //	shift = 16 - <shift-to-ones> + <shift-to-zeros>
+    i = 0;
+    while (mask && !(mask & (1 << 31))) {
+	++i;
+	mask <<= 1;
+    }
+    *shift = i;
+}
+
+/**
+**	Intialize color module.
+**
+**	@warning BugAlert: ColorTable.TitleFG must be the first color and
+**	ColorTable.MenuActiveDown the last color in #ColorTable.
+**
+**	@todo use xcb unsync!
+*/
+void ColorInit(void)
+{
+    int i;
+    int red;
+    int green;
+    int blue;
+    xcb_alloc_color_cookie_t cookies[256];
+    xcb_coloritem_t c;
+    Color *color;
+
+    // determine how to convert between RGB triples and pixels
+    switch (RootVisualType->_class) {
+	case XCB_VISUAL_CLASS_DIRECT_COLOR:
+	case XCB_VISUAL_CLASS_TRUE_COLOR:
+	    ColorShiftMask(RedMask = RootVisualType->red_mask, &RedShift);
+	    ColorShiftMask(GreenMask =
+		RootVisualType->green_mask, &GreenShift);
+	    ColorShiftMask(BlueMask = RootVisualType->blue_mask, &BlueShift);
+	    break;
+	default:
+	    // attempt to get 256 colors, pretend it worked
+	    ColorShiftMask(RedMask = 0xE0, &RedShift);
+	    ColorShiftMask(GreenMask = 0x1C, &GreenShift);
+	    ColorShiftMask(BlueMask = 0x03, &BlueShift);
+	    ColorRgb8Map = malloc(sizeof(*ColorRgb8Map) * 256);
+
+	    // RGB: 3, 3, 2
+	    i = 0;
+	    for (red = 0; red < 8; red++) {
+		for (green = 0; green < 8; green++) {
+		    for (blue = 0; blue < 4; blue++) {
+			cookies[i++] =
+			    xcb_alloc_color_unchecked(Connection, RootColormap,
+			    (uint16_t) ((74898 * red) / 8),
+			    (uint16_t) ((74898 * green) / 8),
+			    (uint16_t) ((87381 * blue) / 4));
+		    }
+		}
+	    }
+
+	    // get alloc color replies and compute the reverse pixel mapping
+	    // (pixel -> 24-bit RGB)
+	    ColorReverseMap = malloc(sizeof(uint32_t) * 256);
+	    for (i = 0; i < 256; i++) {
+		xcb_alloc_color_reply_t *reply;
+
+		reply = xcb_alloc_color_reply(Connection, cookies[i], NULL);
+		if (reply) {
+		    ColorRgb8Map[i] = reply->pixel;
+		    c.red = reply->red;
+		    c.green = reply->green;
+		    c.blue = reply->blue;
+		    c.flags =
+			XCB_COLOR_FLAG_RED | XCB_COLOR_FLAG_GREEN |
+			XCB_COLOR_FLAG_BLUE;
+
+		    ColorGetDirectPixel(&c);
+		    ColorReverseMap[i] = c.pixel;
+		    free(reply);
+		}
+		// FIXME: alloc color can fail, what todo?
+	    }
+    }
+
+    // allocate the colors
+    for (color = &Colors.TitleFG; color <= &Colors.MenuActiveDown; ++color) {
+	if (color->Value) {
+	    ColorParse(color->Value, &c);
+	    color->Pixel = c.pixel;
+	} else if (color->Default) {
+	    ColorParse(color->Default, &c);
+	    color->Pixel = c.pixel;
+	}
+    }
+
+    // inherit unset colors from the panel for panel plugins
+    if (Colors.PanelBG.Value || Colors.PanelBG.Default) {
+	if (!Colors.TaskBG1.Value && !Colors.TaskBG1.Value) {
+	    Colors.TaskBG1.Pixel = Colors.PanelBG.Pixel;
+	}
+	if (!Colors.TaskBG2.Value && !Colors.TaskBG2.Value) {
+	    Colors.TaskBG2.Pixel = Colors.PanelBG.Pixel;
+	}
+
+	if (!Colors.PanelButtonBG.Value && !Colors.PanelButtonBG.Value) {
+	    Colors.PanelButtonBG.Pixel = Colors.PanelBG.Pixel;
+	}
+	if (!Colors.ClockBG.Value && !Colors.ClockBG.Value) {
+	    Colors.ClockBG.Pixel = Colors.PanelBG.Pixel;
+	}
+    }
+    if (Colors.PanelFG.Value || Colors.PanelFG.Default) {
+	if (!Colors.TaskFG.Value && !Colors.TaskFG.Value) {
+	    Colors.TaskFG.Pixel = Colors.PanelFG.Pixel;
+	}
+	if (!Colors.PanelButtonFG.Value && !Colors.PanelButtonFG.Value) {
+	    Colors.PanelButtonFG.Pixel = Colors.PanelFG.Pixel;
+	}
+	if (!Colors.ClockFG.Value && !Colors.ClockFG.Value) {
+	    Colors.ClockFG.Pixel = Colors.PanelFG.Pixel;
+	}
+    }
+
+    ColorLighten(&Colors.PanelBG, &Colors.PanelUp);
+    ColorDarken(&Colors.PanelBG, &Colors.PanelDown);
+    ColorLighten(&Colors.TaskBG1, &Colors.TaskUp);
+    ColorDarken(&Colors.TaskBG1, &Colors.TaskDown);
+    ColorLighten(&Colors.TaskActiveBG1, &Colors.TaskActiveUp);
+    ColorDarken(&Colors.TaskActiveBG1, &Colors.TaskActiveDown);
+    ColorLighten(&Colors.MenuBG, &Colors.MenuUp);
+    ColorDarken(&Colors.MenuBG, &Colors.MenuDown);
+    ColorLighten(&Colors.MenuActiveBG1, &Colors.MenuActiveUp);
+    ColorDarken(&Colors.MenuActiveBG1, &Colors.MenuActiveDown);
+}
+
+/**
+**	Cleanup color module.
+*/
+void ColorExit(void)
+{
+    Color *color;
+
+    if (ColorRgb8Map) {
+	xcb_free_colors(Connection, RootColormap, 0, 256, ColorRgb8Map);
+	free(ColorRgb8Map);
+	ColorRgb8Map = NULL;
+	free(ColorReverseMap);
+	ColorReverseMap = NULL;
+    }
+
+    for (color = &Colors.TitleFG; color <= &Colors.MenuActiveDown; ++color) {
+	if (color->Value) {
+	    free(color->Value);
+	    color->Value = NULL;
+	}
+    }
+}
+
+// ------------------------------------------------------------------------ //
+// Config
+
+/**
+**	Set the color to use for a modul.
+**
+**	@param name	internal color name
+**	@param value	color value (x11 color name or hex triple)
+*/
+void ColorSet(const char *name, const char *value)
+{
+    Color *color;
+
+    if (!value) {
+	Warning("empty color tag\n");
+	return;
+    }
+    for (color = &Colors.TitleFG; color <= &Colors.MenuActiveDown; ++color) {
+	if (!strcasecmp(name, color->Name)) {
+	    if (color->Value) {
+		free(color->Value);
+	    }
+	    color->Value = strdup(value);
+	    return;
+	}
+    }
+    Warning("color name '%s' not found\n", name);
+}
+
+/// @}
+
+// ------------------------------------------------------------------------ //
 // Font
 // ------------------------------------------------------------------------ //
 
@@ -122,6 +672,8 @@ xcb_void_cookie_t xcb_poly_text_8_simple(xcb_connection_t * c,
 ///	@defgroup font The font module.
 ///
 ///	This module handles loading fonts and drawing text.
+///
+///	Depends on xcb.
 ///
 /// @{
 
@@ -150,6 +702,12 @@ static xcb_gcontext_t FontGC;		///< font graphic context
 **	Send query for text extents of string.
 **
 **	Part 1 sends the request,
+**
+**	@param font	font for string extents
+**	@param len	lenght of string
+**	@param str	text of string
+**
+**	@returns cookie to fetch reply.
 */
 xcb_query_text_extents_cookie_t FontQueryExtentsRequest(const Font * font,
     int len, const char *str)
@@ -173,6 +731,9 @@ xcb_query_text_extents_cookie_t FontQueryExtentsRequest(const Font * font,
 **	Get font width of string.
 **
 **	Part2 fetch the reply from FontQueryExtentsRequest().
+**
+**	@param cookie	cookie of xcb_query_text_extents request
+**	@param[out] width	string width result
 */
 int FontGetTextWidth(xcb_query_text_extents_cookie_t cookie, unsigned *width)
 {
@@ -226,6 +787,15 @@ int FontGetStringBox1(xcb_query_text_extents_cookie_t cookie, unsigned *width,
 /**
 **	Display a string.
 **
+**	@param drawable	x11 drawable pixmap/window
+**	@param font	our font definition
+**	@param pixel	color to draw in x11 pixel format
+**	@param x	x-coordinate to place the text
+**	@param y	y-coordinate to place the text
+**	@param region	region to draw
+**	@param width	don't draw text beyond width
+**	@param str	text string
+**
 **	@todo FIXME: clipping on region
 */
 void FontDrawString(xcb_drawable_t drawable, Font * font, uint32_t pixel,
@@ -247,7 +817,7 @@ void FontDrawString(xcb_drawable_t drawable, Font * font, uint32_t pixel,
 	return;
     }
 
-    if (region) {			// i hope don't need full region support
+    if (region) {			// FIXME: we need full region support
 	int x1;
 	int x2;
 	int y1;
@@ -287,6 +857,8 @@ void FontDrawString(xcb_drawable_t drawable, Font * font, uint32_t pixel,
 **	Initialize a font stage 0.
 **
 **	Send request to X11, don't wait for the result.
+**
+**	@param font	send open request for this font
 */
 static void FontInit0(Font * font)
 {
@@ -302,6 +874,9 @@ static void FontInit0(Font * font)
 **	Check a font initialize a font stage 1.
 **
 **	Check the result of the X11 requests.
+**	Send request for font query.
+**
+**	@param font	reply/request for this font
 */
 static void FontCheck1(Font * font)
 {
@@ -329,6 +904,8 @@ static void FontCheck1(Font * font)
 **	Check a font initialize a font stage 2.
 **
 **	Check the result of the X11 requests.
+**
+**	@param font	get query reply for this font
 */
 static void FontCheck2(Font * font)
 {
@@ -340,8 +917,6 @@ static void FontCheck2(Font * font)
 	if (reply) {
 	    font->Ascent = reply->font_ascent;
 	    font->Height = reply->font_ascent + reply->font_descent;
-	    Debug(3, "font %d + %d\n", reply->font_ascent,
-		reply->font_descent);
 	    free(reply);
 	    return;
 	}
@@ -358,10 +933,11 @@ static void FontCheck2(Font * font)
 */
 void FontInit(void)
 {
-    uint32_t mask;
-    uint32_t values[2];
+    uint32_t value[1];
 
-    Fonts.Fallback.FontName = strdup(DEFAULT_FONT);
+    if (!Fonts.Fallback.FontName) {
+	Fonts.Fallback.FontName = strdup(DEFAULT_FONT);
+    }
     if (Fonts.Panel.FontName) {
 	// as default use panel font, for panel plugins
 	if (!Fonts.PanelButton.FontName) {
@@ -390,9 +966,9 @@ void FontInit(void)
 
     // create graphics context
     FontGC = xcb_generate_id(Connection);
-    mask = XCB_GC_GRAPHICS_EXPOSURES;
-    values[0] = 0;
-    xcb_create_gc(Connection, FontGC, RootWindow, mask, values);
+    value[0] = 0;
+    xcb_create_gc(Connection, FontGC, RootWindow, XCB_GC_GRAPHICS_EXPOSURES,
+	value);
 
     FontCheck1(&Fonts.Fallback);
     FontCheck1(&Fonts.Titlebar);
@@ -461,7 +1037,6 @@ void FontSet(const char *module, const char *value)
 	    if (font->FontName) {
 		free(font->FontName);
 	    }
-
 	    font->FontName = strdup(value);
 	    return;
 	}
