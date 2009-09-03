@@ -71,6 +71,8 @@ struct _color_table_
 
     Color BorderLine;			///< window border
     Color BorderActiveLine;		///< active window border
+    Color BorderCorner;			///< window corner (resize)
+    Color BorderActiveCorner;		///< active window corner (resize)
 
     Color PanelFG;			///< panel foreground
     Color PanelBG;			///< panel background
@@ -151,8 +153,13 @@ extern void ColorInit(void);
     /// Cleanup color module.
 extern void ColorExit(void);
 
+#ifdef USE_LUA
     /// Set the color to use for a modul.
 extern void ColorSet(const char *, const char *);
+#else
+    /// Parse the color config.
+extern void ColorConfig(void);
+#endif
 
 /// @}
 /// @addtogroup font
@@ -217,10 +224,13 @@ extern FontTable Fonts;			///< contains all our used fonts
 
     /// Send query for text extents of string.
 extern xcb_query_text_extents_cookie_t FontQueryExtentsRequest(const Font *,
-    int, const char *);
-    /// Get font width of string.
-extern int FontGetTextWidth(xcb_query_text_extents_cookie_t, unsigned *);
+    size_t, const char *);
+    /// Font width of string.
+extern int FontTextWidthReply(xcb_query_text_extents_cookie_t);
 
+    /// Display an utf8 string.
+extern void FontDrawUtf8(xcb_drawable_t, Font *, uint32_t, int, int, unsigned,
+    xcb_rectangle_t * region, const char *);
     /// Display a string.
 extern void FontDrawString(xcb_drawable_t, Font *, uint32_t, int, int,
     unsigned, xcb_rectangle_t * region, const char *);
@@ -234,8 +244,26 @@ extern void FontInit(void);
     /// Cleanup font support.
 extern void FontExit(void);
 
+#ifdef USE_LUA
     /// Set the font to use for a component.
 extern void FontSet(const char *, const char *);
+#else
+    /// Parse the font config.
+extern void FontConfig(void);
+#endif
 
 /// @}
+
+/// @addtogroup tooltip
+/// @{
+
+//////////////////////////////////////////////////////////////////////////////
+//	Prototypes
+//////////////////////////////////////////////////////////////////////////////
+
+    /// Show a tooltip window.
+extern void TooltipShow(int, int, const char *);
+
+/// @}
+
 /// @}

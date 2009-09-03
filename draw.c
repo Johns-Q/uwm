@@ -37,6 +37,10 @@
 
 #include "uwm.h"
 #include "draw.h"
+#include "array.h"
+#include "config.h"
+
+extern Config *UwmConfig;			///< µwm config
 
 // ------------------------------------------------------------------------ //
 // XCB
@@ -54,6 +58,7 @@
 const char *xcb_event_get_error_label(uint8_t type);
 #endif
 
+#if 0
 /**
 **	Draw poly text.
 **
@@ -124,6 +129,78 @@ xcb_void_cookie_t xcb_poly_text_8_simple(xcb_connection_t * c,
     xcb_ret.sequence = xcb_send_request(c, 0, xcb_parts + 2, &xcb_req);
     return xcb_ret;
 }
+#endif
+
+/**
+**	Draw poly 16bit text.
+**
+**	This a simple version of xcb_poly_text_16, which works only with
+**	one string with less equal 254 characters.
+**
+**	Request:
+**
+**	- drawable: DRAWABLE
+**	- gc: GCONTEXT
+**	- x, y: INT16
+**	- items: (LISTofTEXTITEM16)
+**
+**	- TEXTELT16: TEXTELT16: [delta: INT8 string: STRING16]
+**
+**	- FONT: 5 bytes 255 + FontID
+**
+**	- Len8 Delta8 String16 ...
+**
+**	@param c	connection to x11 server
+**	@param drawable	X11 drawable pixmap/window
+**	@param gc	graphical context to draw the text
+**	@param x	starting x-coordinate
+**	@param y	starting y-coordinate
+**
+**	@todo not correct!
+**
+**	@param len	text length
+**	@param str	string to draw
+*/
+xcb_void_cookie_t xcb_poly_text_16_simple(xcb_connection_t * c,
+    xcb_drawable_t drawable, xcb_gcontext_t gc, int16_t x, int16_t y,
+    uint32_t len, const xcb_char2b_t * str)
+{
+    static const xcb_protocol_request_t xcb_req = {
+	/* count */ 5,
+	/* ext */ 0,
+	/* opcode */ XCB_POLY_TEXT_16,
+	/* isvoid */ 1
+    };
+    struct iovec xcb_parts[7];
+    uint8_t xcb_lendelta[2];
+    xcb_void_cookie_t xcb_ret;
+    xcb_poly_text_16_request_t xcb_out;
+
+    xcb_out.pad0 = 0;
+    xcb_out.drawable = drawable;
+    xcb_out.gc = gc;
+    xcb_out.x = x;
+    xcb_out.y = y;
+
+    xcb_lendelta[0] = len;
+    xcb_lendelta[1] = 0;
+
+    xcb_parts[2].iov_base = (char *)&xcb_out;
+    xcb_parts[2].iov_len = sizeof(xcb_out);
+    xcb_parts[3].iov_base = 0;
+    xcb_parts[3].iov_len = -xcb_parts[2].iov_len & 3;
+
+    xcb_parts[4].iov_base = xcb_lendelta;
+    xcb_parts[4].iov_len = sizeof(xcb_lendelta);
+    xcb_parts[5].iov_base = (char *)str;
+    xcb_parts[5].iov_len = len * sizeof(xcb_char2b_t);
+
+    xcb_parts[6].iov_base = 0;
+    xcb_parts[6].iov_len = -(xcb_parts[4].iov_len + xcb_parts[5].iov_len) & 3;
+
+    xcb_ret.sequence = xcb_send_request(c, 0, xcb_parts + 2, &xcb_req);
+    return xcb_ret;
+}
 
 // ------------------------------------------------------------------------ //
 // Color
@@ -146,93 +223,97 @@ xcb_void_cookie_t xcb_poly_text_8_simple(xcb_connection_t * c,
 **	@see /usr/share/X11/rgb.txt for x11 color-names
 */
 ColorTable Colors = {
-    .TitleFG = {"title-fg", NULL, 0UL, "black"}
+    .TitleFG = {"title-fg", NULL, 0UL, "gray55"}
     ,
-    .TitleBG1 = {"title-bg1", NULL, 0UL, "gray"}
+    .TitleBG1 = {"title-bg1", NULL, 0UL, "gray22"}
     ,
-    .TitleBG2 = {"title-bg2", NULL, 0UL, "dark gray"}
+    .TitleBG2 = {"title-bg2", NULL, 0UL, "black"}
     ,
 
-    .TitleActiveFG = {"title-active-fg", NULL, 0UL, "black"}
+    .TitleActiveFG = {"title-active-fg", NULL, 0UL, "white"}
     ,
-    .TitleActiveBG1 = {"title-active-bg1", NULL, 0UL, "red"}
+    .TitleActiveBG1 = {"title-active-bg1", NULL, 0UL, "gray22"}
     ,
-    .TitleActiveBG2 = {"title-active-bg1", NULL, 0UL, "red"}
+    .TitleActiveBG2 = {"title-active-bg1", NULL, 0UL, "gray55"}
     ,
 
     .BorderLine = {"border-line", NULL, 0UL, "black"}
     ,
-    .BorderActiveLine = {"border-active-line", NULL, 0UL, "black"}
+    .BorderActiveLine = {"border-active-line", NULL, 0UL, "gray22"}
+    ,
+    .BorderCorner = {"border-corner", NULL, 0UL, "gray33"}
+    ,
+    .BorderActiveCorner = {"border-active-corner", NULL, 0UL, "white"}
     ,
 
-    .PanelFG = {"panel-fg", NULL, 0UL, "black"}
+    .PanelFG = {"panel-fg", NULL, 0UL, "white"}
     ,
-    .PanelBG = {"panel-bg", NULL, 0UL, "gray"}
+    .PanelBG = {"panel-bg", NULL, 0UL, "gray33"}
     ,
 
-    .TaskFG = {"task-fg", NULL, 0UL, "black"}
+    .TaskFG = {"task-fg", NULL, 0UL, "gray55"}
     ,
-    .TaskBG1 = {"task-bg1", NULL, 0UL, "gray"}
+    .TaskBG1 = {"task-bg1", NULL, 0UL, "gray22"}
     ,
-    .TaskBG2 = {"task-bg2", NULL, 0UL, "gray"}
+    .TaskBG2 = {"task-bg2", NULL, 0UL, "black"}
     ,
     .TaskActiveFG = {"task-active-fg", NULL, 0UL, "white"}
     ,
-    .TaskActiveBG1 = {"task-active-bg1", NULL, 0UL, "red"}
+    .TaskActiveBG1 = {"task-active-bg1", NULL, 0UL, "gray22"}
     ,
-    .TaskActiveBG2 = {"task-active-bg2", NULL, 0UL, "red"}
-    ,
-
-    .PagerFG = {"pager-fg", NULL, 0UL, "gray"}
-    ,
-    .PagerBG = {"pager-bg", NULL, 0UL, "black"}
-    ,
-    .PagerActiveFG = {"pager-active-fg", NULL, 0UL, "red"}
-    ,
-    .PagerActiveBG = {"pager-active-bg", NULL, 0UL, "red"}
-    ,
-    .PagerOutline = {"pager-outline", NULL, 0UL, "black"}
-    ,
-    .PagerText = {"pager-text", NULL, 0UL, "black"}
+    .TaskActiveBG2 = {"task-active-bg2", NULL, 0UL, "gray55"}
     ,
 
-    .MenuFG = {"menu-fg", NULL, 0UL, "black"}
+    .PagerFG = {"pager-fg", NULL, 0UL, "gray33"}
     ,
-    .MenuBG = {"menu-bg", NULL, 0UL, "gray"}
+    .PagerBG = {"pager-bg", NULL, 0UL, "gray22"}
+    ,
+    .PagerActiveFG = {"pager-active-fg", NULL, 0UL, "gray55"}
+    ,
+    .PagerActiveBG = {"pager-active-bg", NULL, 0UL, "gray66"}
+    ,
+    .PagerOutline = {"pager-outline", NULL, 0UL, "darkred"}
+    ,
+    .PagerText = {"pager-text", NULL, 0UL, "white"}
+    ,
+
+    .MenuFG = {"menu-fg", NULL, 0UL, "gray11"}
+    ,
+    .MenuBG = {"menu-bg", NULL, 0UL, "gray44"}
     ,
     .MenuActiveFG = {"menu-active-fg", NULL, 0UL, "white"}
     ,
-    .MenuActiveBG1 = {"menu-active-bg1", NULL, 0UL, "red"}
+    .MenuActiveBG1 = {"menu-active-bg1", NULL, 0UL, "gray33"}
     ,
-    .MenuActiveBG2 = {"menu-active-bg2", NULL, 0UL, "red"}
+    .MenuActiveBG2 = {"menu-active-bg2", NULL, 0UL, "gray66"}
     ,
     .MenuActiveOutline = {"menu-active-outline", NULL, 0UL, "black"}
     ,
 
     .TooltipFG = {"tooltip-fg", NULL, 0UL, "black"}
     ,
-    .TooltipBG = {"tooltip-bg", NULL, 0UL, "yellow"}
+    .TooltipBG = {"tooltip-bg", NULL, 0UL, "gray55"}
     ,
-    .TooltipOutline = {"tooltip-outline", NULL, 0UL, "black"}
-    ,
-
-    .PanelButtonFG = {"button-fg", NULL, 0UL, "black"}
-    ,
-    .PanelButtonBG = {"button-bg", NULL, 0UL, "gray"}
+    .TooltipOutline = {"tooltip-outline", NULL, 0UL, "darkred"}
     ,
 
-    .ClockFG = {"clock-fg", NULL, 0UL, "black"}
+    .PanelButtonFG = {"button-fg", NULL, 0UL, "gray55"}
     ,
-    .ClockBG = {"clock-bg", NULL, 0UL, "gray"}
+    .PanelButtonBG = {"button-bg", NULL, 0UL, "gray22"}
+    ,
+
+    .ClockFG = {"clock-fg", NULL, 0UL, "gray55"}
+    ,
+    .ClockBG = {"clock-bg", NULL, 0UL, "gray22"}
     ,
 };
 
-static int RedShift;			///< shift for x11 pixel
-static int GreenShift;			///< shift for x11 pixel
-static int BlueShift;			///< shift for x11 pixel
-static uint32_t RedMask;		///< mask for x11 pixel
-static uint32_t GreenMask;		///< mask for x11 pixel
-static uint32_t BlueMask;		///< mask for x11 pixel
+static int RedShift;			///< red shift for x11 pixel
+static int GreenShift;			///< green shift for x11 pixel
+static int BlueShift;			///< blue shift for x11 pixel
+static uint32_t RedMask;		///< red mask for x11 pixel
+static uint32_t GreenMask;		///< green mask for x11 pixel
+static uint32_t BlueMask;		///< blue mask for x11 pixel
 
     /// map a linear 8-bit RGB space to pixel values
 static uint32_t *ColorRgb8Map;
@@ -335,6 +416,8 @@ static int ColorGetByName(const char *color_name, xcb_coloritem_t * c)
 **
 **	@param value	color name or \#hex triple
 **	@param[out] c	xcb color item
+**
+**	@todo ColorGetByName is used syncron.
 */
 int ColorParse(const char *value, xcb_coloritem_t * c)
 {
@@ -608,23 +691,8 @@ void ColorInit(void)
     ColorDarken(&Colors.MenuBG, &Colors.MenuDown);
     ColorLighten(&Colors.MenuActiveBG1, &Colors.MenuActiveUp);
     ColorDarken(&Colors.MenuActiveBG1, &Colors.MenuActiveDown);
-}
 
-/**
-**	Cleanup color module.
-*/
-void ColorExit(void)
-{
-    Color *color;
-
-    if (ColorRgb8Map) {
-	xcb_free_colors(Connection, RootColormap, 0, 256, ColorRgb8Map);
-	free(ColorRgb8Map);
-	ColorRgb8Map = NULL;
-	free(ColorReverseMap);
-	ColorReverseMap = NULL;
-    }
-
+    // free the now unused color values
     for (color = &Colors.TitleFG; color <= &Colors.MenuActiveDown; ++color) {
 	if (color->Value) {
 	    free(color->Value);
@@ -633,8 +701,24 @@ void ColorExit(void)
     }
 }
 
+/**
+**	Cleanup color module.
+*/
+void ColorExit(void)
+{
+    if (ColorRgb8Map) {
+	xcb_free_colors(Connection, RootColormap, 0, 256, ColorRgb8Map);
+	free(ColorRgb8Map);
+	ColorRgb8Map = NULL;
+	free(ColorReverseMap);
+	ColorReverseMap = NULL;
+    }
+}
+
 // ------------------------------------------------------------------------ //
 // Config
+
+#ifdef USE_LUA
 
 /**
 **	Set the color to use for a modul.
@@ -661,6 +745,28 @@ void ColorSet(const char *name, const char *value)
     }
     Warning("color name '%s' not found\n", name);
 }
+
+#else
+
+/**
+**	Parse config for color module
+*/
+void ColorConfig(void)
+{
+    Color *color;
+
+    for (color = &Colors.TitleFG; color <= &Colors.MenuActiveDown; ++color) {
+	const char* value;
+
+	if ( color->Name && ConfigGetString(UwmConfig, &value, "color",
+		color->Name, NULL)) {
+	    color->Value = strdup(value);
+	    printf("%s = %s\n", color->Name, color->Value);
+	}
+    }
+}
+
+#endif
 
 /// @}
 
@@ -699,7 +805,64 @@ FontTable Fonts = {			///< contains all our used fonts
 static xcb_gcontext_t FontGC;		///< font graphic context
 
 /**
-**	Send query for text extents of string.
+**	Convert an utf-8 string to ucs-2 string.
+*/
+static size_t FontUtf8ToUcs2(const uint8_t * utf8, xcb_char2b_t * ucs2,
+    size_t len)
+{
+    size_t in_pos;
+    size_t out_pos;
+    unsigned ch;
+
+    in_pos = 0;
+    out_pos = 0;
+    while (in_pos < len) {
+	if (utf8[in_pos] <= 0x7F) {
+	    ucs2[out_pos].byte1 = 0;
+	    ucs2[out_pos].byte2 = utf8[in_pos];
+	    in_pos++;
+	} else if ((utf8[in_pos] & 0300) != 0300) {
+	    // out of sync
+	    ucs2[out_pos].byte1 = 0xFF;
+	    ucs2[out_pos].byte2 = 0xFD;
+	    in_pos++;
+	} else if (in_pos < len - 1 && utf8[in_pos] <= 0xDF
+	    && utf8[in_pos + 1] <= 0xBF && utf8[in_pos + 1] >= 0x80) {
+	    ch = ((utf8[in_pos] & 0x1F) << 6) + (utf8[in_pos + 1] & 0x3F);
+	    ucs2[out_pos].byte1 = ch >> 8;
+	    ucs2[out_pos].byte2 = ch;
+	    // check for overlong sequence
+	    if (ch < 0x80) {
+		ucs2[out_pos].byte1 = 0xFF;
+		ucs2[out_pos].byte2 = 0xFD;
+	    }
+	    in_pos += 2;
+	} else if (in_pos < len - 2 && utf8[in_pos] <= 0xEF
+	    && utf8[in_pos + 1] <= 0xBF && utf8[in_pos + 1] >= 0x80
+	    && utf8[in_pos + 2] <= 0xBF && utf8[in_pos + 2] >= 0x80) {
+	    ch = ((utf8[in_pos] & 0x0F) << 12) + ((utf8[in_pos +
+			1] & 0x3F) << 6) + (utf8[in_pos + 2] & 0x3F);
+	    ucs2[out_pos].byte1 = ch >> 8;
+	    ucs2[out_pos].byte2 = ch;
+	    // check for overlong sequence
+	    if (ch < 0x800) {
+		ucs2[out_pos].byte1 = 0xFF;
+		ucs2[out_pos].byte2 = 0xFD;
+	    }
+	    in_pos += 3;
+	} else {
+	    // incomplete sequence
+	    ucs2[out_pos].byte1 = 0xFF;
+	    ucs2[out_pos].byte2 = 0xFD;
+	    in_pos++;
+	}
+	out_pos++;
+    }
+    return out_pos;
+}
+
+/**
+**	Send query for text extents of utf-8 string.
 **
 **	Part 1 sends the request,
 **
@@ -708,81 +871,116 @@ static xcb_gcontext_t FontGC;		///< font graphic context
 **	@param str	text of string
 **
 **	@returns cookie to fetch reply.
+**
+**	@todo wrong for utf8
 */
 xcb_query_text_extents_cookie_t FontQueryExtentsRequest(const Font * font,
-    int len, const char *str)
+    size_t len, const char *str)
 {
-    xcb_query_text_extents_cookie_t cookie;
     xcb_char2b_t *chars;
-    int i;
+    size_t i;
 
-    chars = alloca(len * 2);
-    for (i = 0; i < len; ++i) {		// convert 8 -> 16
-	chars[i].byte1 = 0;
-	chars[i].byte2 = str[i];
-    }
-
-    cookie =
-	xcb_query_text_extents_unchecked(Connection, font->Font, len, chars);
-    return cookie;
+    chars = alloca(len * sizeof(*chars));
+    i = FontUtf8ToUcs2((const uint8_t *)str, chars, len);
+    return xcb_query_text_extents_unchecked(Connection, font->Font, i, chars);
 }
 
 /**
-**	Get font width of string.
+**	Font width of string.
 **
 **	Part2 fetch the reply from FontQueryExtentsRequest().
 **
 **	@param cookie	cookie of xcb_query_text_extents request
-**	@param[out] width	string width result
+**
+**	@returns length of string.
 */
-int FontGetTextWidth(xcb_query_text_extents_cookie_t cookie, unsigned *width)
+int FontTextWidthReply(xcb_query_text_extents_cookie_t cookie)
 {
-    xcb_query_text_extents_reply_t *query_text_extents;
+    int width;
+    xcb_query_text_extents_reply_t *reply;
 
-    query_text_extents =
-	xcb_query_text_extents_reply(Connection, cookie, NULL);
-    if (!query_text_extents) {
-	Error("can't query text extents\n");
-	return 1;
+    if (!(reply = xcb_query_text_extents_reply(Connection, cookie, NULL))) {
+	Error("query text extents failed\n");
+	return 0;
     }
 
-    *width = query_text_extents->overall_width;
-    free(query_text_extents);
+    width = reply->overall_width;
+    free(reply);
 
-    return 0;
+    return width;
+}
+
+/**
+**	Display an utf-8 string.
+**
+**	@param drawable	x11 drawable pixmap/window
+**	@param font	our font definition
+**	@param pixel	color to draw in x11 pixel format
+**	@param x	x-coordinate to place the text
+**	@param y	y-coordinate to place the text
+**	@param region	region to draw
+**	@param width	don't draw text beyond width
+**	@param str	text string
+**
+**	@todo FIXME: clipping on region
+*/
+void FontDrawString(xcb_drawable_t drawable, Font * font, uint32_t pixel,
+    int x, int y, unsigned width, xcb_rectangle_t * region, const char *str)
+{
+    size_t i;
+    size_t len;
+    uint32_t values[2];
+    xcb_rectangle_t rectangle;
+    xcb_char2b_t *chars;
+
+    if (region) {
+	Debug(0, "FIXME: %s didn't support region clipping yet\n",
+	    __FUNCTION__);
+    }
+    if (!str || !(len = strlen(str))) {
+	return;
+    }
+
+    if (0 && region) {			// FIXME: we need full region support
+	int x1;
+	int x2;
+	int y1;
+	int y2;
+
+	x1 = MAX(x, region->x);
+	y1 = MAX(y, region->y);
+	x2 = MIN(x + width, region->x + (unsigned)region->width);
+	y2 = MIN(y + UINT16_MAX, region->y + region->height);
+
+	if (x1 >= x2 || y1 >= y2) {
+	    return;			// nothing todo
+	}
+	rectangle.x = x1;
+	rectangle.y = y1;
+	rectangle.width = x2 - x1;
+	rectangle.height = y2 - y1;
+    } else {
+	rectangle.x = x;
+	rectangle.y = y;
+	rectangle.width = width;
+	rectangle.height = UINT16_MAX;	// clip on width
+    }
+
+    values[0] = pixel;
+    values[1] = font->Font;
+    xcb_change_gc(Connection, FontGC, XCB_GC_FOREGROUND | XCB_GC_FONT, values);
+    xcb_set_clip_rectangles(Connection, XCB_CLIP_ORDERING_UNSORTED, FontGC, 0,
+	0, 1, &rectangle);
+
+    // UTF-8 to UCS-2 conversion
+    chars = alloca(len * sizeof(*chars));
+    i = FontUtf8ToUcs2((const uint8_t *)str, chars, len);
+
+    xcb_poly_text_16_simple(Connection, drawable, FontGC, x, y + font->Ascent,
+	i, chars);
 }
 
 #if 0
-
-/**
-**	Get font box of string.
-**
-**	Part1 fetch the reply,
-*/
-int FontGetStringBox1(xcb_query_text_extents_cookie_t cookie, unsigned *width,
-    unsigned *height)
-{
-    xcb_query_text_extents_reply_t *query_text_extents;
-
-    query_text_extents =
-	xcb_query_text_extents_reply(Connection, cookie, NULL);
-    if (!query_text_extents) {
-	Error("can't query text extents\n");
-	return 1;
-    }
-
-    if (width) {
-	*width = query_text_extents->overall_width;
-    }
-    if (height) {
-	*height =
-	    query_text_extents->overall_ascent +
-	    query_text_extents->overall_descent;
-    }
-    free(query_text_extents);
-    return 0;
-}
-#endif
 
 /**
 **	Display a string.
@@ -847,11 +1045,15 @@ void FontDrawString(xcb_drawable_t drawable, Font * font, uint32_t pixel,
     values[1] = font->Font;
     xcb_change_gc(Connection, FontGC, mask, values);
 
-    xcb_set_clip_rectangles(Connection, XCB_CLIP_ORDERING_UNSORTED, FontGC, 0,
-	0, 1, &rectangle);
+    /*
+       FIXME: loose some pixel of font
+       xcb_set_clip_rectangles(Connection, XCB_CLIP_ORDERING_UNSORTED, FontGC, 0,
+       0, 1, &rectangle);
+     */
     xcb_poly_text_8_simple(Connection, drawable, FontGC, x, y + font->Ascent,
 	len, str);
 }
+#endif
 
 /**
 **	Initialize a font stage 0.
@@ -1016,6 +1218,7 @@ void FontExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_LUA
 /**
 **	Set the font to use for a component.
 */
@@ -1043,6 +1246,25 @@ void FontSet(const char *module, const char *value)
     }
     Warning("font module '%s' not found\n", module);
 }
+#else
+/**
+**	Parse config for font module
+*/
+void FontConfig(void)
+{
+    Font *font;
+
+    for (font = &Fonts.Titlebar; font <= &Fonts.Fallback; ++font) {
+	const char* value;
+
+	if ( ConfigGetString(UwmConfig, &value, "font",
+		font->ModuleName, NULL)) {
+	    font->FontName = strdup(value);
+	    printf("%s = %s\n", font->ModuleName, font->FontName);
+	}
+    }
+}
+#endif
 
 /// @}
 
