@@ -381,8 +381,7 @@ Plugin * ClockConfig(ConfigObject* array)
     Plugin *plugin;
     ClockPlugin *clock_plugin;
     const char * sval;
-    ssize_t * ival;
-
+    ssize_t ival;
 
     clock_plugin = calloc(1, sizeof(*clock_plugin));
     SLIST_INSERT_HEAD(&Clocks, clock_plugin, Next);
