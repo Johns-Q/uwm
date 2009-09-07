@@ -30,10 +30,12 @@
 ///	The clock is shown as text in the panel. A command can be executed on
 ///	click.
 ///
+///	@todo Can add support for multiple commands (left, right, middle click).
+///	or generic command handling, like buttons.
+///
 /// @{
 
 #include <xcb/xcb.h>
-
 #include "uwm.h"
 
 #ifdef USE_CLOCK			// {
@@ -45,6 +47,9 @@
 
 #include "draw.h"
 #include "panel.h"
+
+#include "array.h"
+#include "config.h"
 
 /**
 **	Clock plugin typedef.
@@ -82,6 +87,9 @@ static uint32_t ClockLastUpdateTick;	///< tick of last clock update
 
 /**
 **	Draw a clock panel plugin.
+**
+**	@param clock_plugin	clock plugin private data
+**	@param now		current time
 */
 static void ClockDraw(ClockPlugin * clock_plugin, const time_t * now)
 {
@@ -171,7 +179,7 @@ static void ClockResize(Plugin * plugin)
 /**
 **	Handle a click event on a clock panel plugin.
 **
-**	Runs command assoziated with clock.
+**	Runs command associated with clock.
 **
 **	@param plugin	common panel plugin data of clock
 **	@param x	x-coordinate of button press
@@ -240,7 +248,8 @@ static void ClockTimeout(Plugin
 /**
 **	Initialize clock(s).
 **
-**	@todo FIXME: can send request for all clocks first, than handle requests.
+**	@todo FIXME: can send request for all clocks first, than handle
+**	requests.
 */
 void ClockInit(void)
 {
@@ -300,6 +309,8 @@ void ClockExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_LUA
+
 /**
 **	Create a new clock panel plugin.
 **
@@ -357,6 +368,64 @@ Plugin *ClockNew(const char *short_format, const char *long_format,
 
     return plugin;
 }
+
+#else
+
+/**
+**	Create a new clock panel plugin from config data.
+**
+**	@param array	configuration array for clock panel plugin
+*/
+Plugin * ClockConfig(ConfigObject* array)
+{
+    Plugin *plugin;
+    ClockPlugin *clock_plugin;
+    const char * sval;
+    ssize_t * ival;
+
+
+    clock_plugin = calloc(1, sizeof(*clock_plugin));
+    SLIST_INSERT_HEAD(&Clocks, clock_plugin, Next);
+
+    if (!ConfigGetString(array, &sval, "format", NULL)) {
+	sval = CLOCK_DEFAULT_FORMAT;
+    }
+    clock_plugin->ShortFormat = strdup(sval);
+
+    if (!ConfigGetString(array, &sval, "tooltip", NULL)) {
+	sval = CLOCK_DEFAULT_LONG_FORMAT;
+    }
+    clock_plugin->LongFormat = strdup(sval);
+
+    if (ConfigGetString(array, &sval, "command", NULL)) {
+	clock_plugin->Command = strdup(sval);
+    }
+
+    plugin = PanelPluginNew();
+    plugin->Object = clock_plugin;
+    clock_plugin->Plugin = plugin;
+
+    if (ConfigGetInteger(array, &ival, "width", NULL)) {
+	if (ival > 0) {
+	    plugin->RequestedWidth = ival;
+	    clock_plugin->UserWidth = 1;
+	}
+    }
+    if (ConfigGetInteger(array, &ival, "height", NULL)) {
+	plugin->RequestedHeight = ival;
+    }
+
+    plugin->Create = ClockCreate;
+    plugin->Delete = PanelPluginDeletePixmap;
+    plugin->Resize = ClockResize;
+    plugin->Tooltip = ClockTooltip;
+    plugin->HandleButtonPress = ClockHandleButtonPress;
+    plugin->Timeout = ClockTimeout;
+
+    return plugin;
+}
+
+#endif
 
 #endif // } USE_CLOCK
 

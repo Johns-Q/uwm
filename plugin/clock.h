@@ -34,8 +34,13 @@ extern void ClockInit(void);
     /// Cleanup clock panel plugin.
 extern void ClockExit(void);
 
+#ifdef USE_LUA
     /// Create a new clock panel plugin.
 Plugin *ClockNew(const char *, const char *, const char *, unsigned, unsigned);
+#else
+    /// Parse clock panel plugin config
+Plugin *ClockConfig(const ConfigObject *);
+#endif
 
 #ifndef USE_CLOCK			// {
 
@@ -43,6 +48,8 @@ Plugin *ClockNew(const char *, const char *, const char *, unsigned, unsigned);
 #define ClockInit()
     /// Dummy for cleanup clock(s).
 #define ClockExit()
+    /// Dummy for parse clock panel plugin config
+#define ClockConfig(o)	NULL
 
 #endif // } USE_CLOCK
 
