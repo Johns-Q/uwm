@@ -1,7 +1,7 @@
 ///
 ///	@file swallow.h @brief swallow panel plugin header file.
 ///
-///	Copyright (c) 2009 by Johns.  All Rights Reserved.
+///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -28,19 +28,24 @@
 //	Prototypes
 //////////////////////////////////////////////////////////////////////////////
 
-    ///	Determine if a window should be swallowed.
+    /// Determine if a window should be swallowed.
 extern int SwallowTryWindow(int, xcb_window_t);
+
     /// Determine if a map event was for a window that should be swallowed.
 extern int SwallowHandleMapRequest(const xcb_map_request_event_t *);
+
     /// Handle a destroy notify.
 extern int SwallowHandleDestroyNotify(const xcb_destroy_notify_event_t *);
-    ///	Handle a configure notify.
+
+    /// Handle a configure notify.
 int SwallowHandleConfigureNotify(const xcb_configure_notify_event_t *);
-    ///	Handle a resize request.
+
+    /// Handle a resize request.
 int SwallowHandleResizeRequest(const xcb_resize_request_event_t *);
 
     /// Intialize swallow panel plugin.
 extern void SwallowInit(void);
+
     /// Cleanup swallow panel plugin.
 extern void SwallowExit(void);
 

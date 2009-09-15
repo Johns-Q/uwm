@@ -1,7 +1,7 @@
 ///
-///	@file clock.c	@brief clock panel plugin functions.
+///	@file swallow.c	@brief swallow panel plugin functions.
 ///
-///	Copyright (c) 2009 by Johns.  All Rights Reserved.
+///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -24,8 +24,8 @@
 ///	@ingroup panel
 ///	@defgroup swallow_plugin	The swallow panel plugin
 ///
-///	This module add swallows to the panel.	Called dock or slit in other
-///	window managers.
+///	This module add swallows to the panel.	Also called dock or slit in
+///	other window managers.
 ///
 /// @{
 
@@ -45,11 +45,15 @@
 #include "config.h"
 
 #include "hints.h"
-
 #include "draw.h"
-#include "panel.h"
-
 #include "client.h"
+
+#include "image.h"
+#include "icon.h"
+#include "menu.h"
+
+#include "panel.h"
+#include "plugin/swallow.h"
 
 /**
 **	Swallow plugin typedef.
@@ -101,7 +105,7 @@ static void SwallowDelete(Plugin * plugin)
 
 	// kill only swallows which we own!
 	swallow_plugin = plugin->Object;
-	if ( swallow_plugin->UseOld || !swallow_plugin->Command ) {
+	if (swallow_plugin->UseOld || !swallow_plugin->Command) {
 	    return;
 	}
 
@@ -174,8 +178,8 @@ int SwallowTryWindow(int already_mapped, xcb_window_t window)
 	if (swallow_plugin->Plugin->Window) {
 	    continue;			// already filled slot
 	}
-	if( already_mapped &&
-		swallow_plugin->Command && !swallow_plugin->UseOld) {
+	if (already_mapped && swallow_plugin->Command
+	    && !swallow_plugin->UseOld) {
 	    continue;			// don't use old clients
 	}
 	// request class hints, if not already done
@@ -185,10 +189,10 @@ int SwallowTryWindow(int already_mapped, xcb_window_t window)
 		return 0;		// can't get hints, give up
 	    }
 	}
-	if ( (!swallow_plugin->Name ||
-		!strcmp(prop.instance_name, swallow_plugin->Name))
-	    && (!swallow_plugin->Class ||
-		!strcmp(prop.class_name, swallow_plugin->Class))) {
+	if ((!swallow_plugin->Name
+		|| !strcmp(prop.instance_name, swallow_plugin->Name))
+	    && (!swallow_plugin->Class
+		|| !strcmp(prop.class_name, swallow_plugin->Class))) {
 	    uint32_t value[1];
 	    xcb_get_geometry_cookie_t cookie;
 	    xcb_get_geometry_reply_t *geom;
@@ -472,7 +476,7 @@ Plugin *SwallowConfig(const ConfigObject * array)
     }
     // make sure this name/class isn't already used.
     SLIST_FOREACH(swallow_plugin, &Swallows, Next) {
-	if ( (name && swallow_plugin->Name
+	if ((name && swallow_plugin->Name
 		&& !strcmp(swallow_plugin->Name, name))
 	    || (sval && swallow_plugin->Class
 		&& !strcmp(swallow_plugin->Class, sval))) {
@@ -490,7 +494,7 @@ Plugin *SwallowConfig(const ConfigObject * array)
     if (sval) {
 	swallow_plugin->Class = strdup(sval);
     }
-    if (ConfigGetString(array, &sval, "command", NULL)) {
+    if (ConfigGetString(array, &sval, "execute", NULL)) {
 	swallow_plugin->Command = strdup(sval);
     }
     if (ConfigGetInteger(array, &ival, "use-old", NULL)) {
