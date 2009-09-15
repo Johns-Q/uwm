@@ -1,7 +1,7 @@
 ///
 ///	@file clock.c	@brief clock panel plugin functions.
 ///
-///	Copyright (c) 2009 by Johns.  All Rights Reserved.
+///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -27,11 +27,8 @@
 ///	This module add clocks to the panel. This module is only available
 ///	if compiled with #USE_CLOCK.
 ///
-///	The clock is shown as text in the panel. A command can be executed on
-///	click.
-///
-///	@todo Can add support for multiple commands (left, right, middle click).
-///	or generic command handling, like buttons.
+///	The clock is shown as text in the panel. Commands (external or window
+///	manager) can be executed on pointer button click.
 ///
 /// @{
 
@@ -45,11 +42,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "draw.h"
-#include "panel.h"
+#include <xcb/xcb_icccm.h>
 
 #include "array.h"
 #include "config.h"
+
+#include "draw.h"
+#include "client.h"
+
+#include "image.h"
+#include "icon.h"
+#include "menu.h"
+
+#include "panel.h"
+#include "plugin/clock.h"
 
 /**
 **	Clock plugin typedef.
@@ -67,8 +73,8 @@ struct _clock_plugin_
     char *ShortFormat;			///< time format for panel
     char *LongFormat;			///< time format for tooltip
 
-    // FIXME: more buttons?
-    char *Command;			///< command to run when clicked
+    MenuButton *Buttons;		///< commands to run on click
+
     char AsciiTime[80];			///< currently displayed time
 
     unsigned UserWidth:1;		///< user-specified clock width flag
@@ -147,13 +153,21 @@ static void ClockDraw(ClockPlugin * clock_plugin, const time_t * now)
 */
 static void ClockCreate(Plugin * plugin)
 {
+    ClockPlugin *clock_plugin;
+    time_t now;
+
     // create pixmap
     PanelPluginCreatePixmap(plugin);
 
     // clear the background
     PanelClearPluginBackgroundWithColor(plugin, &Colors.ClockBG.Pixel);
 
-    // FIXME: shouldn't i draw here?
+    // FIXME: is redraw needed?
+    clock_plugin = plugin->Object;
+    clock_plugin->AsciiTime[0] = '\0';	// force redraw
+
+    time(&now);
+    ClockDraw(clock_plugin, &now);
 }
 
 /**
@@ -163,17 +177,8 @@ static void ClockCreate(Plugin * plugin)
 */
 static void ClockResize(Plugin * plugin)
 {
-    ClockPlugin *clock_plugin;
-    time_t now;
-
     PanelPluginDeletePixmap(plugin);
-    PanelPluginCreatePixmap(plugin);
-
-    clock_plugin = plugin->Object;
-    clock_plugin->AsciiTime[0] = '\0';	// force redraw
-
-    time(&now);
-    ClockDraw(clock_plugin, &now);
+    ClockCreate(plugin);
 }
 
 /**
@@ -193,9 +198,7 @@ static void ClockHandleButtonPress(Plugin * plugin, int
     ClockPlugin *clock_plugin;
 
     clock_plugin = plugin->Object;
-    if (clock_plugin->Command) {
-	CommandRun(clock_plugin->Command);
-    }
+    PanelButtonExecute(plugin, clock_plugin->Buttons, mask);
 }
 
 /**
@@ -291,15 +294,10 @@ void ClockExit(void)
     while (!SLIST_EMPTY(&Clocks)) {	// list deletion
 	clock_plugin = SLIST_FIRST(&Clocks);
 
-	if (clock_plugin->ShortFormat) {
-	    free(clock_plugin->ShortFormat);
-	}
-	if (clock_plugin->LongFormat) {
-	    free(clock_plugin->LongFormat);
-	}
-	if (clock_plugin->Command) {
-	    free(clock_plugin->Command);
-	}
+	free(clock_plugin->ShortFormat);
+	free(clock_plugin->LongFormat);
+
+	MenuButtonDel(clock_plugin->Buttons);
 
 	SLIST_REMOVE_HEAD(&Clocks, Next);
 	free(clock_plugin);
@@ -376,11 +374,11 @@ Plugin *ClockNew(const char *short_format, const char *long_format,
 **
 **	@param array	configuration array for clock panel plugin
 */
-Plugin * ClockConfig(ConfigObject* array)
+Plugin *ClockConfig(const ConfigObject * array)
 {
     Plugin *plugin;
     ClockPlugin *clock_plugin;
-    const char * sval;
+    const char *sval;
     ssize_t ival;
 
     clock_plugin = calloc(1, sizeof(*clock_plugin));
@@ -396,9 +394,8 @@ Plugin * ClockConfig(ConfigObject* array)
     }
     clock_plugin->LongFormat = strdup(sval);
 
-    if (ConfigGetString(array, &sval, "command", NULL)) {
-	clock_plugin->Command = strdup(sval);
-    }
+    // common config of pointer buttons to commands
+    MenuButtonsConfig(array, &clock_plugin->Buttons);
 
     plugin = PanelPluginNew();
     plugin->Object = clock_plugin;

@@ -1,7 +1,7 @@
 ///
 ///	@file clock.h	@brief clock panel plugin header file.
 ///
-///	Copyright (c) 2009 by Johns.  All Rights Reserved.
+///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
