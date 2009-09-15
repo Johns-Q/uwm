@@ -1,7 +1,7 @@
 ///
 ///	@file draw.c	@brief drawing functions
 ///
-///	Copyright (c) 2009 by Johns.  All Rights Reserved.
+///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -40,7 +40,7 @@
 #include "array.h"
 #include "config.h"
 
-extern Config *UwmConfig;			///< µwm config
+extern Config *UwmConfig;		///< µwm config
 
 // ------------------------------------------------------------------------ //
 // XCB
@@ -59,6 +59,7 @@ const char *xcb_event_get_error_label(uint8_t type);
 #endif
 
 #if 0
+
 /**
 **	Draw poly text.
 **
@@ -694,10 +695,8 @@ void ColorInit(void)
 
     // free the now unused color values
     for (color = &Colors.TitleFG; color <= &Colors.MenuActiveDown; ++color) {
-	if (color->Value) {
-	    free(color->Value);
-	    color->Value = NULL;
-	}
+	free(color->Value);
+	color->Value = NULL;
     }
 }
 
@@ -718,36 +717,6 @@ void ColorExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
-#ifdef USE_LUA
-
-/**
-**	Set the color to use for a modul.
-**
-**	@param name	internal color name
-**	@param value	color value (x11 color name or hex triple)
-*/
-void ColorSet(const char *name, const char *value)
-{
-    Color *color;
-
-    if (!value) {
-	Warning("empty color tag\n");
-	return;
-    }
-    for (color = &Colors.TitleFG; color <= &Colors.MenuActiveDown; ++color) {
-	if (!strcasecmp(name, color->Name)) {
-	    if (color->Value) {
-		free(color->Value);
-	    }
-	    color->Value = strdup(value);
-	    return;
-	}
-    }
-    Warning("color name '%s' not found\n", name);
-}
-
-#else
-
 /**
 **	Parse config for color module
 */
@@ -756,17 +725,15 @@ void ColorConfig(void)
     Color *color;
 
     for (color = &Colors.TitleFG; color <= &Colors.MenuActiveDown; ++color) {
-	const char* value;
+	const char *value;
 
-	if ( color->Name && ConfigGetString(UwmConfig, &value, "color",
+	if (color->Name
+	    && ConfigGetString(ConfigDict(UwmConfig), &value, "color",
 		color->Name, NULL)) {
 	    color->Value = strdup(value);
-	    printf("%s = %s\n", color->Name, color->Value);
 	}
     }
 }
-
-#endif
 
 /// @}
 
@@ -802,6 +769,7 @@ FontTable Fonts = {			///< contains all our used fonts
     ,
     .Fallback = {.ModuleName = "fallback"}
 };
+
 static xcb_gcontext_t FontGC;		///< font graphic context
 
 /**
@@ -975,85 +943,18 @@ void FontDrawString(xcb_drawable_t drawable, Font * font, uint32_t pixel,
     // UTF-8 to UCS-2 conversion
     chars = alloca(len * sizeof(*chars));
     i = FontUtf8ToUcs2((const uint8_t *)str, chars, len);
+    /*
+       Some one broke uft-8 support
+       if (*str & 0x80) {
+       printf("UTF-8 %02x+%02x\n", chars[0].byte1, chars[0].byte2);
+       } else {
+       printf("ASCII %02x+%02x\n", chars[0].byte1, chars[0].byte2);
+       }
+     */
 
     xcb_poly_text_16_simple(Connection, drawable, FontGC, x, y + font->Ascent,
 	i, chars);
 }
-
-#if 0
-
-/**
-**	Display a string.
-**
-**	@param drawable	x11 drawable pixmap/window
-**	@param font	our font definition
-**	@param pixel	color to draw in x11 pixel format
-**	@param x	x-coordinate to place the text
-**	@param y	y-coordinate to place the text
-**	@param region	region to draw
-**	@param width	don't draw text beyond width
-**	@param str	text string
-**
-**	@todo FIXME: clipping on region
-*/
-void FontDrawString(xcb_drawable_t drawable, Font * font, uint32_t pixel,
-    int x, int y, unsigned width, xcb_rectangle_t * region, const char *str)
-{
-    size_t len;
-    uint32_t mask;
-    uint32_t values[2];
-    xcb_rectangle_t rectangle;
-
-    if (region) {
-	Debug(0, "FIXME: %s didn't support region clipping yet\n",
-	    __FUNCTION__);
-    }
-    if (!str) {
-	return;
-    }
-    if (!(len = strlen(str))) {
-	return;
-    }
-
-    if (region) {			// FIXME: we need full region support
-	int x1;
-	int x2;
-	int y1;
-	int y2;
-
-	x1 = MAX(x, region->x);
-	y1 = MAX(y, region->y);
-	x2 = MIN(x + width, region->x + (unsigned)region->width);
-	y2 = MIN(y + UINT16_MAX, region->y + region->height);
-
-	if (x1 >= x2 || y1 >= y2) {
-	    return;			// nothing todo
-	}
-	rectangle.x = x1;
-	rectangle.y = y1;
-	rectangle.width = x2 - x1;
-	rectangle.height = y2 - y1;
-    } else {
-	rectangle.x = x;
-	rectangle.y = y;
-	rectangle.width = width;
-	rectangle.height = UINT16_MAX;	// clip on width
-    }
-
-    mask = XCB_GC_FOREGROUND | XCB_GC_FONT;
-    values[0] = pixel;
-    values[1] = font->Font;
-    xcb_change_gc(Connection, FontGC, mask, values);
-
-    /*
-       FIXME: loose some pixel of font
-       xcb_set_clip_rectangles(Connection, XCB_CLIP_ORDERING_UNSORTED, FontGC, 0,
-       0, 1, &rectangle);
-     */
-    xcb_poly_text_8_simple(Connection, drawable, FontGC, x, y + font->Ascent,
-	len, str);
-}
-#endif
 
 /**
 **	Initialize a font stage 0.
@@ -1136,6 +1037,7 @@ static void FontCheck2(Font * font)
 void FontInit(void)
 {
     uint32_t value[1];
+    Font *font;
 
     if (!Fonts.Fallback.FontName) {
 	Fonts.Fallback.FontName = strdup(DEFAULT_FONT);
@@ -1191,6 +1093,13 @@ void FontInit(void)
     FontCheck2(&Fonts.Panel);
     FontCheck2(&Fonts.PanelButton);
     FontCheck2(&Fonts.Pager);
+
+    // font names are no longer needed
+    for (font = &Fonts.Titlebar; font <= &Fonts.Fallback; ++font) {
+	Debug(3, "font %s = %s\n", font->ModuleName, font->FontName);
+	free(font->FontName);
+	font->FontName = NULL;
+    }
 }
 
 /**
@@ -1205,10 +1114,6 @@ void FontExit(void)
 
     for (font = &Fonts.Titlebar; font <= &Fonts.Fallback; ++font) {
 	xcb_close_font(Connection, font->Font);
-	if (font->FontName) {
-	    free(font->FontName);
-	    font->FontName = NULL;
-	}
 	font->Font = XCB_NONE;
     }
     xcb_free_gc(Connection, FontGC);
@@ -1218,35 +1123,6 @@ void FontExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
-#ifdef USE_LUA
-/**
-**	Set the font to use for a component.
-*/
-void FontSet(const char *module, const char *value)
-{
-    Font *font;
-
-    if (!module) {
-	Warning("empty module tag\n");
-	return;
-    }
-    if (!value) {
-	Warning("empty font tag\n");
-	return;
-    }
-
-    for (font = &Fonts.Titlebar; font <= &Fonts.Fallback; ++font) {
-	if (!strcasecmp(module, font->ModuleName)) {
-	    if (font->FontName) {
-		free(font->FontName);
-	    }
-	    font->FontName = strdup(value);
-	    return;
-	}
-    }
-    Warning("font module '%s' not found\n", module);
-}
-#else
 /**
 **	Parse config for font module
 */
@@ -1255,16 +1131,110 @@ void FontConfig(void)
     Font *font;
 
     for (font = &Fonts.Titlebar; font <= &Fonts.Fallback; ++font) {
-	const char* value;
+	const char *value;
 
-	if ( ConfigGetString(UwmConfig, &value, "font",
+	if (ConfigGetString(ConfigDict(UwmConfig), &value, "font",
 		font->ModuleName, NULL)) {
 	    font->FontName = strdup(value);
-	    printf("%s = %s\n", font->ModuleName, font->FontName);
 	}
     }
 }
-#endif
+
+/// @}
+
+// ------------------------------------------------------------------------ //
+// Gradient
+// ------------------------------------------------------------------------ //
+
+///	@defgroup gradient The gradient drawing module.
+///
+///	This modules contains the gradient drawing functions.
+///
+/// @{
+
+/**
+**	Draw a horizontal gradient.
+**
+**	@param drawable		pixmap or window to get gradient
+**	@param gc		graphic context to draw gradient
+**	@param from_pixel	x11 pixel starting color
+**	@param to_pixel		x11 pixel ending color
+**	@param x		start x-coordinate of gradient
+**	@param y		start y-coordinate of gradient
+**	@param width		width of gradient
+**	@param height		height of gradient
+**
+**	@todo rewrite float to fix point integer
+*/
+void GradientDrawHorizontal(xcb_drawable_t drawable, xcb_gcontext_t gc,
+    uint32_t from_pixel, uint32_t to_pixel, int x, int y, unsigned width,
+    unsigned height)
+{
+    xcb_point_t points[2];
+    unsigned line;
+    xcb_coloritem_t temp;
+    double red;
+    double green;
+    double blue;
+    double from_red;
+    double from_green;
+    double from_blue;
+    double to_red;
+    double to_green;
+    double to_blue;
+    double multiplier;
+    double from_mult;
+    double to_mult;
+
+    // return if there's nothing to do
+    if (!width || !height) {
+	Debug(0, "Hey dude, check the caller can check this\n");
+	return;
+    }
+    // here we assume that background was filled elsewhere
+    if (from_pixel == to_pixel) {
+	Debug(0, "Hey dude, check the caller can check this\n");
+	return;
+    }
+    // load "from" color
+    temp.pixel = from_pixel;
+    ColorGetFromPixel(&temp);
+    from_red = (double)temp.red / 65535.0;
+    from_green = (double)temp.green / 65535.0;
+    from_blue = (double)temp.blue / 65535.0;
+
+    // load "to" color
+    temp.pixel = to_pixel;
+    ColorGetFromPixel(&temp);
+    to_red = (double)temp.red / 65535.0;
+    to_green = (double)temp.green / 65535.0;
+    to_blue = (double)temp.blue / 65535.0;
+    multiplier = 1.0 / height;
+
+    // loop over each line
+    points[0].x = x;
+    points[1].x = x + width;
+    for (line = 0; line < height; line++) {
+
+	to_mult = line * multiplier;
+	from_mult = 1.0 - to_mult;
+	// determine color for this line
+	red = from_red * from_mult + to_red * to_mult;
+	green = from_green * from_mult + to_green * to_mult;
+	blue = from_blue * from_mult + to_blue * to_mult;
+	temp.red = (uint16_t) (red * 65535.9);
+	temp.green = (uint16_t) (green * 65535.9);
+	temp.blue = (uint16_t) (blue * 65535.9);
+	ColorGetPixel(&temp);
+
+	// draw line
+	xcb_change_gc(Connection, gc, XCB_GC_FOREGROUND, &temp.pixel);
+	points[0].y = y + line;
+	points[1].y = y + line;
+	xcb_poly_line(Connection, XCB_COORD_MODE_ORIGIN, drawable, gc, 2,
+	    points);
+    }
+}
 
 /// @}
 
