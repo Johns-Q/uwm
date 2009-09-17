@@ -1,0 +1,576 @@
+;{
+	@file uwmrc	@brief µwm µ window manager resource config file
+
+	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+
+	Contributor(s):
+
+	License: AGPLv3
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Affero General Public License as
+	published by the Free Software Foundation, either version 3 of the
+	License.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Affero General Public License for more details.
+
+	$Id: $
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;}
+
+; include "theme"
+; include "apps"
+; include "keys"
+include "menu"
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	Constants
+
+DEFAULT_TERM = "rxvt"
+UWM-VERSION = "0.20"
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	Color
+;
+;	Set color of the modules
+
+color = [
+    title-fg = "gray55"
+    title-bg1 = "gray22"
+    title-bg2 = "black"
+
+    title-active-fg = "white"
+    title-active-bg1 = "gray22"
+    title-active-bg1 = "gray55"
+
+    border-line = "black"
+    border-active-line = "gray22"
+    border-corner = "gray33"
+    border-active-corner = "darkred"
+
+    panel-fg = "white"
+    panel-bg = "gray33"
+
+    task-fg = "gray55"
+    task-bg1 = "gray22"
+    task-bg2 = "black"
+    task-active-fg = "white"
+    task-active-bg1 = "gray22"
+    task-active-bg2 = "gray55"
+
+    pager-fg = "gray33"
+    pager-bg = "gray22"
+    pager-active-fg = "gray55"
+    pager-active-bg = "gray66"
+    pager-outline = "darkred"
+    pager-text = "white"
+
+    menu-fg = "gray11"
+    menu-bg = "gray44"
+    menu-active-fg = "white"
+    menu-active-bg1 = "gray33"
+    menu-active-bg2 = "gray66"
+    menu-active-outline = "black"
+
+    tooltip-fg = "black"
+    tooltip-bg = "gray55"
+    tooltip-outline = "darkred"
+
+    button-fg = "gray55"
+    button-bg = "gray22"
+
+    clock-fg = "gray55"
+    clock-bg = "gray22"
+]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	Desktop
+;
+;	Set number and names of desktops (1 ... 8)
+
+desktop.count = 3			; alternative syntax
+desktop = [
+    count = 3,
+    "One",
+    "Two",
+    "Three",
+    "Four",
+]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	Background
+;
+;	Set background of desktop
+;
+;	desktop_nr = -1 : default background
+;
+;	type
+;		solid color
+;		gradient color|color
+;		execute command-string
+;		scale file-name (maximized wallpaper, preserving aspect)
+;		image file-name (placed wallpaper, top-left corner)
+;
+;	Note:	that each background which isn't solid color, needs about
+;		2.5 MB memory depending on resolution and depth of the desktop
+;
+;	[desktop_nr] = [ type = value ]
+
+background = [
+    [-1] = [solid = "black"]
+;    [1] = [gradient = "#888888|#ff0000"]
+;    [2] = [gradient = "#882222|#ff2222"]
+;    [0] = [scale = "/home/johns/Downloads/background_800x480.png"]
+    [0] = [image = "/usr/share/slim/themes/johns/background.jpg"]
+;    [1] = [scale = "/usr/share/slim/themes/johns/background.jpg"]
+;    [4] = [solid = "#ffffff"]
+;    [3] = [solid = "red"]
+;    [0] = [execute = "fbsetbg -a /usr/share/slim/themes/johns/background.jpg"]
+]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	Font
+;
+;	Set font of the modules.
+
+font = [
+    titlebar = "-*-dejavu sans-*-r-*-*-12-*-*-*-*-*-*-15"
+    menu = "-*-dejavu sans-*-*-*-*-18-*-*-*-*-*-*-15"
+    task = "-*-dejavu sans-*-r-*-*-14-*-*-*-*-*-*-15"
+    ; tooltip = "-*-dejavu sans-*-*-*-*-16-*-*-*-*-*-*-15"
+    tooltip = "-*-terminus-*-*-*-*-16-*-*-*-*-*-*-u"
+    panel = "-*-dejavu sans-*-*-*-*-14-*-*-*-*-*-*-15"
+    clock = "-*-dejavu sans-*-*-*-*-14-*-*-*-*-*-*-15"
+    button = "-*-dejavu sans-*-r-*-*-14-*-*-*-*-*-*-15"
+    pager = "5x7"
+    fallback = "-*-dejavu sans-*-r-*-*-14-*-*-*-*-*-*-15"
+    ; fallback = "-*-helvetica-*-*-*-*-14-*-*-*-*-*-*-*"
+]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	Settings
+
+tooltip = [
+    ; 1: enabled 0:disabled
+    enabled = true
+    ; ms until display
+    delay = 500
+]
+
+; it is also possible to write it like this:
+tooltip.enabled = true
+tooltip.delay = 500
+
+    ; sloopy or click
+focus-model = `sloppy
+
+    ; show confirmation dialog on exit �wm? true | false (true)
+show-exit-confirmation = false
+    ; show confirmation dialog on kill window? true | false (true)
+show-kill-confirmation = false
+
+; FIXME: not yet used
+double-click.delta = 4
+double-click.speed = 50
+; FIXME: not yet used
+;
+;	snap-mode: none, client, screen, border (border)
+;
+snap-mode = `border
+;
+;	snap-distance: 1 - 32 (5)
+;
+snap-distance = 5
+;
+;	move-mode: outline, opaque (opaque)
+;
+move-mode = `opaque
+;
+;	resize-mode: outline, opaque (opaque)
+;
+resize-mode = `opaque
+
+
+border = [
+    ; Titlebar height: (20) 2 - 64, 0 to use titlebar font height
+    title-height = 0
+    ; Border width: (4) 1 - 32
+    width = 3
+]
+
+; add as many paths as you like (with slowdown for each added path)
+; first path has highest priority
+icon-path = [
+    "~/.uwm/icons"
+    "/usr/share/icons/gnome/32x32/apps"
+    "/usr/share/icons/hicolor/32x32/apps/"
+]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	menus
+
+;
+;	root menu(s) for root-menu command
+;
+root-menu = [
+  opacity = 1.0
+
+  [0] = [ label = "µWM " ~ UWM-VERSION
+    [ icon = "terminal.png" text = "rxvt" execute = "rxvt" ]
+    [ icon = "firefox-icon.xpm" text = "firefox" execute = "firefox" ]
+    [ icon = "thunderbird-icon.xpm" text = "thunderbird" execute = "thunderbird" ]
+
+    ;
+    ;	X utilities sub-menu
+    ;
+    [ text = "X-utils" menu = [ label = "X-utils"
+	[ text = "xfontsel" execute = "xfontsel" ]
+	[ text = "xman" execute = "xman" ]
+	[ text = "xload" execute = "xload" ]
+	[ text = "xbiff" execute = "xbiff" ]
+	[ text = "editres" execute = "editres" ]
+	[ text = "viewres" execute = "viewres" ]
+	[ text = "xclock" execute = "xclock" ]
+	[ text = "xmag" execute = "xmag" ]
+	[ text = "wmagnify" execute = "wmagnify" ]
+	[ text = "xrestop" execute = DEFAULT_TERM ~ " -e xrestop" ]
+	[ text = "xev" execute = DEFAULT_TERM ~ " -e xev" ]
+	[ text = "xprop" execute = "xprop | xmessage -file - -center" ]
+	[ text = "xwininfo" execute = "xwininfo | xmessage -file - -center" ]
+	[ text = "Reload .Xdefaults" execute = "xrdb -load $HOME/.Xdefaults" ]
+    ]]
+
+    ;
+    ;	dockapps sub-menu
+    ;
+    [ text = "dockapps" menu = [ label = "dockapps"
+	[ text = "wmtime" execute = "wmtime" ]
+	[ text = "wmCalClock" execute = "wmCalClock" ]
+	[ text = "wmCalendar" execute = "wmCalendar" ]
+	[ text = "wmSMPmon" execute = "wmSMPmon" ]
+	[ text = "wmc2d" execute = "wmc2d" ]
+	[ text = "wmcpuload" execute = "wmcpuload" ]
+	[ text = "wmdia" execute = "wmdia" ]
+	[ text = "wmnet" execute = "wmnet" ]
+    ]]
+
+    ;
+    ;	µWM sub-menu
+    ;
+    [ icon = "uwm16x16.xpm" text = "µWM menu" menu = [
+	[ text = "exit µwm" exit = true ]
+	[ text = "restart µwm" restart = true  ]
+	[ text = "lock µwm" execute = "xtrlock" ]
+	[ text = "Window Manager" menu = [ label = "Window Manager"
+	    [ text = "µwm" exit = "/home/johns/src/uwm/uwm" ]
+	    [ text = "jwm" exit = "jwm" ]
+	    [ text = "icewm" exit = "icewm" ]
+	    [ text = "fluxbox" exit = "fluxbox" ]
+	]]
+    ]]
+
+    [ text = "Run" execute =
+	{dmenu_run -b -fn "-*-dejavu sans-*-*-*-*-18-*-*-*-*-*-*-u"} ]
+  ]
+
+  [1] = [
+    [ text = "Desktops" desktop = [] ]
+  ]
+]
+
+;
+;	configure pointer/mouse buttons on root window
+;
+root = [
+    [ button = 1 root-menu = 0 ]
+    [ button = 2 root-menu = 1 ]
+    [ button = 3 root-menu = 0 ]
+    [ button = 4 prev-desktop = true ]
+    [ button = 5 next-desktop  = true ]
+    ; FIXME: double-click not yet working
+    [ double-click = 1 toggle-show-desktop = true ]
+]
+
+;
+;	window menu (FIXME: not yet used)
+;
+window-menu = [
+    [ text = "Maximize-y" maximize-vertical = true ]
+    [ text = "Maximize-x" maximize-horizontal = true ]
+    [ text = "Maximize" maximize = true ]
+    [ text = "Unmaximize" unmaximize = true ]
+
+    [ text = "Restore" restore = true ]
+    [ text = "Unshade" unshade = true ]
+    [ text = "Shade" shade = true ]
+    [ text = "Minimize" minimize = true ]
+
+    [ text = "Send to" send-to = [] ]
+    [ text = "Unstick" unstick = true ]
+    [ text = "Stick" stick = true ]
+
+    [ text = "Layer" layer = [] ]
+    [ text = "Raise" raise = true ]
+    [ text = "Lower" lower = true ]
+
+    [ text = "Move" move = true ]
+    [ text = "Resize" resize = true ]
+
+    [ seperator = true ]
+
+    [ text = "Close" close = true ]
+    [ text = "Kill" kill = true ]
+]
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	Panel
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+panel = [
+	; panel opacity: 0.00 - 1.00 (1.00)
+    opacity = 1.0
+
+    ;
+    ;	main panel
+    ;
+    [0] = [
+	    ; panel border: 0 - 32 (1)
+	border = 1
+	    ; panel gravity: static, north-west, north, north-east, west,
+	    ;	center, east, south-west, south, south-east (static)
+	gravity = "west"
+	    ; panel position: relative to gravity (0, -1)
+	x = -1 y = 0
+	    ; panel layout: vertical | horizontal (auto)
+	; layout = "vertical"
+	    ; panel width: >0 width in pixel, 0 auto, <0 percent (0)
+	    ;	dockapps are 64x64 + 1 pixel border + 1 pixel panel border
+	width = 68
+	    ; panel height: >0 height in pixel, 0 auto, <0 percent (0)
+	; height = -99
+	    ; panel autohide: 0|1 (0)
+	auto-hide = false
+	    ; panel maximize over panel; 0|1 (0)
+	maximize-over =  false
+	    ; panel layer: 0 .. 10 (6)
+	    ; FIXME: bottom, desktop, below, normal, above, panel, fullscreen,
+	    ;	top
+	layer = 6
+
+	;
+	;	now all plugins (order is position)
+	;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	Button plugin
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+	[ type = `button
+	    width = 16 height = 16
+
+	    icon-or-text = true
+	    icon = "uwm16x16.xpm" text = "µWM"
+	    tooltip = "µwm menu"
+	    root-menu = 0
+	]
+	[ type = `button
+	    text = "_"
+	    tooltip = "Toggle hide windows and show desktop"
+	    ; planned:
+	    [ button = 1 toggle-show-desktop = true ]
+	    [ button = 3 toggle-shade-desktop = true ]
+	    toggle-show-desktop = true
+	]
+	[ type = `button
+	    text = "rxvt"
+	    tooltip = "Execute terminal"
+	    execute = "rxvt"
+	]
+	[ type = `button
+	    tooltip = "Show desktop menu"
+	    desktop = []
+	]
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Swallow plugin
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;	name = "..."
+;		instance name of WM_CLASS, window matching is swallowed
+;	class = "..."
+;		class name of WM_CLASS, window matching is swallowed
+;	execute = "..."
+;		execute is executed to create swallow window client
+;	use-old = true
+;		flag use existing client to swallow
+;	border = 0 .. 8 (0)
+;		border arround swallowed window
+;	width = n (0)
+;		width of swallowed window
+;	height = n (0)
+;		height of swallowed window
+;
+	[ type = `swallow
+	    name = "wmnet"
+	    use-old = true
+	    execute = "wmnet -W br0 --logscale --maxrate=100000000"
+	]
+	[ type = `swallow
+	    name = "wmSMPmon"
+	    use-old = true
+	    execute = "wmSMPmon -g 3"
+	]
+;	[ type = `swallow
+;	    name = "wmdia"
+;	    use-old = true
+;	    execute = "wmdia"
+;	]
+	[ type = `swallow
+	    name = "wmc2d"
+	    use-old = true
+	    execute = "wmc2d"
+	]
+;	[ type = `swallow
+;	    name = "wmtime"
+;	    use-old = true
+;	    execute = "wmtime -n"
+;	]
+	[ type = `systray
+	]
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	Clock plugin
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;	For a complete list of clock formats see strftime
+;	%I:%M %P	HH:MM PM
+;	%R		HH:MM
+;	%T		HH:MM:SS
+;	%c		preferred date and time representation
+;
+	[ type = `clock
+	    width = 0 height = 0
+	    format = "%R" tooltip = "%c"
+	    [ button = 1 execute = "xcalendar"]
+	    [ button = 2 execute = "oclock"]
+	    ;[ button = 3 execute = "xclock"]
+	    [ button = 3 root-menu = 0]
+	    [ button = 4 execute = "dclock"]
+	    [ button = 5 execute = "cairo-clock"]
+	]
+    ]
+
+    ;
+    ;	secondary panel
+    ;
+    [1] = [
+	gravity = "south-east"
+	x = 67 y = 1
+	auto-hide = false
+	height = 24
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Pager plugin
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;	labeled = 0|1 (0)
+;		true draw desktop name on pager desktops
+;	sticky = 0|1 (0)
+;		true show sticky window on all desktops
+;
+	[ type = `pager
+	    labeled = true
+	    sticky = true
+	]
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Task plugin
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;	insert-mode = left | right (left)
+;		insert new clients left/top or right/bottom
+;
+;	max-item-width = 0 .. max integer (unlimited)
+;		maximal width of client button in task list
+;
+	[ type = `task
+	    insert-mode = `left
+	    ; max-item-width = 100
+	]
+    ]
+
+    ;
+    ;	clock plugin panel
+    ;{
+    [2] = [
+	hidden = true
+	x = 67 y = 60
+	[ type = `swallow
+	    name = "xcalendar" class = "XCalendar"
+	    use-old = true
+	    ; execute = "/usr/bin/xcalendar"
+	    border = 0 width = 245 height = 165
+	]
+    ]
+    ;}
+]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Systray plugin
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;
+;	There can only be one systray in one panel
+;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	Rules
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;
+;	rule:
+;		name = [...]
+;		class = [...]
+;		title = [...]
+;		option = [...]
+;
+
+rule = [
+    [ name = ["Navigator"] class = ["Firefox"]
+	option = [
+	    no-border = true
+	    no-title = true
+	    position = "north-east"
+	]]
+    [ name = ["myrxvt"] class = ["XTerm"]
+	option = [
+	    no-title = true
+	    x = 60
+	    y = 60
+	    width = 329
+	    height = 177
+	    fullscreen = true
+	]]
+]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	Commands
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;	startup are run during µwm boot (not when restarted)
+command-startup = [
+    "xset m 10/3 10"
+    "echo startup 1"
+    "echo startup 2"
+    "echo startup 3"
+]
+
+;	restart are only run, if µwm is restarted
+command-restart = [
+    "echo restart 1"
+    "echo restart 2"
+]
+
+;	exiting are run during µwm shutdown (not when restarted)
+command-exiting = [
+    "echo exiting 1"
+    "echo exiting 2"
+]
