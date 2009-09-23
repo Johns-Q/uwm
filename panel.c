@@ -1,7 +1,7 @@
 ///
 ///	@file panel.c @brief panel functions
 ///
-///	Copyright (c) 2009 by Johns.  All Rights Reserved.
+///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -23,15 +23,27 @@
 ///
 ///	@defgroup panel The panel module.
 ///
-///	This module handles panels. An unlimited number of panels are
-///	supported.  Other names for panels are slit, toolbar or dock.
+///	This module handles panels.  An unlimited number of panels are
+///	supported.  Other names for panels or parts of it are slit, toolbar or
+///	dock.  Panels can be placed everywhere, can also be abused as desktop
+///	buttons or desktop widget.
 ///
 ///	A panel can contain buttons, task-list, pager, docked applications,
 ///	systray or clock.
+///
+///	Alternatives:
+///		- lxde-base/lxpanel
+///			@n Lightweight X11 desktop panel
+///			@n http://lxde.sf.net
+///		- x11-misc/fbpanel
+///			@n light-weight X11 desktop panel
+///			@n http://fbpanel.sourceforge.net
 /// @{
 
 #include <xcb/xcb.h>
 #include "uwm.h"
+
+#ifdef USE_PANEL			// {
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,11 +51,18 @@
 #include <string.h>
 #include <sys/queue.h>
 
+#include <xcb/xcb_icccm.h>
+
 #include "array.h"
 #include "config.h"
 #include "draw.h"
 #include "hints.h"
+#include "screen.h"
 #include "pointer.h"
+#include "image.h"
+#include "client.h"
+
+#include "icon.h"
 #include "menu.h"
 #include "panel.h"
 #include "plugin/button.h"
@@ -89,8 +108,9 @@ static Plugin *PanelGetPluginByXY(const Panel * panel, int x, int y)
 	int width;
 	int height;
 
-	width = plugin->Width;
-	height = plugin->Height;
+	if (!(width = plugin->Width) || !(height = plugin->Height)) {
+	    continue;
+	}
 	if (x >= xoffset && x - xoffset < width && y >= yoffset
 	    && y - yoffset < height) {
 	    return plugin;
@@ -283,6 +303,47 @@ void PanelShow(Panel * panel)
     }
 }
 
+/**
+**	Execute pointer button command
+**
+**	Generic function to execute pointer button clicks.
+**
+**	@param plugin	common plugin data
+**	@param button	pointer button commands to be executed
+**	@param mask	pointer button number
+*/
+void PanelExecuteButton(const Plugin * plugin, MenuButton * button, int mask)
+{
+    const Screen *screen;
+    int x;
+    int y;
+
+    //
+    //	Calculate menu hot-spot
+    //
+    screen = ScreenGetByXY(plugin->ScreenX, plugin->ScreenY);
+    if (plugin->Panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
+	x = plugin->ScreenX;
+	if (plugin->ScreenY + (int)plugin->Height / 2 <
+	    screen->Y + (int)screen->Height / 2) {
+	    y = plugin->ScreenY + plugin->Height;
+	} else {
+	    y = -plugin->ScreenY;
+	}
+    } else {
+	y = plugin->ScreenY;
+	if (plugin->ScreenX + (int)plugin->Width / 2 <
+	    screen->X + (int)screen->Width / 2) {
+	    x = plugin->ScreenX + plugin->Width;
+	} else {
+	    x = -plugin->ScreenX;
+	}
+    }
+
+    Debug(3, "menu at %d,%d\n", x, y);
+    MenuButtonExecute(button, mask, x, y, NULL);
+}
+
 // ------------------------------------------------------------------------ //
 // Events
 // ------------------------------------------------------------------------ //
@@ -391,6 +452,8 @@ int PanelHandleButtonRelease(const xcb_button_release_event_t * event)
 **	Handle a motion notify event over a panel.
 **
 **	@param event	X11 motion notify event
+**
+**	@returns true if event is handled by any panel, false otherwise.
 */
 int PanelHandleMotionNotify(const xcb_motion_notify_event_t * event)
 {
@@ -419,7 +482,7 @@ int PanelHandleMotionNotify(const xcb_motion_notify_event_t * event)
 **
 **	@param event	X11 enter notify event
 **
-**	@returns true if handled (is panel), false if unhandled.
+**	@returns true if event is handled by any panel, false otherwise.
 */
 int PanelHandleEnterNotify(const xcb_enter_notify_event_t * event)
 {
@@ -436,13 +499,14 @@ int PanelHandleEnterNotify(const xcb_enter_notify_event_t * event)
 **	Handle a panel expose event.
 **
 **	@param event	X11 expose event
+**
+**	@returns true if event is handled by any panel, false otherwise.
 */
 int PanelHandleExpose(const xcb_expose_event_t * event)
 {
     Panel *panel;
 
     if ((panel = PanelByWindow(event->window))) {
-	Debug(3, "expose - panel %p (%d)\n", panel, event->count);
 	PanelDraw(panel);
 	return 1;
     }
@@ -457,6 +521,7 @@ int PanelHandleExpose(const xcb_expose_event_t * event)
 **	@param y	current mouse y-coordinate
 **
 **	@todo write more general tooltip handling
+**	@todo delay of autohide?
 */
 void PanelTimeout(uint32_t tick, int x, int y)
 {
@@ -781,7 +846,7 @@ static void PanelPrepareLayout(Panel * panel, int *variable_size,
     variable_count = 0;
     STAILQ_FOREACH(plugin, &panel->Plugins, Next) {
 	if (panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
-	    // FIXME: not used swallow should have 0x0 size
+	    // FIXME: not used swallow should have 0x0 size, see swallow.c
 	    temp = plugin->Width;
 	    if (temp > 0) {
 		width -= temp;
@@ -840,7 +905,6 @@ void PanelResize(Panel * panel)
     Plugin *plugin;
     uint32_t values[4];
 
-    Debug(3, "*** Resize panel!\n");
     PanelPrepareLayout(panel, &variable_size, &variable_remainder);
 
     // reposition items on the panel
@@ -879,8 +943,6 @@ void PanelResize(Panel * panel)
 		    }
 		}
 	    }
-	    Debug(4, "request resize %dx%d -> %dx%d\n", plugin->Width,
-		plugin->Height, width, height);
 	    plugin->Width = width;
 	    plugin->Height = height;
 	    plugin->Resize(plugin);
@@ -1073,7 +1135,7 @@ void PanelPluginCreatePixmap(Plugin * plugin)
 }
 
 /**
-**	Panel plugin delete method.  Frees used pixmap.
+**	Default panel plugin delete method.  Frees used pixmap.
 **
 **	@param plugin	common plugin data to be deleted
 */
@@ -1090,7 +1152,7 @@ void PanelPluginDeletePixmap(Plugin * plugin)
 **
 **	@param plugin	common plugin data to be deleted
 */
-static void PanelPluginDelete(Plugin * plugin)
+static void PanelPluginDelete(Plugin * __attribute__ ((unused)) plugin)
 {
     Debug(3, "plugin delete %p\n", plugin);
 }
@@ -1334,6 +1396,9 @@ void PanelSetGravity(Panel * panel, const char *str)
 
 /**
 **	Add a panel plugin to a panel.
+**
+**	@param panel	owner panel
+**	@param plugin	plugin added to panel
 */
 void PanelAddPlugin(Panel * panel, Plugin * plugin)
 {
@@ -1350,16 +1415,16 @@ void PanelAddPlugin(Panel * panel, Plugin * plugin)
 
 /**
 **	Parse a single panel config.
+**
+**	@param array	config array of panel with plugins
 */
 static void PanelConfigPanel(const ConfigObject * array)
 {
     Panel *panel;
     ssize_t ival;
-    const char * sval;
+    const char *sval;
     const ConfigObject *index;
     const ConfigObject *value;
-
-    Debug(3, "panel %p\n", array);
 
     panel = PanelNew();
 
@@ -1368,14 +1433,12 @@ static void PanelConfigPanel(const ConfigObject * array)
     //
     if (ConfigGetInteger(array, &ival, "x", NULL)) {
 	panel->RequestedX = ival;
-	Debug(3, "x = %zd\n", ival);
     }
     //
     //	request-y
     //
     if (ConfigGetInteger(array, &ival, "y", NULL)) {
 	panel->RequestedY = ival;
-	Debug(3, "x = %zd\n", ival);
     }
     //
     //	request-width
@@ -1383,7 +1446,6 @@ static void PanelConfigPanel(const ConfigObject * array)
     if (ConfigGetInteger(array, &ival, "width", NULL)) {
 	panel->RequestedWidth =
 	    ival < 0 ? ((ssize_t) RootWidth * -ival) / 100 : ival;
-	Debug(3, "width = %zd\n", ival);
     }
     //
     //	request-height
@@ -1391,7 +1453,6 @@ static void PanelConfigPanel(const ConfigObject * array)
     if (ConfigGetInteger(array, &ival, "height", NULL)) {
 	panel->RequestedHeight =
 	    ival < 0 ? ((ssize_t) RootHeight * -ival) / 100 : ival;
-	Debug(3, "height = %zd\n", ival);
     }
     //
     //	border
@@ -1399,11 +1460,9 @@ static void PanelConfigPanel(const ConfigObject * array)
     if (ConfigGetInteger(array, &ival, "border", NULL)) {
 	if (ival < PANEL_MINIMAL_BORDER || ival > PANEL_MAXIMAL_BORDER) {
 	    Warning("invalid panel border: %zd\n", ival);
-	    panel->Border = PANEL_DEFAULT_BORDER;
 	} else {
 	    panel->Border = ival;
 	}
-	Debug(3, "border = %zd\n", ival);
     }
     //
     //	layer
@@ -1411,13 +1470,10 @@ static void PanelConfigPanel(const ConfigObject * array)
     if (ConfigGetInteger(array, &ival, "layer", NULL)) {
 	if (ival < LAYER_BOTTOM || ival > LAYER_TOP) {
 	    Warning("invalid panel layer: %zd\n", ival);
-	    panel->OnLayer = LAYER_PANEL_DEFAULT;
 	} else {
 	    panel->OnLayer = ival;
 	}
-	Debug(3, "layer = %zd\n", ival);
     }
-
     //
     //	gravity
     //
@@ -1446,7 +1502,6 @@ static void PanelConfigPanel(const ConfigObject * array)
 	    Warning("invalid panel gravity: \"%s\"\n", sval);
 	}
     }
-
     //
     //	layout
     //
@@ -1461,9 +1516,8 @@ static void PanelConfigPanel(const ConfigObject * array)
 	    sval = NULL;
 	}
     }
-
-    // prefer horizontal layout, but use vertical if
-    // width is finite and height is larger than width or infinite.
+    // prefer horizontal layout, but use vertical if width
+    // is finite and height is larger than width or infinite
     if (!sval) {
 	if (panel->RequestedWidth > 0 && (!panel->RequestedHeight
 		|| panel->RequestedHeight > panel->RequestedWidth)) {
@@ -1472,66 +1526,60 @@ static void PanelConfigPanel(const ConfigObject * array)
 	    panel->Layout = PANEL_LAYOUT_HORIZONTAL;
 	}
     }
-
     //
     //	auto-hide
     //
     if (ConfigGetInteger(array, &ival, "auto-hide", NULL)) {
 	panel->AutoHide = ival != 0;
-	Debug(3, "auto-hide = %zd\n", ival);
     }
     //
     //	maximize-over
     //
     if (ConfigGetInteger(array, &ival, "maximize-over", NULL)) {
 	panel->MaximizeOver = ival != 0;
-	Debug(3, "maximize-over = %zd\n", ival);
     }
-
     //
     //	plugins
     //
     index = NULL;
-    value = ConfigArrayFirst(array, &index);
-    while (value) {
-	// only integer keys
-	if (ConfigCheckInteger(index, &ival)) {
-	    const ConfigObject *p_array;
+    value = ConfigArrayFirstFixedKey(array, &index);
+    while (value) {			// only integer keys
+	const ConfigObject *p_array;
 
-	    if (ConfigCheckArray(value, &p_array)) {
-		if (ConfigGetString(p_array, &sval, "type", NULL)) {
-		    Plugin *plugin;
+	if (ConfigCheckArray(value, &p_array)) {
 
-		    if (!strcasecmp(sval, "button")) {
-			plugin = PanelButtonConfig(p_array);
-		    } else if (!strcasecmp(sval, "pager")) {
-			plugin = PagerConfig(p_array);
-		    } else if (!strcasecmp(sval, "task")) {
-			plugin = TaskConfig(p_array);
-		    } else if (!strcasecmp(sval, "swallow")) {
-			plugin = SwallowConfig(p_array);
-		    } else if (!strcasecmp(sval, "systray")) {
-			plugin = SystrayConfig(p_array);
-		    } else if (!strcasecmp(sval, "clock")) {
-			plugin = ClockConfig(p_array);
-		    } else {
-			Warning("panel plugin '%s' not supported\n", sval);
-			plugin = NULL;
-		    }
-		    if (plugin) {	// disabled plugins return NULL
-			plugin->Panel = panel;
+	    if (ConfigGetString(p_array, &sval, "type", NULL)) {
+		Plugin *plugin;
 
-			STAILQ_INSERT_TAIL(&panel->Plugins, plugin, Next);
-		    }
+		if (!strcasecmp(sval, "button")) {
+		    plugin = PanelButtonConfig(p_array);
+		} else if (!strcasecmp(sval, "pager")) {
+		    plugin = PagerConfig(p_array);
+		} else if (!strcasecmp(sval, "task")) {
+		    plugin = TaskConfig(p_array);
+		} else if (!strcasecmp(sval, "swallow")) {
+		    plugin = SwallowConfig(p_array);
+		} else if (!strcasecmp(sval, "systray")) {
+		    plugin = SystrayConfig(p_array);
+		} else if (!strcasecmp(sval, "clock")) {
+		    plugin = ClockConfig(p_array);
 		} else {
-		    Warning("missing type in panel plugin config\n");
+		    Warning("panel plugin '%s' not supported\n", sval);
+		    plugin = NULL;
 		}
+		if (plugin) {		// disabled plugins return NULL
+		    plugin->Panel = panel;
 
+		    STAILQ_INSERT_TAIL(&panel->Plugins, plugin, Next);
+		}
 	    } else {
-		Warning("value in panel config ignored\n");
+		Warning("missing type in panel plugin config\n");
 	    }
+
+	} else {
+	    Warning("value in panel config ignored\n");
 	}
-	value = ConfigArrayNext(array, &index);
+	value = ConfigArrayNextFixedKey(array, &index);
     }
 }
 
@@ -1559,31 +1607,27 @@ void PanelConfig(void)
 		opacity = 1.0;
 	    }
 	    PanelOpacity = UINT32_MAX * opacity;
-	    Debug(3, "panel-opacity: %x\n", PanelOpacity);
 	}
 	//
 	//	panels
 	//
 	index = NULL;
-	value = ConfigArrayFirst(array, &index);
+	value = ConfigArrayFirstFixedKey(array, &index);
 	while (value) {
-	    ssize_t i;
 	    const ConfigObject *panel;
 
-	    Debug(3, "%p\n", value);
-	    // only integer keys
-	    if (ConfigCheckInteger(index, &i)) {
-		if (ConfigCheckArray(value, &panel)) {
-		    PanelConfigPanel(panel);
-		} else {
-		    Warning("value in panel config ignored\n");
-		}
+	    if (ConfigCheckArray(value, &panel)) {
+		PanelConfigPanel(panel);
+	    } else {
+		Warning("value in panel config ignored\n");
 	    }
-	    value = ConfigArrayNext(array, &index);
+	    value = ConfigArrayNextFixedKey(array, &index);
 	}
     }
 }
 
 #endif
+
+#endif // } USE_PANEL
 
 /// @}

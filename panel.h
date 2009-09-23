@@ -1,7 +1,7 @@
 ///
 ///	@file panel.h @brief panel header file
 ///
-///	Copyright (c) 2009 by Johns.  All Rights Reserved.
+///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -33,7 +33,7 @@
 typedef struct _panel_ Panel;
 
 /**
-**	Panel plugin typedef.
+**	Panel common panel plugin data typedef.
 */
 typedef struct _panel_plugin_ Plugin;
 
@@ -98,8 +98,9 @@ typedef enum
 */
 typedef enum
 {
-    PANEL_GRAVITY_STATIC = 0,		///< static at user specified
-    ///< x and y coordinates
+    /// static at user specified x and y coordinates
+    PANEL_GRAVITY_STATIC = 0,
+
     PANEL_GRAVITY_NORTH_WEST,		///< top-left aligned
     PANEL_GRAVITY_NORTH,		///< top-middle aligned
     PANEL_GRAVITY_NORTH_EAST,		///< top-right aligned
@@ -110,22 +111,6 @@ typedef enum
     PANEL_GRAVITY_SOUTH,		///< bottom-middle aligned
     PANEL_GRAVITY_SOUTH_EAST,		///< bottom-right aligned
 } PanelGravity;
-
-/**
-**	Enumeration of our window layers.
-*/
-typedef enum
-{
-    LAYER_BOTTOM = 0,			///< lowest window layer
-    LAYER_DESKTOP = 0,			///< desktop window layer
-    LAYER_BELOW = 2,			///< normal window layer with below
-    LAYER_NORMAL = 3,			///< normal window layer
-    LAYER_ABOVE = 4,			///< normal window layer with above
-    LAYER_PANEL_DEFAULT = 6,		///< default layer of panels
-    LAYER_FULLSCREEN = 8,		///< fullscreeen windows
-    LAYER_TOP = 9,			///< highest window layer
-    LAYER_MAX = 10			///< maximal number of layers supported
-} Layer;
 
 /**
 **	Panel structure.
@@ -174,6 +159,11 @@ extern struct _panel_head_ Panels;	/// list of all panels
 //	Prototypes
 //////////////////////////////////////////////////////////////////////////////
 
+extern void PanelsDraw(void);		///< Draw all panels.
+
+    /// Execute pointer button command
+extern void PanelExecuteButton(const Plugin *, MenuButton *, int);
+
     /// Create an empty panel plugin.
 extern Plugin *PanelPluginNew(void);
 
@@ -186,34 +176,27 @@ extern void PanelClearPluginBackground(const Plugin *);
     /// Update plugin on a panel.
 extern void PanelUpdatePlugin(const Panel *, const Plugin *);
 
-    /// Default panel plugin create method.
+    ///	Default panel plugin create method.
 extern void PanelPluginCreatePixmap(Plugin *);
 
-    /// Panel plugin delete method.  Frees used pixmap.
+    /// Default panel plugin delete method.
 extern void PanelPluginDeletePixmap(Plugin *);
-
-    /// Resize a panel.
-extern void PanelResize(Panel *);
 
     /// Handle a button press on a panel.
 extern int PanelHandleButtonPress(const xcb_button_press_event_t *);
-
     /// Handle a button release on a panel.
 extern int PanelHandleButtonRelease(const xcb_button_release_event_t *);
-
     /// Handle a motion notify event over a panel.
 extern int PanelHandleMotionNotify(const xcb_motion_notify_event_t *);
-
     /// Handle a panel enter notify.
 extern int PanelHandleEnterNotify(const xcb_enter_notify_event_t *);
-
     /// Handle a panel expose event.
 extern int PanelHandleExpose(const xcb_expose_event_t *);
-
     /// Handle timeout for the panel.
 extern void PanelTimeout(uint32_t, int, int);
 
-extern void PanelsDraw(void);		///< Draw all panels.
+    /// Resize a panel.
+extern void PanelResize(Panel *);
 
 extern void PanelInit(void);		///< Initialize panel support.
 extern void PanelExit(void);		///< Cleanup panel support.
