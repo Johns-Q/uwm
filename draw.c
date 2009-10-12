@@ -892,7 +892,7 @@ int FontTextWidthReply(xcb_query_text_extents_cookie_t cookie)
 **
 **	@todo FIXME: clipping on region
 */
-void FontDrawString(xcb_drawable_t drawable, Font * font, uint32_t pixel,
+void FontDrawString(xcb_drawable_t drawable, const Font * font, uint32_t pixel,
     int x, int y, unsigned width, xcb_rectangle_t * region, const char *str)
 {
     size_t i;
@@ -1096,7 +1096,6 @@ void FontInit(void)
 
     // font names are no longer needed
     for (font = &Fonts.Titlebar; font <= &Fonts.Fallback; ++font) {
-	Debug(3, "font %s = %s\n", font->ModuleName, font->FontName);
 	free(font->FontName);
 	font->FontName = NULL;
     }

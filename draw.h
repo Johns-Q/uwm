@@ -228,11 +228,8 @@ extern xcb_query_text_extents_cookie_t FontQueryExtentsRequest(const Font *,
     /// Font width of string.
 extern int FontTextWidthReply(xcb_query_text_extents_cookie_t);
 
-    /// Display an utf8 string.
-extern void FontDrawUtf8(xcb_drawable_t, Font *, uint32_t, int, int, unsigned,
-    xcb_rectangle_t * region, const char *);
     /// Display a string.
-extern void FontDrawString(xcb_drawable_t, Font *, uint32_t, int, int,
+extern void FontDrawString(xcb_drawable_t, const Font *, uint32_t, int, int,
     unsigned, xcb_rectangle_t * region, const char *);
 
     /// Pre-initialize font support.
