@@ -198,7 +198,7 @@ static void ClockHandleButtonPress(Plugin * plugin, int
     ClockPlugin *clock_plugin;
 
     clock_plugin = plugin->Object;
-    PanelButtonExecute(plugin, clock_plugin->Buttons, mask);
+    PanelExecuteButton(plugin, clock_plugin->Buttons, mask);
 }
 
 /**
