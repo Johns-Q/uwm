@@ -50,6 +50,10 @@ Optional:
 		Portable Network Graphics library
 		http://www.libpng.org/
 
+	media-libs/tiff
+		Library for manipulation of TIFF (Tag Image File Format) images
+		http://www.remotesensing.org/libtiff/
+
 	media-fonts/dejavu
 		DejaVu fonts, bitstream vera with ISO-8859-2 characters
 		http://dejavu.sourceforge.net/
@@ -57,6 +61,10 @@ Optional:
 	media-fonts/terminus-font
 		A clean fixed font for the console and X11
 		http://www.is-vn.bg/hamster/
+
+	media-fonts/font-misc-misc
+		X.Org miscellaneous fonts
+		http://xorg.freedesktop.org/
 
 	peg
 		Parsing Expression Grammar - parser generator
