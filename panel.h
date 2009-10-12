@@ -131,6 +131,7 @@ struct _panel_
     uint16_t RequestedHeight;		///< requested height of panel
 
     int8_t Border;			///< border size in pixels
+    int8_t HiddenSize;			///< hidden size in pixels
 
     Layer OnLayer:8;			///< layer for panel
 
@@ -176,7 +177,7 @@ extern void PanelClearPluginBackground(const Plugin *);
     /// Update plugin on a panel.
 extern void PanelUpdatePlugin(const Panel *, const Plugin *);
 
-    ///	Default panel plugin create method.
+    /// Default panel plugin create method.
 extern void PanelPluginCreatePixmap(Plugin *);
 
     /// Default panel plugin delete method.
@@ -184,14 +185,19 @@ extern void PanelPluginDeletePixmap(Plugin *);
 
     /// Handle a button press on a panel.
 extern int PanelHandleButtonPress(const xcb_button_press_event_t *);
+
     /// Handle a button release on a panel.
 extern int PanelHandleButtonRelease(const xcb_button_release_event_t *);
+
     /// Handle a motion notify event over a panel.
 extern int PanelHandleMotionNotify(const xcb_motion_notify_event_t *);
+
     /// Handle a panel enter notify.
 extern int PanelHandleEnterNotify(const xcb_enter_notify_event_t *);
+
     /// Handle a panel expose event.
 extern int PanelHandleExpose(const xcb_expose_event_t *);
+
     /// Handle timeout for the panel.
 extern void PanelTimeout(uint32_t, int, int);
 

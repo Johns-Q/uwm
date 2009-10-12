@@ -251,26 +251,78 @@ void PanelHide(Panel * panel)
 
     panel->Hidden = 1;
 
+    x = panel->X;
+    y = panel->Y;
+    // FIXME: use gravity to hide panel
+    switch (panel->Gravity) {
+	case PANEL_GRAVITY_STATIC:
+	    break;
+	case PANEL_GRAVITY_NORTH_WEST:
+	    if (panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
+		x = panel->HiddenSize - panel->Width;
+	    } else {
+		y = panel->HiddenSize - panel->Height;
+	    }
+	    break;
+	case PANEL_GRAVITY_NORTH:
+	    y = panel->HiddenSize - panel->Height;
+	    break;
+	case PANEL_GRAVITY_NORTH_EAST:
+	    if (panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
+		x = RootWidth - panel->HiddenSize;
+	    } else {
+		y = panel->HiddenSize - panel->Height;
+	    }
+	    break;
+	case PANEL_GRAVITY_WEST:
+	    x = panel->HiddenSize - panel->Width;
+	    break;
+	case PANEL_GRAVITY_CENTER:
+	    break;
+	case PANEL_GRAVITY_EAST:
+	    x = RootWidth - panel->HiddenSize;
+	    break;
+	case PANEL_GRAVITY_SOUTH_WEST:
+	    if (panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
+		x = panel->HiddenSize - panel->Width;
+	    } else {
+		y = RootHeight - panel->HiddenSize;
+	    }
+	    break;
+	case PANEL_GRAVITY_SOUTH:
+	    y = RootHeight - panel->HiddenSize;
+	    break;
+	case PANEL_GRAVITY_SOUTH_EAST:
+	    if (panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
+		x = RootWidth - panel->HiddenSize;
+	    } else {
+		y = RootHeight - panel->HiddenSize;
+	    }
+	    break;
+    }
+
+#if 0
     // determine where to move the panel
     if (panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
 	x = panel->X;
 
 	// move to top or bottom side?
 	if (panel->Y >= (signed)(RootHeight / 2)) {
-	    y = RootHeight - PANEL_DEFAULT_HIDE_SIZE;
+	    y = RootHeight - panel->HiddenSize;
 	} else {
-	    y = PANEL_DEFAULT_HIDE_SIZE - panel->Height;
+	    y = panel->HiddenSize - panel->Height;
 	}
     } else {
 	y = panel->Y;
 
 	// move to left or right side?
 	if (panel->X >= (signed)(RootWidth / 2)) {
-	    x = RootWidth - PANEL_DEFAULT_HIDE_SIZE;
+	    x = RootWidth - panel->HiddenSize;
 	} else {
-	    x = PANEL_DEFAULT_HIDE_SIZE - panel->Width;
+	    x = panel->HiddenSize - panel->Width;
 	}
     }
+#endif
 
     // move it.
     values[0] = x;
@@ -304,7 +356,7 @@ void PanelShow(Panel * panel)
 }
 
 /**
-**	Execute pointer button command
+**	Execute pointer button command.
 **
 **	Generic function to execute pointer button clicks.
 **
@@ -772,7 +824,6 @@ static void PanelComputeSize(Panel * panel)
 		panel->Y += RootHeight - panel->Height + 1;
 	    }
 	    break;
-	    break;
 	case PANEL_GRAVITY_NORTH_WEST:
 	    // panel->X += 0;
 	    // panel->Y += 0;
@@ -1213,6 +1264,7 @@ Panel *PanelNew(void)
     panel = calloc(1, sizeof(*panel));
     panel->Y = -1;
     panel->Border = PANEL_DEFAULT_BORDER;
+    panel->HiddenSize = PANEL_DEFAULT_HIDE_SIZE;
     panel->OnLayer = LAYER_PANEL_DEFAULT;
 
     SLIST_INSERT_HEAD(&Panels, panel, Next);
@@ -1462,6 +1514,16 @@ static void PanelConfigPanel(const ConfigObject * array)
 	    Warning("invalid panel border: %zd\n", ival);
 	} else {
 	    panel->Border = ival;
+	}
+    }
+    //
+    //	hidden-size
+    //
+    if (ConfigGetInteger(array, &ival, "hidden-size", NULL)) {
+	if (ival < 1 || ival > 256) {
+	    Warning("invalid panel hidden size: %zd\n", ival);
+	} else {
+	    panel->HiddenSize = ival;
 	}
     }
     //
