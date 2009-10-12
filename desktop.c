@@ -1,5 +1,5 @@
 ///
-///	@file desktop.c @brief desktop management funtions
+///	@file desktop.c @brief desktop management functions
 ///
 ///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
 ///
