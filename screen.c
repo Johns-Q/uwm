@@ -1,5 +1,5 @@
 ///
-///	@file screen.c	@brief physical screen management funtions
+///	@file screen.c	@brief physical screen management functions
 ///
 ///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
 ///
