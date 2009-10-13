@@ -1,5 +1,5 @@
 ///
-///	@file swallow.c	@brief swallow panel plugin functions.
+///	@file swallow.c @brief swallow panel plugin functions.
 ///
 ///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
 ///
@@ -148,6 +148,9 @@ static void SwallowResize(Plugin * plugin)
 
 	swallow_plugin = plugin->Object;
 
+	// FIXME: too many resize request send
+	Debug(3, "swallow '%s' resize to %dx%d\n", swallow_plugin->Name,
+	    plugin->Width, plugin->Height);
 	values[0] = plugin->Width - swallow_plugin->Border * 2;
 	values[1] = plugin->Height - swallow_plugin->Border * 2;
 	xcb_configure_window(Connection, plugin->Window,
@@ -225,8 +228,8 @@ int SwallowTryWindow(int already_mapped, xcb_window_t window)
 	    // update size (FIXME: only if not all user)
 	    geom = xcb_get_geometry_reply(Connection, cookie, NULL);
 	    if (geom) {
-		Debug(3, "swallow %dx%d border %d\n", geom->width,
-		    geom->height, geom->border_width);
+		Debug(3, "swallow '%s' %dx%d border %d\n", prop.instance_name,
+		    geom->width, geom->height, geom->border_width);
 		swallow_plugin->Border = geom->border_width;
 		if (!swallow_plugin->UserWidth) {
 		    swallow_plugin->Plugin->RequestedWidth =
@@ -368,9 +371,15 @@ void SwallowInit(void)
 {
     SwallowPlugin *swallow_plugin;
 
+#ifdef DEBUG
+    if (!ClientLayers[0].tqh_first && !ClientLayers[0].tqh_last) {
+	Debug(0, "FIXME: clients missing init %s\n", __FUNCTION__);
+    }
+#endif
+
     SLIST_FOREACH(swallow_plugin, &Swallows, Next) {
-	// FIXME: restart don't restart application?
-	if (swallow_plugin->Command) {
+	// not already swallowed, execute command
+	if (swallow_plugin->Command && !swallow_plugin->Plugin->Window) {
 	    CommandRun(swallow_plugin->Command);
 	}
     }
