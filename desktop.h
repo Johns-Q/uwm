@@ -44,6 +44,7 @@ extern const char *DesktopGetName(int);	///< Get the name of a desktop.
 extern Menu *DesktopCreateMenu(unsigned);
 
 extern void DesktopToggleShow(void);	///< Toggle the "show desktop" state.
+extern void DesktopToggleShade(void);	///< Toggle the "shade desktop" state.
 
 extern void DesktopInit(void);		///< Initialize desktop support.
 extern void DesktopExit(void);		///< Cleanup desktop support.

@@ -23,7 +23,7 @@
 ///
 ///	@defgroup desktop The desktop module.
 ///
-///	This module handles the desktop, which is our name for
+///	This module handles multiple desktops, which is our name for
 ///	virtual screens / workspace.
 ///
 /// @{
@@ -98,9 +98,11 @@ void DesktopChange(int desktop)
     if (DesktopCurrent == desktop) {	// already on this desktop
 	return;
     }
-    // Hide clients from the old desktop.
-    // Note that we show clients in a separate loop to prevent an issue
-    // with clients loosing focus.
+    /*
+     ** Hide clients from the old desktop.
+     ** Note that we show clients in a separate loop to prevent an issue
+     ** with clients loosing focus.
+     */
     for (layer = LAYER_BOTTOM; layer < LAYER_MAX; layer++) {
 	TAILQ_FOREACH(client, &ClientLayers[layer], LayerQueue) {
 	    if (client->State & WM_STATE_STICKY) {
@@ -162,6 +164,8 @@ void DesktopPrevious(void)
 **	Get the name of a desktop.
 **
 **	@param desktop	desktop number
+**
+**	@returns the desktop name as read-only string.
 */
 const char *DesktopGetName(int desktop)
 {
@@ -176,6 +180,8 @@ const char *DesktopGetName(int desktop)
 **	Create a desktop menu.
 **
 **	@param mask	desktop mask
+**
+**	@returns menu to switch desktops.
 */
 Menu *DesktopCreateMenu(unsigned mask)
 {
@@ -239,6 +245,29 @@ void DesktopToggleShow(void)
 }
 
 /**
+**	Toggle the "shade desktop" state.
+*/
+void DesktopToggleShade(void)
+{
+    Client *client;
+    int layer;
+
+    for (layer = LAYER_BOTTOM; layer < LAYER_MAX; layer++) {
+	TAILQ_FOREACH(client, &ClientLayers[layer], LayerQueue) {
+	    // skip "nolist" items
+	    if (client->State & WM_STATE_NOLIST) {
+		continue;
+	    }
+	    if (client->State & WM_STATE_SHADED) {
+		ClientUnshade(client);
+	    } else {
+		ClientShade(client);
+	    }
+	}
+    }
+}
+
+/**
 **	Initialize desktop support.
 */
 void DesktopInit(void)
@@ -294,15 +323,13 @@ void DesktopExit(void)
 {
     int i;
 
-    if (Desktops) {
-	for (i = 0; i < DesktopN; i++) {
-	    free(Desktops[i].Name);
-	}
-	free(Desktops);
-
-	DesktopN = 0;
-	Desktops = NULL;
+    for (i = 0; i < DesktopN; i++) {
+	free(Desktops[i].Name);
     }
+    free(Desktops);
+
+    DesktopN = 0;
+    Desktops = NULL;
     DesktopCurrent = 0;
     DesktopShowing = 0;
 }
