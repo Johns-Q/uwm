@@ -1,7 +1,7 @@
 ///
-///	@file panel.c @brief panel functions
+///	@file panel.c	@brief panel functions
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -256,6 +256,7 @@ void PanelHide(Panel * panel)
     // FIXME: use gravity to hide panel
     switch (panel->Gravity) {
 	case PANEL_GRAVITY_STATIC:
+	    // FIXME: should also hide, need to resize window size
 	    break;
 	case PANEL_GRAVITY_NORTH_WEST:
 	    if (panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
@@ -1569,7 +1570,9 @@ static void PanelConfigPanel(const ConfigObject * array)
     //
     sval = NULL;
     if (ConfigGetString(array, &sval, "layout", NULL)) {
-	if (!strcasecmp(sval, "horizontal")) {
+	if (!strcasecmp(sval, "auto")) {
+	    sval = NULL;
+	} else if (!strcasecmp(sval, "horizontal")) {
 	    panel->Layout = PANEL_LAYOUT_HORIZONTAL;
 	} else if (!strcasecmp(sval, "vertical")) {
 	    panel->Layout = PANEL_LAYOUT_VERTICAL;
