@@ -411,8 +411,6 @@ void PanelButtonInit(void)
 	    plugin->RequestedHeight =
 		button_height + 2 * LABEL_INNER_SPACE + 2 * LABEL_BORDER;
 	}
-	printf("Button %dx%d\n", plugin->RequestedWidth,
-	    plugin->RequestedHeight);
     }
 }
 
@@ -426,6 +424,12 @@ void PanelButtonExit(void)
     while (!SLIST_EMPTY(&Buttons)) {	// list deletion
 	button_plugin = SLIST_FIRST(&Buttons);
 	MenuButtonDel(button_plugin->Buttons);
+	if (button_plugin->IconLoaded) {
+	    IconDel(button_plugin->Icon);
+	} else {
+	    free(button_plugin->Icon);
+	}
+	free(button_plugin->Text);
 	free(button_plugin->Tooltip);
 	SLIST_REMOVE_HEAD(&Buttons, Next);
 	free(button_plugin);
@@ -533,6 +537,7 @@ Plugin *PanelButtonConfig(const ConfigObject * array)
     }
     // common config of pointer buttons to commands
     MenuButtonsConfig(array, &button_plugin->Buttons);
+    // FIXME: loose memory why????
 
     plugin = PanelPluginNew();
     plugin->Object = button_plugin;
