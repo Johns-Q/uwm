@@ -339,7 +339,9 @@ void DialogShowConfirm(Client * client, void (*action) (Client *), ...)
     window = xcb_generate_id(Connection);
 
     values[0] = Colors.PanelBG.Pixel;
-    values[1] = XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_EXPOSURE;
+    values[1] =
+	XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE |
+	XCB_EVENT_MASK_EXPOSURE;
     xcb_create_window(Connection, XCB_COPY_FROM_PARENT, window, RootWindow,
 	dialog->X, dialog->Y, dialog->Width, dialog->Height, 0,
 	XCB_WINDOW_CLASS_INPUT_OUTPUT, XCB_COPY_FROM_PARENT,
@@ -362,7 +364,8 @@ void DialogShowConfirm(Client * client, void (*action) (Client *), ...)
 
     ClientFocus(dialog->Self);
 
-    xcb_grab_button(Connection, 1, window, XCB_EVENT_MASK_BUTTON_RELEASE,
+    xcb_grab_button(Connection, 1, window,
+	XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE,
 	XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC, XCB_NONE, XCB_NONE,
 	XCB_GRAB_ANY, XCB_BUTTON_MASK_ANY);
 }
@@ -453,7 +456,7 @@ int DialogHandleButtonPress(const xcb_button_press_event_t * event)
 	if (event->event_y >= y && event->event_y < y + Fonts.Menu.Height + 4) {
 	    int x;
 
-	    // which button is released?
+	    // which button is pressed?
 	    x = dialog->Width / 3 - dialog->ButtonWidth / 2;
 	    if (event->event_x > x
 		&& event->event_x <= x + dialog->ButtonWidth) {
@@ -893,30 +896,12 @@ struct _menu_
 
     int16_t ItemCount;			///< number of menu items in table
     MenuItem **ItemTable;		///< menu item table
-
-#ifdef OLDMENU
-    // next are only need if menu is shown
-    xcb_window_t Window;		///< menu window
-    Menu *Parent;			///< the parent menu (NULL for no)
-    int16_t ParentOffset;		///< y-offset of this menu wrt parent
-    uint8_t ItemHeight;			///< menu item height
-    int16_t X;				///< x-coordinate of the menu
-    int16_t Y;				///< y-coordinate of the menu
-    uint16_t Width;			///< width of the menu
-    uint16_t Height;			///< height of the menu
-    int16_t TextOffset;			///< x-offset of text in the menu
-
-    int16_t CurrentIndex;		///< current menu selection
-    int16_t LastIndex;			///< last menu selection
-#endif
 };
 
 int MenuShown;				///< flag menu is shown
 
-#ifdef OLDMENU
-static const MenuItem *MenuItemSelected;	///< selected menu item
-#endif
-static const MenuCommand *MenuCommandSelected;	///< selected menu command
+static const Client *MenuClient;	///< client of menu
+static MenuCommand MenuCommandSelected;	///< selected menu command
 static uint32_t MenuOpacity = UINT32_MAX;	///< menu window transparency
 static Menu **Menus;			///< table of menus
 static int MenuN;			///< number of menus in table
@@ -945,9 +930,6 @@ static const uint8_t MenuSubmenuArrowBitmap[SUB_MENU_ARROW_HEIGHT] = {
 
 ///	locale forward definitions
 ///@{
-//static int MenuShowSubmenu(Menu *, Menu *, int, int);
-//static void MenuPatch(Menu *);
-//static void MenuUnpatch(Menu *);
 
 static Runtime *MenuPrepareRuntime(Menu *);
 static void MenuCleanupRuntime(Runtime *);
@@ -955,8 +937,16 @@ static int MenuExecuteRuntime(Runtime *, Runtime *, int, int);
 
 static void MenuCommandPrepare(MenuCommand *);
 static void MenuCommandCleanup(MenuCommand *);
+static void MenuCommandCopy(MenuCommand *, const MenuCommand *);
+static void MenuCommandDel(MenuCommand *);
+
+static void RootMenuExecute(void
+    __attribute__ ((unused)) *, const MenuCommand *);
 
 static void RootMenuShow(int, int, int);
+
+static void WindowMenuChoose(const MenuCommand *);
+static Menu *WindowMenuCreateLayer(int);
 
 static Menu *MenuConfigMenu(const ConfigObject *);
 
@@ -991,1049 +981,6 @@ static int MenuIsValid(const Menu * menu)
     }
     return 0;
 }
-
-#ifdef OLDMENU
-
-/**
-**	Prepare menu to be shown.
-**
-**	@param menu	Menu to precalulate
-**
-**	@todo split into two parts, to use xcb async capability.
-**	IconOrText not supported
-*/
-void MenuPrepareDisplay(Menu * menu)
-{
-    int submenu_offset;
-    int i;
-    xcb_query_text_extents_cookie_t cookie_label;
-    xcb_query_text_extents_cookie_t *cookies;
-
-    if (!menu) {
-	abort();
-    }
-
-    NO_WARNING(cookie_label);
-    NO_WARNING(cookies);
-
-    if (menu->ItemHeight) {
-	Debug(0, "menu already prepared\n");
-	return;
-    }
-    // send label size request
-    if (menu->Label) {
-	cookie_label =
-	    FontQueryExtentsRequest(&Fonts.Menu, strlen(menu->Label),
-	    menu->Label);
-    }
-
-    if (menu->ItemCount) {
-	cookies = alloca(menu->ItemCount * sizeof(*cookies));
-	//
-	//  Add icons to menu and send extents requests
-	//
-	for (i = 0; i < menu->ItemCount; ++i) {
-	    MenuItem *item;
-	    char *name;
-
-	    item = menu->ItemTable[i];
-#ifdef USE_ICON
-	    if ((name = item->IconName)) {
-		item->Icon = IconLoadNamed(name);
-		item->IconLoaded = 1;
-
-		if (item->Icon) {
-		    if (!menu->UserHeight) {
-			if (menu->ItemHeight < item->Icon->Image->Height) {
-			    menu->ItemHeight = item->Icon->Image->Height;
-			}
-			if (menu->TextOffset <
-			    item->Icon->Image->Width + LABEL_INNER_SPACE * 2) {
-			    menu->TextOffset =
-				item->Icon->Image->Width +
-				LABEL_INNER_SPACE * 2;
-			}
-		    }
-		} else {
-		    Warning("could not load menu icon: \"%s\"\n", name);
-		}
-
-		free(name);		// icon and name share same slot
-	    }
-#endif
-	    if (item->Text) {
-		cookies[i] =
-		    FontQueryExtentsRequest(&Fonts.Menu, strlen(item->Text),
-		    item->Text);
-	    }
-	}
-    }
-    //
-    //	Item height
-    //
-    if (menu->UserHeight) {
-	if (menu->ItemHeight) {		// align if any icon
-	    menu->TextOffset = menu->ItemHeight + LABEL_INNER_SPACE * 2;
-	}
-	menu->ItemHeight = menu->UserHeight;
-    } else {
-	if (Fonts.Menu.Height > menu->ItemHeight) {
-	    menu->ItemHeight = Fonts.Menu.Height;
-	    // FIXME: text offset is wrong, icons are now scaled bigger!
-	    if (menu->TextOffset
-		&& menu->TextOffset <
-		menu->ItemHeight + LABEL_INNER_SPACE * 2) {
-		menu->TextOffset = menu->ItemHeight + LABEL_INNER_SPACE * 2;
-	    }
-	}
-    }
-    menu->ItemHeight += LABEL_INNER_SPACE * 2 + LABEL_BORDER;
-
-    //
-    //	Calculate menu size
-    //
-    menu->Height = 1;
-    menu->Width = 5;
-    if (menu->Label) {
-	unsigned width;
-
-	width = FontTextWidthReply(cookie_label);
-	if (width > menu->Width) {
-	    menu->Width = width;
-	}
-	menu->Height += menu->ItemHeight;
-    }
-    // nothing else to do, if there is nothing in the menu.
-    if (!menu->ItemCount) {
-	return;
-    }
-    //
-    //	Prepare y-offsets of menu items and largest text width
-    //
-    submenu_offset = 0;
-    for (i = 0; i < menu->ItemCount; ++i) {
-	MenuItem *item;
-
-	item = menu->ItemTable[i];
-	item->OffsetY = menu->Height;
-	if (item->Text) {
-	    unsigned width;
-
-	    width = FontTextWidthReply(cookies[i]) + LABEL_INNER_SPACE;
-	    if (width > menu->Width) {
-		menu->Width = width;
-	    }
-	    menu->Height += menu->ItemHeight;
-#ifdef USE_ICON
-	} else if (item->Icon) {
-	    menu->Height += menu->ItemHeight;
-#endif
-	} else {			// separator
-	    menu->Height += 5;
-	}
-
-	if (item->Command.Type >= MENU_ACTION_SUBMENU) {
-	    submenu_offset = SUB_MENU_ARROW_WIDTH + MENU_INNER_SPACE;
-	    if (item->Command.Submenu) {	// can be later filled
-		MenuPrepareDisplay(item->Command.Submenu);
-	    }
-	}
-    }
-    menu->Width +=
-	MENU_INNER_SPACE * 2 + LABEL_INNER_SPACE * 2 + LABEL_BORDER * 2 +
-	submenu_offset + menu->TextOffset;
-    menu->Height += MENU_INNER_SPACE * 2;
-}
-
-/**
-**	Get the menu item associated with an index.
-**
-**	@param menu	menu to get element from
-**	@param index	get element at this index
-**
-**	@returns menu item at index or last, NULL if index is negative.
-*/
-static MenuItem *MenuGetItem(const Menu * menu, int index)
-{
-    return index >= 0 ? menu->ItemTable[index] : NULL;
-}
-
-/**
-**	Get the index of next item in the menu.
-**
-**	@param menu	menu runtime
-*/
-static int MenuGetNextIndex(const Menu * menu)
-{
-    int i;
-
-    for (i = menu->CurrentIndex + 1; i < menu->ItemCount; i++) {
-	const MenuItem *item;
-
-	item = menu->ItemTable[i];
-	if (item->Text
-#ifdef USE_ICON
-	    || item->Icon
-#endif
-	    ) {
-	    return i;			// valid entry
-	}
-    }
-    return 0;
-}
-
-/**
-**	Get the index of previous item in the menu.
-*/
-static int MenuGetPreviousIndex(const Menu * menu)
-{
-    int i;
-
-    for (i = menu->CurrentIndex - 1; i >= 0; i--) {
-	const MenuItem *item;
-
-	item = menu->ItemTable[i];
-	if (item->Text
-#ifdef USE_ICON
-	    || item->Icon
-#endif
-	    ) {
-	    return i;			// valid entry
-	}
-    }
-    return menu->ItemCount - 1;
-}
-
-/**
-**	Get the item in the menu given a y-coordinate.
-**
-**	@param menu	menu to check for index
-**	@param y	y-coordinate to find index
-**
-**	@returns the menu index under y, -1 if label, 0 if out of range.
-*/
-int MenuGetIndexByY(const Menu * menu, int y)
-{
-    int i;
-
-    if (menu->ItemCount) {		// none empty menu
-	if (y < menu->ItemTable[0]->OffsetY) {
-	    return -1;			// label
-	}
-	for (i = 0; i < menu->ItemCount - 1; i++) {
-	    if (y >= menu->ItemTable[i]->OffsetY
-		&& y < menu->ItemTable[i + 1]->OffsetY) {
-		return i;
-	    }
-	}
-	return i;			// last entry
-    }
-    return 0;
-}
-
-/**
-**	Set the active menu item.
-*/
-void MenuSetPosition(Menu * menu, int index)
-{
-
-    int y;
-    int updated;
-
-    // middle of menu item
-    y = menu->ItemTable[index]->OffsetY + menu->ItemHeight / 2;
-
-    //
-    //	Menu bigger than screen, must scroll.
-    //
-    if (menu->Height >= RootHeight) {
-	updated = 0;
-	while (menu->Y + y < menu->ItemHeight / 2) {
-	    menu->Y += menu->ItemHeight;
-	    updated = 1;
-	}
-	while (menu->Y + y > (int)RootHeight) {
-	    menu->Y -= menu->ItemHeight;
-	    updated = -1;
-	}
-
-	// move window to have selected item visible
-	if (updated) {
-	    uint32_t values[1];
-
-	    values[0] = menu->Y;
-	    xcb_configure_window(Connection, menu->Window, XCB_CONFIG_WINDOW_Y,
-		values);
-	    // move out of scroll area
-	    y += updated;
-	}
-    }
-    // we need to do this twice so the event gets registered on the submenu,
-    // if one exists.
-    // FIXME: don't wrap x
-    PointerWrap(menu->Window, 6, y);
-    PointerWrap(menu->Window, 6, y);
-}
-
-// ------------------------------------------------------------------------ //
-// Display
-
-/**
-**	Draw an unselected menu item.
-**
-**	@param menu	menu which contains the menu item
-**	@param item	menu item to draw (NULL to draw label)
-*/
-static void MenuDrawItem(const Menu * menu, const MenuItem * item)
-{
-    Label label;
-
-    LabelReset(&label, menu->Window, RootGC);
-    if (!item) {			// menu label
-	if (menu->Label) {
-	    label.Type = LABEL_MENU_LABEL;
-	    label.Alignment = LABEL_ALIGN_CENTER;
-
-	    label.X = MENU_INNER_SPACE;
-	    label.Y = MENU_INNER_SPACE;
-	    label.Width = menu->Width - MENU_INNER_SPACE * 2 - 1;
-	    label.Height = menu->ItemHeight - MENU_INNER_SPACE;
-
-	    label.Font = &Fonts.Menu;
-	    label.Text = menu->Label;
-	    LabelDraw(&label);
-	}
-	return;
-    }
-    if (item->Text
-#ifdef USE_ICON
-	|| item->Icon
-#endif
-	) {				// used item
-	label.Type = LABEL_MENU_LABEL;
-
-	label.TextOffset = menu->TextOffset;
-	label.X = MENU_INNER_SPACE;
-	label.Y = item->OffsetY;
-	label.Width = menu->Width - MENU_INNER_SPACE * 2 - 1;
-	label.Height = menu->ItemHeight;
-
-#ifdef USE_ICON
-	label.Icon = item->Icon;
-#endif
-	label.Font = &Fonts.Menu;
-	label.Text = item->Text;
-	LabelDraw(&label);
-    } else {				// separator
-	xcb_point_t points[2];
-
-	xcb_change_gc(Connection, RootGC, XCB_GC_FOREGROUND,
-	    &Colors.MenuDown.Pixel);
-	points[0].x = MENU_INNER_SPACE * 2;
-	points[1].x = menu->Width - MENU_INNER_SPACE * 4;
-	points[0].y = item->OffsetY + MENU_INNER_SPACE;
-	points[1].y = item->OffsetY + MENU_INNER_SPACE;
-	xcb_poly_line(Connection, XCB_COORD_MODE_ORIGIN, menu->Window, RootGC,
-	    2, points);
-
-	xcb_change_gc(Connection, RootGC, XCB_GC_FOREGROUND,
-	    &Colors.MenuUp.Pixel);
-	points[0].y = item->OffsetY + MENU_INNER_SPACE + 1;
-	points[1].y = item->OffsetY + MENU_INNER_SPACE + 1;
-	xcb_poly_line(Connection, XCB_COORD_MODE_ORIGIN, menu->Window, RootGC,
-	    2, points);
-    }
-
-    //
-    //	Draw arrow for submenu FIXME: can cache pixmap here!
-    //
-    if (item->Command.Type >= MENU_ACTION_SUBMENU) {
-	xcb_pixmap_t pixmap;
-
-	// FIXME: use more lowlevel and cache?
-	pixmap =
-	    xcb_create_pixmap_from_bitmap_data(Connection, menu->Window,
-	    (uint8_t *) MenuSubmenuArrowBitmap, SUB_MENU_ARROW_WIDTH,
-	    SUB_MENU_ARROW_HEIGHT, RootDepth, Colors.MenuFG.Pixel,
-	    Colors.MenuBG.Pixel, NULL);
-	xcb_copy_area(Connection, pixmap, menu->Window, RootGC, 0, 0,
-	    menu->Width - SUB_MENU_ARROW_WIDTH - MENU_INNER_SPACE * 2,
-	    item->OffsetY + menu->ItemHeight / 2 - SUB_MENU_ARROW_HEIGHT / 2,
-	    SUB_MENU_ARROW_WIDTH, SUB_MENU_ARROW_HEIGHT);
-
-	xcb_free_pixmap(Connection, pixmap);
-    }
-}
-
-/**
-**	Draw a selected menu item.
-**
-**	@param menu	menu which contains the menu item
-**	@param item	menu item to draw
-*/
-static void MenuDrawSelectedItem(const Menu * menu, const MenuItem * item)
-{
-    if (item && (
-#ifdef USE_ICON
-	    item->Icon ||
-#endif
-	    item->Text)) {
-	Label label;
-
-	LabelReset(&label, menu->Window, RootGC);
-	label.Type = LABEL_MENU_ACTIVE;
-
-	label.TextOffset = menu->TextOffset;
-	label.X = MENU_INNER_SPACE;
-	label.Y = menu->ItemTable[menu->CurrentIndex]->OffsetY;
-	label.Width = menu->Width - MENU_INNER_SPACE * 2 - 1;
-	label.Height = menu->ItemHeight;
-
-#ifdef USE_ICON
-	label.Icon = item->Icon;
-#endif
-	label.Font = &Fonts.Menu;
-	label.Text = item->Text;
-	LabelDraw(&label);
-
-	//
-	//	Draw arrow of submenu
-	//
-	if (item->Command.Type >= MENU_ACTION_SUBMENU) {
-	    xcb_pixmap_t pixmap;
-	    uint32_t values[4];
-	    xcb_rectangle_t rectangle;
-
-	    pixmap =
-		xcb_create_pixmap_from_bitmap_data(Connection, menu->Window,
-		(uint8_t *) MenuSubmenuArrowBitmap, SUB_MENU_ARROW_WIDTH,
-		SUB_MENU_ARROW_HEIGHT, 1, 1, 0, NULL);
-
-	    values[0] = Colors.MenuActiveFG.Pixel;
-	    values[1] =
-		menu->Width - SUB_MENU_ARROW_WIDTH - MENU_INNER_SPACE * 2;
-	    values[2] =
-		menu->ItemTable[menu->CurrentIndex]->OffsetY +
-		menu->ItemHeight / 2 - SUB_MENU_ARROW_HEIGHT / 2;
-	    values[3] = pixmap;
-	    xcb_change_gc(Connection, RootGC,
-		XCB_GC_FOREGROUND | XCB_GC_CLIP_ORIGIN_X | XCB_GC_CLIP_ORIGIN_Y
-		| XCB_GC_CLIP_MASK, values);
-	    rectangle.x =
-		menu->Width - SUB_MENU_ARROW_WIDTH - MENU_INNER_SPACE * 2;
-	    rectangle.y =
-		menu->ItemTable[menu->CurrentIndex]->OffsetY +
-		menu->ItemHeight / 2 - SUB_MENU_ARROW_HEIGHT / 2;
-	    rectangle.width = SUB_MENU_ARROW_WIDTH;
-	    rectangle.height = SUB_MENU_ARROW_HEIGHT;
-	    xcb_poly_fill_rectangle(Connection, menu->Window, RootGC, 1,
-		&rectangle);
-	    xcb_free_pixmap(Connection, pixmap);
-	    values[0] = XCB_NONE;
-	    xcb_change_gc(Connection, RootGC, XCB_GC_CLIP_MASK, values);
-	}
-    }
-}
-
-/**
-**	Draw a menu.
-**
-**	@param menu	menu to draw
-*/
-static void MenuDraw(Menu * menu)
-{
-    int i;
-    xcb_point_t points[3];
-
-    if (menu->Label) {
-	MenuDrawItem(menu, NULL);
-    }
-    for (i = 0; i < menu->ItemCount; ++i) {
-	// FIXME: draw selected item different!
-	if (i != menu->CurrentIndex) {
-	    MenuDrawItem(menu, menu->ItemTable[i]);
-	}
-    }
-
-    //
-    //	Draw border around menu
-    //
-    xcb_change_gc(Connection, RootGC, XCB_GC_FOREGROUND, &Colors.MenuUp.Pixel);
-    points[0].x = 0;
-    points[0].y = menu->Height - 1;
-    points[1].x = 0;
-    points[1].y = 0;
-    points[2].x = menu->Width - 1;
-    points[2].y = 0;
-    xcb_poly_line(Connection, XCB_COORD_MODE_ORIGIN, menu->Window, RootGC, 3,
-	points);
-    // FIXME: poly_segments better?
-    points[0].x = 1;
-    points[0].y = menu->Height - 2;
-    points[1].x = 1;
-    points[1].y = 1;
-    points[2].x = menu->Width - 2;
-    points[2].y = 1;
-    xcb_poly_line(Connection, XCB_COORD_MODE_ORIGIN, menu->Window, RootGC, 3,
-	points);
-
-    xcb_change_gc(Connection, RootGC, XCB_GC_FOREGROUND,
-	&Colors.MenuDown.Pixel);
-    points[0].x = 1;
-    points[0].y = menu->Height - 1;
-    points[1].x = menu->Width - 1;
-    points[1].y = menu->Height - 1;
-    points[2].x = menu->Width - 1;
-    points[2].y = 1;
-    xcb_poly_line(Connection, XCB_COORD_MODE_ORIGIN, menu->Window, RootGC, 3,
-	points);
-    points[0].x = 2;
-    points[0].y = menu->Height - 2;
-    points[1].x = menu->Width - 2;
-    points[1].y = menu->Height - 2;
-    points[2].x = menu->Width - 2;
-    points[2].y = 2;
-    xcb_poly_line(Connection, XCB_COORD_MODE_ORIGIN, menu->Window, RootGC, 3,
-	points);
-}
-
-/**
-**	Update the menu selection.
-**
-**	FIXME: Calling draw menu and than update menu, isn't a good thing!
-*/
-void MenuUpdate(Menu * menu)
-{
-    // clear the old selection
-    if (menu->LastIndex >= 0) {
-	MenuDrawItem(menu, MenuGetItem(menu, menu->LastIndex));
-    }
-    // highlight the new selection
-    MenuDrawSelectedItem(menu, MenuGetItem(menu, menu->CurrentIndex));
-}
-
-/**
-**	Redraw a menu and all its parents.
-*/
-void MenuRedrawTree(Menu * menu)
-{
-    if (menu->Parent) {			// start with lowest = root
-	MenuRedrawTree(menu->Parent);
-    }
-
-    MenuDraw(menu);
-    MenuUpdate(menu);
-}
-
-/**
-**	Determine the action to take on key press.
-**
-**	@returns -1 leave, 0 no selection, 1 sub-menu.
-*/
-static int MenuHandleKey(Menu * menu, const xcb_generic_event_t * event)
-{
-    int i;
-    Menu *parent;
-
-    if (menu->CurrentIndex >= 0 || !menu->Parent) {
-	parent = menu;
-    } else {
-	parent = menu->Parent;
-    }
-
-    i = -1;
-    switch (KeyboardGet(((xcb_key_press_event_t *) event)->detail)) {
-	case XK_Up:
-	    i = MenuGetPreviousIndex(parent);
-	    break;
-	case XK_Down:
-	    i = MenuGetNextIndex(parent);
-	    break;
-	case XK_Right:
-	    parent = menu;
-	    i = 0;
-	    break;
-	case XK_Left:
-	    if (parent->Parent) {
-		parent = parent->Parent;
-		if (parent->CurrentIndex >= 0) {
-		    i = parent->CurrentIndex;
-		} else {
-		    i = 0;
-		}
-	    }
-	    break;
-	case XK_Escape:
-	    return -1;
-	case XK_Return:
-	    if (parent->CurrentIndex >= 0) {
-		MenuItemSelected = MenuGetItem(parent, i);
-	    }
-	    return 1;
-	default:
-	    Debug(3, "keycode $%x=%d -> %0x\n",
-		((xcb_key_press_event_t *) event)->detail,
-		((xcb_key_press_event_t *) event)->detail,
-		KeyboardGet(((xcb_key_press_event_t *) event)->detail));
-	    break;
-    }
-
-    if (i >= 0) {
-	MenuSetPosition(parent, i);
-    }
-    return 0;
-}
-
-/**
-**	Determine the action to take on button press.
-**
-**	@param menu	menu which got a button press
-**	@param event	button press event for menu
-*/
-static void MenuHandleButtonPress(Menu * menu,
-    xcb_button_press_event_t * event)
-{
-    int i;
-    Menu *parent;
-
-    if (menu->CurrentIndex >= 0 || !menu->Parent) {
-	parent = menu;
-    } else {
-	parent = menu->Parent;
-    }
-
-    i = -1;
-    switch (event->detail) {
-	case XCB_BUTTON_INDEX_4:	// scroll-wheel up
-	    i = MenuGetPreviousIndex(parent);
-	    break;
-	case XCB_BUTTON_INDEX_5:	// scroll-wheel down
-	    i = MenuGetNextIndex(parent);
-	    break;
-    }
-
-    if (i >= 0) {
-	MenuSetPosition(parent, i);
-    }
-
-    return;
-}
-
-/**
-**	Determine the action to take given an event.
-**
-**	@param event	X11 motion notify event
-**
-**	@returns -1 leave, 0 no selection, 1 sub-menu.
-*/
-int MenuHandleMotionNotify(Menu * menu, xcb_motion_notify_event_t * event)
-{
-    int x;
-    int y;
-    xcb_window_t child;
-    MenuItem *item;
-
-    DiscardMotionEvents(&event, menu->Window);
-
-    child = event->child;
-    x = event->root_x - menu->X;
-    y = event->root_y - menu->Y;
-    Debug(4, "%d.%d\n", x, y);
-
-    //
-    //	update the selection of the current menu
-    //
-    if (x > 0 && y > 0 && x < menu->Width && y < menu->Height) {
-	menu->CurrentIndex = MenuGetIndexByY(menu, y);
-    } else {
-	Menu *parent;
-
-	if ((parent = menu->Parent)) {
-	    if (child == parent->Window) {
-		// leave if over the parent, but not on this selection
-		if (y < menu->ParentOffset
-		    || y > parent->ItemHeight + menu->ParentOffset) {
-		    Debug(4, "on parent\n");
-		    return -1;
-		}
-	    } else {
-		// leave if over a menu window
-		for (parent = parent->Parent; parent; parent = parent->Parent) {
-		    if (parent->Window == child) {
-			Debug(4, "on menu tree\n");
-			return -1;
-		    }
-		}
-	    }
-	}
-	Debug(4, "disselect\n");
-	menu->CurrentIndex = -1;
-    }
-    // scroll the menu if needed
-    if (menu->Height > RootHeight && menu->CurrentIndex >= 0) {
-	// if near the top, shift down
-	if (menu->Y + y < menu->ItemHeight / 2) {
-	    if (menu->CurrentIndex > 0) {
-		MenuSetPosition(menu, --menu->CurrentIndex);
-	    }
-	}
-	// if near the bottom, shift up
-	if (menu->Y + y + menu->ItemHeight / 2 > (int)RootHeight) {
-	    if (menu->CurrentIndex + 1 < menu->ItemCount) {
-		MenuSetPosition(menu, ++menu->CurrentIndex);
-	    }
-	}
-    }
-    // redraw if selected item changed
-    if (menu->LastIndex != menu->CurrentIndex) {
-	MenuUpdate(menu);
-	menu->LastIndex = menu->CurrentIndex;
-    }
-    // if the selected item is a submenu, show it
-    item = MenuGetItem(menu, menu->CurrentIndex);
-    if (item && item->Command.Type >= MENU_ACTION_SUBMENU
-	&& MenuIsValid(item->Command.Submenu)) {
-	// FIXME: align menu better with selected item (label...)
-	if (MenuShowSubmenu(item->Command.Submenu, menu, menu->X + menu->Width,
-		menu->Y + menu->ItemTable[menu->CurrentIndex]->OffsetY)) {
-	    // item selected; destroy the menu tree
-	    return 1;
-	} else {			// no selection made
-	    MenuUpdate(menu);
-	}
-    }
-
-    return 0;
-}
-
-/**
-**	Menu event loop.
-**
-**	@returns 0 if nothing selected or 1 if something selected.
-*/
-int MenuLoop(Menu * menu)
-{
-    int press_x;
-    int press_y;
-    int moved;
-    xcb_generic_event_t *event;
-    xcb_button_release_event_t *re;
-
-    PointerGetPosition(&press_x, &press_y);
-    moved = 0;
-
-    while (KeepLooping) {
-	while ((event = PollNextEvent())) {
-
-	    switch (XCB_EVENT_RESPONSE_TYPE(event)) {
-		case XCB_EXPOSE:
-		    Debug(4, "%s: expose\n", __FUNCTION__);
-		    xcb_event_handle(&EventHandlers, event);
-		    MenuRedrawTree(menu);
-		    break;
-
-		case XCB_BUTTON_PRESS:
-		    Debug(4, "%s: press\n", __FUNCTION__);
-		    press_x = -100;
-		    press_y = -100;
-		    moved = 1;
-		    MenuHandleButtonPress(menu,
-			(const xcb_button_press_event_t *)event);
-		    break;
-
-		case XCB_BUTTON_RELEASE:
-		    Debug(4, "%s: release\n", __FUNCTION__);
-		    re = (typeof(re)) event;
-		    if (re->detail == XCB_BUTTON_INDEX_4) {
-			break;
-		    }
-		    if (re->detail == XCB_BUTTON_INDEX_5) {
-			break;
-		    }
-		    if (!moved) {
-			break;
-		    }
-		    if (abs(re->root_x - press_x) < DoubleClickDelta
-			&& abs(re->root_y - press_y) < DoubleClickDelta) {
-			break;
-		    }
-		    Debug(4, "release executed\n");
-		    MenuItemSelected = NULL;	// FIXME: realy needed?
-		    if (menu->CurrentIndex >= 0) {
-			MenuItemSelected = menu->ItemTable[menu->CurrentIndex];
-		    }
-		    free(event);
-		    return 1;
-
-		case XCB_KEY_PRESS:
-		    moved = 1;
-		    switch (MenuHandleKey(menu, event)) {
-			case 0:	// nothing
-			    break;
-			case -1:	// mouse left the menu
-			    free(event);
-			    return 0;
-			default:	// selection made
-			    // FIXME: but back event?
-			    xcb_allow_events(Connection,
-				XCB_ALLOW_REPLAY_KEYBOARD, XCB_CURRENT_TIME);
-			    free(event);
-			    return 1;
-		    }
-		    break;
-
-		case XCB_MOTION_NOTIFY:
-		    moved = 1;
-		    switch (MenuHandleMotionNotify(menu,
-			    (xcb_motion_notify_event_t *) event)) {
-			case 0:	// nothing
-			    break;
-			case -1:	// mouse left the menu
-			    free(event);
-			    return 0;
-			default:	// selection made
-			    // FIXME: but back event?
-			    xcb_allow_events(Connection,
-				XCB_ALLOW_REPLAY_POINTER, XCB_CURRENT_TIME);
-			    free(event);
-			    return 1;
-		    }
-		    break;
-
-		default:
-		    Debug(4, "menu loop event %d %s\n", event->response_type,
-			xcb_event_get_label(XCB_EVENT_RESPONSE_TYPE(event)));
-		    xcb_event_handle(&EventHandlers, event);
-		    break;
-	    }
-	    free(event);
-	}
-	WaitForEvent();
-    }
-    return 0;
-}
-
-/**
-**	Create window and map menu window.
-**
-**	@param menu	menu to show
-**	@param x	x-coordinate of menu
-**	@param y	y-coordinate of menu
-*/
-void MenuCreateWindow(Menu * menu, int x, int y)
-{
-    uint32_t values[3];
-
-    menu->LastIndex = -1;
-    menu->CurrentIndex = -1;
-
-    //
-    //	 Check if menu fits on screen
-    //
-    if (x + menu->Width > (int)RootWidth) {
-	if (menu->Parent) {
-	    x = menu->Parent->X - menu->Width;
-	} else {
-	    x = RootWidth - menu->Width;
-	}
-    }
-    menu->ParentOffset = y;
-    if (y + menu->Height > (int)RootHeight) {
-	y = RootHeight - menu->Height;
-    }
-    if (y < 0) {
-	y = 0;
-    }
-    menu->X = x;
-    menu->Y = y;
-    menu->ParentOffset -= y;
-
-    menu->Window = xcb_generate_id(Connection);
-
-    values[0] = Colors.MenuBG.Pixel;
-    values[1] = 1;
-    values[2] = XCB_EVENT_MASK_EXPOSURE;
-    xcb_create_window(Connection, XCB_COPY_FROM_PARENT, menu->Window,
-	RootWindow, x, y, menu->Width, menu->Height, 0,
-	XCB_WINDOW_CLASS_INPUT_OUTPUT, XCB_COPY_FROM_PARENT,
-	XCB_CW_BACK_PIXEL | XCB_CW_SAVE_UNDER | XCB_CW_EVENT_MASK, values);
-
-    if (MenuOpacity != UINT32_MAX) {
-	AtomSetCardinal(menu->Window, &Atoms.NET_WM_WINDOW_OPACITY,
-	    MenuOpacity);
-    }
-    // raise window
-    values[0] = XCB_STACK_MODE_ABOVE;
-    xcb_configure_window(Connection, menu->Window,
-	XCB_CONFIG_WINDOW_STACK_MODE, values);
-    // map window on the screen
-    xcb_map_window(Connection, menu->Window);
-    Debug(4, "%s: mapped\n", __FUNCTION__);
-}
-
-/**
-**	Destroy menu window.
-**
-**	@param menu
-*/
-static inline void MenuDestroyWindow(Menu * menu)
-{
-    xcb_destroy_window(Connection, menu->Window);
-}
-
-/**
-**	Show a submenu.
-**
-**	@param menu	menu to draw
-**	@param parent	parent of the menu
-**	@param x	x-coordinate of menu position
-**	@param y	y-coordinate of menu position
-*/
-static int MenuShowSubmenu(Menu * menu, Menu * parent, int x, int y)
-{
-    int status;
-
-    menu->Parent = parent;
-    MenuPrepareDisplay(menu);
-    MenuCreateWindow(menu, x, y);
-
-    ++MenuShown;
-    status = MenuLoop(menu);
-    --MenuShown;
-
-    MenuDestroyWindow(menu);
-
-    return status;
-}
-
-/**
-**	Show a menu.
-**
-**	@param menu	menu to show and handle
-**	@param x	menu x-coordinate
-**	@param y	menu y-coordinate
-**	@param execute	function to excute selected menu item
-**	@param opaque	private data for execute
-*/
-void MenuShow(Menu * menu, int x, int y, void (*execute) (void *,
-	const MenuItem *), void *opaque)
-{
-    xcb_grab_pointer_cookie_t pointer_cookie;
-    xcb_grab_keyboard_cookie_t keyboard_cookie;
-    int mouse_grabbed;
-    int keyboard_grabbed;
-
-    // don't show the menu, if there isn't anything to show
-    if (!MenuIsValid(menu)) {
-	Debug(3, "no valid menu\n");
-	return;
-    }
-    pointer_cookie = PointerGrabDefaultRequest(RootWindow);
-    keyboard_cookie = KeyboardGrabRequest(RootWindow);
-
-    mouse_grabbed = PointerGrabReply(pointer_cookie);
-    keyboard_grabbed = KeyboardGrabReply(keyboard_cookie);
-
-    if (!mouse_grabbed || !keyboard_grabbed) {
-	Debug(3, "can't grab mouse or keyboard\n");
-	xcb_ungrab_keyboard(Connection, XCB_CURRENT_TIME);
-	xcb_ungrab_pointer(Connection, XCB_CURRENT_TIME);
-	return;
-    }
-
-    MenuShowSubmenu(menu, NULL, x, y);
-
-    xcb_ungrab_keyboard(Connection, XCB_CURRENT_TIME);
-    xcb_ungrab_pointer(Connection, XCB_CURRENT_TIME);
-    ClientRefocus();
-
-    if (MenuItemSelected) {
-	execute(opaque, MenuItemSelected);
-	MenuItemSelected = NULL;
-    }
-}
-
-// ------------------------------------------------------------------------ //
-// Management
-
-/**
-**	Patch command to be executed.
-**
-**	@param command	menu command to be prepared
-*/
-static void MenuCommandPatch(MenuCommand * command)
-{
-    // FIXME: other automatic generated menus
-    if (command->Type == MENU_ACTION_DESKTOP) {
-	command->Submenu = DesktopCreateMenu(1 << DesktopCurrent);
-	MenuPrepareDisplay(command->Submenu);
-    } else if (command->Type == MENU_ACTION_DIR) {
-	free(command->String);
-	command->Submenu = NULL;
-	return;
-	command->Submenu = RootMenuFromDirectory(command->String);
-	command->Type = MENU_ACTION_DIR_PREPARED;
-	MenuPatch(command->Submenu);
-	MenuPrepareDisplay(command->Submenu);
-    } else if (command->Type >= MENU_ACTION_SUBMENU) {
-	MenuPatch(command->Submenu);
-    }
-}
-
-/**
-**	Cleanup command after executed.
-**
-**	@param command	menu command to be cleaned
-*/
-static void MenuCommandUnpatch(MenuCommand * command)
-{
-    // FIXME: other automatic generated menus
-    if (command->Type == MENU_ACTION_DESKTOP) {
-	MenuDel(command->Submenu);
-	command->Submenu = NULL;
-    } else if (command->Type == MENU_ACTION_DIR) {
-    } else if (command->Type == MENU_ACTION_DIR_PREPARED) {
-	char *path;
-
-	path = command->Submenu->Label;
-	command->Submenu->Label = NULL;
-	MenuDel(command->Submenu);
-	command->String = path;
-	command->Type = MENU_ACTION_DIR;
-    } else if (command->Type >= MENU_ACTION_SUBMENU) {
-	MenuUnpatch(command->Submenu);
-    }
-}
-
-/**
-**	Prepare menu to be shown.
-**
-**	@param menu	menu to prepared for display
-*/
-static void MenuPatch(Menu * menu)
-{
-    int i;
-
-    for (i = 0; i < menu->ItemCount; ++i) {
-	MenuCommandPatch(&menu->ItemTable[i]->Command);
-    }
-}
-
-/**
-**	Remove temporary items from menu.
-**
-**	@param menu	menu to cleanup after display
-*/
-static void MenuUnpatch(Menu * menu)
-{
-    int i;
-
-    for (i = 0; i < menu->ItemCount; ++i) {
-	MenuCommandUnpatch(&menu->ItemTable[i]->Command);
-    }
-}
-
-#else
 
 /**
 **	Get the menu item associated with an index.
@@ -2557,7 +1504,8 @@ static int MenuHandleKey(Runtime * runtime,
 	case XK_Return:		// select menu item
 	    if (parent->CurrentIndex >= 0) {
 		// FIXME: don't select sub-menus
-		MenuCommandSelected = &MenuGetItem(parent, i)->Command;
+		MenuCommandCopy(&MenuCommandSelected, &MenuGetItem(parent,
+			i)->Command);
 	    }
 	    return 1;
 	default:
@@ -2693,8 +1641,7 @@ int MenuHandleMotionNotify(Runtime * runtime,
 	    MenuCleanupRuntime(submenu);
 	    MenuCommandCleanup(&item->Command);
 
-	    if (status) {
-		// item selected; destroy the menu tree
+	    if (status) {		// item selected; destroy the menu tree
 		return 1;
 	    }
 	    MenuUpdate(runtime);
@@ -2729,8 +1676,10 @@ static int MenuLoop(Runtime * runtime)
 		case XCB_EXPOSE:
 		    // FIXME: look here, only if not menu window?
 		    xcb_event_handle(&EventHandlers, event);
-		    // FIXME: only on last event!
-		    MenuDrawTree(runtime);
+		    // ignore this until last
+		    if (!((const xcb_expose_event_t *)event)->count) {
+			MenuDrawTree(runtime);
+		    }
 		    break;
 
 		case XCB_BUTTON_PRESS:
@@ -2757,11 +1706,17 @@ static int MenuLoop(Runtime * runtime)
 			&& abs(re->root_y - press_y) < DoubleClickDelta) {
 			break;
 		    }
-		    // FIXME: must check no sub-menu clicked
+		    // entry selected and no sub directory
 		    if (runtime->CurrentIndex >= 0) {
-			MenuCommandSelected =
+			printf("sub-menu %d\n", runtime->CurrentIndex);
+			// no action on sub-menus for touch-screens
+			if (runtime->Menu->ItemTable[runtime->CurrentIndex]
+			    ->Command.Type >= MENU_ACTION_SUBMENU) {
+			    break;
+			}
+			MenuCommandCopy(&MenuCommandSelected,
 			    &runtime->Menu->ItemTable[runtime->CurrentIndex]
-			    ->Command;
+			    ->Command);
 		    }
 		    free(event);
 		    return 1;
@@ -3042,13 +1997,13 @@ static void MenuShowRuntime(Runtime * runtime, int x, int y,
     xcb_ungrab_pointer(Connection, XCB_CURRENT_TIME);
     ClientRefocus();
 
-    if (MenuCommandSelected) {
-	execute(opaque, MenuCommandSelected);
-	MenuCommandSelected = NULL;
+    // execute selected command (copied, menu can already be freeed)
+    if (MenuCommandSelected.Type) {
+	execute(opaque, &MenuCommandSelected);
+	MenuCommandDel(&MenuCommandSelected);
+	MenuCommandSelected.Type = MENU_ACTION_NONE;
     }
 }
-
-#endif
 
 // ------------------------------------------------------------------------ //
 // Execute
@@ -3095,12 +2050,30 @@ static void DoExit(void)
 static void MenuCommandPrepare(MenuCommand * command)
 {
     Menu *submenu;
+    int i;
 
     // handle generated sub-menus
     switch (command->Type) {
 	case MENU_ACTION_DESKTOP:
-	    Debug(0, "add desktop menu\n");
-	    command->Submenu = DesktopCreateMenu(1 << DesktopCurrent);
+	case MENU_ACTION_SENDTO:
+	    if (MenuClient) {
+		if (MenuClient->State & WM_STATE_STICKY) {
+		    i = -1;
+		} else {
+		    i = 1 << MenuClient->Desktop;
+		}
+	    } else {
+		i = 1 << DesktopCurrent;
+	    }
+	    command->Submenu = DesktopCreateMenu(i);
+	    break;
+	case MENU_ACTION_LAYER:
+	    if (MenuClient) {
+		i = MenuClient->OnLayer;
+	    } else {
+		i = -1;
+	    }
+	    command->Submenu = WindowMenuCreateLayer(i);
 	    break;
 	case MENU_ACTION_DIR:
 	    if ((submenu = RootMenuFromDirectory(command->String))) {
@@ -3109,6 +2082,7 @@ static void MenuCommandPrepare(MenuCommand * command)
 		command->Type = MENU_ACTION_DIR_PREPARED;
 	    }
 	    break;
+	    // FIXME: must generate other menus
     }
 }
 
@@ -3123,6 +2097,9 @@ static void MenuCommandCleanup(MenuCommand * command)
 
     switch (command->Type) {
 	case MENU_ACTION_DESKTOP:
+	case MENU_ACTION_WINDOW:
+	case MENU_ACTION_SENDTO:
+	case MENU_ACTION_LAYER:
 	    MenuDel(command->Submenu);
 	    command->Submenu = NULL;
 	    break;
@@ -3150,7 +2127,6 @@ static void MenuCommandExecute(const MenuCommand * command, int x, int y)
     char *s;
     char *p;
 
-    Debug(3, "execute command %d\n", command->Type);
     switch (command->Type) {
 	case MENU_ACTION_NONE:
 	    break;
@@ -3166,18 +2142,11 @@ static void MenuCommandExecute(const MenuCommand * command, int x, int y)
 
 	case MENU_ACTION_EXECUTE:
 	    xcb_flush(Connection);	// required for xprop, ...
-	    if (!(p = command->String)) {	// use menu entry name as command
-		Debug(0, "no command to execute\n");
-		break;
-	    }
-	    CommandRun(p);
+	    CommandRun(command->String);
 	    break;
 	case MENU_ACTION_FILE:
 	    xcb_flush(Connection);	// required for xprop, ...
-	    if (!(p = command->String)) {	// use menu entry name as command
-		Debug(0, "no command to execute\n");
-		break;
-	    }
+	    p = command->String;
 	    s = alloca(strlen(p) + 12);
 	    sprintf(s, "uwm-helper %s", p);
 	    CommandRun(s);
@@ -3188,11 +2157,15 @@ static void MenuCommandExecute(const MenuCommand * command, int x, int y)
 	case MENU_ACTION_EXIT:
 	    free(ExitCommand);
 	    // menu are freeed before execution
-	    ExitCommand = command->String ? strdup(command->String) : NULL;
+	    p = command->String;
+	    ExitCommand = p ? strdup(p) : NULL;
 	    DoExit();
 	    break;
 	case MENU_ACTION_TOGGLE_SHOW_DESKTOP:
 	    DesktopToggleShow();
+	    break;
+	case MENU_ACTION_TOGGLE_SHADE_DESKTOP:
+	    DesktopToggleShade();
 	    break;
 	case MENU_ACTION_DIA_SHOW:
 	    DiaCreate(command->String);
@@ -3203,7 +2176,7 @@ static void MenuCommandExecute(const MenuCommand * command, int x, int y)
 
 	case MENU_ACTION_SENDTO_DESKTOP:
 	case MENU_ACTION_SET_LAYER:
-	case MENU_ACTION_MAXIMIZE:
+	case MENU_ACTION_TOGGLE_MAXIMIZE:
 	case MENU_ACTION_MINIMIZE:
 	case MENU_ACTION_RESTORE:
 	case MENU_ACTION_TOGGLE_SHADE:
@@ -3213,14 +2186,14 @@ static void MenuCommandExecute(const MenuCommand * command, int x, int y)
 	case MENU_ACTION_LOWER:
 	case MENU_ACTION_CLOSE:
 	case MENU_ACTION_KILL:
-	    // WindowMenuChoose(command);
-	    Debug(0, "FIXME: %s\n", __FUNCTION__);
+	    WindowMenuChoose(command);
 	    break;
 
 	case MENU_ACTION_ROOT_MENU:
 	    RootMenuShow(command->Integer, x, y);
 	    break;
 	case MENU_ACTION_DESKTOP:
+	case MENU_ACTION_WINDOW:
 	case MENU_ACTION_SENDTO:
 	case MENU_ACTION_LAYER:
 	case MENU_ACTION_DIR_PREPARED:
@@ -3247,7 +2220,31 @@ static void MenuCommandExecute(const MenuCommand * command, int x, int y)
 
 	case MENU_ACTION_DIR:
 	default:
-	    Debug(0, "invalid MenuCommand action: %d\n", command->Type);
+	    Debug(0, "invalid menu command: %d\n", command->Type);
+	    break;
+    }
+}
+
+/**
+**	Copy menu command.
+**
+**	@param dst	menu command destination
+**	@param src	menu command source
+*/
+static void MenuCommandCopy(MenuCommand * dst, const MenuCommand * src)
+{
+    *dst = *src;
+    switch (dst->Type) {
+	case MENU_ACTION_EXECUTE:
+	case MENU_ACTION_FILE:
+	case MENU_ACTION_EXIT:
+	case MENU_ACTION_DIR:
+	case MENU_ACTION_DIA_SHOW:
+	case MENU_ACTION_PLAY_TD:
+	    if (src->String) {
+		dst->String = strdup(src->String);
+	    }
+	default:
 	    break;
     }
 }
@@ -3257,18 +2254,20 @@ static void MenuCommandExecute(const MenuCommand * command, int x, int y)
 **
 **	@param command	menu command action and parameter
 */
-void MenuCommandDel(MenuCommand * command)
+static void MenuCommandDel(MenuCommand * command)
 {
     switch (command->Type) {
 	case MENU_ACTION_EXECUTE:
+	case MENU_ACTION_FILE:
 	case MENU_ACTION_EXIT:
-	    free(command->String);
-	    break;
 	case MENU_ACTION_DIR:
+	case MENU_ACTION_DIA_SHOW:
+	case MENU_ACTION_PLAY_TD:
 	    free(command->String);
 	    break;
 	case MENU_ACTION_SUBMENU:
 	case MENU_ACTION_DESKTOP:
+	case MENU_ACTION_WINDOW:
 	case MENU_ACTION_SENDTO:
 	case MENU_ACTION_LAYER:
 	case MENU_ACTION_DIR_PREPARED:
@@ -3318,15 +2317,9 @@ void MenuButtonExecute(MenuButton * button, int mask, int x, int y, void
 	Debug(3, " have command\n");
 	command =
 	    button->Commands + xcb_popcount(button->Buttons & xcb_mask(b));
-#ifdef OLDMENU
-	MenuCommandPatch(command);
-	MenuCommandExecute(command, x, y);
-	MenuCommandUnpatch(command);
-#else
 	MenuCommandPrepare(command);
 	MenuCommandExecute(command, x, y);
 	MenuCommandCleanup(command);
-#endif
     } else {
 	Debug(3, " button %d undefined\n", b);
     }
@@ -3442,9 +2435,7 @@ void MenuDel(Menu * menu)
 	for (i = 0; i < menu->ItemCount; ++i) {
 	    MenuDelItem(menu->ItemTable[i]);
 	}
-	if (i) {
-	    free(menu->ItemTable);
-	}
+	free(menu->ItemTable);
 	free(menu->Label);
 	free(menu);
     }
@@ -3509,6 +2500,8 @@ void MenuSetAction(MenuItem * item, const char *action, const char *value)
 	item->Type = MENU_ACTION_NONE;
     } else if (!strcasecmp("desktop", action)) {
 	item->Type = MENU_ACTION_DESKTOP;
+    } else if (!strcasecmp("window", action)) {
+	item->Type = MENU_ACTION_WINDOW;
     } else if (!strcasecmp("set-desktop", action)) {
 	item->Type = MENU_ACTION_SET_DESKTOP;
 	item->Command.Integer = value ? atoi(value) : 0;
@@ -3528,8 +2521,8 @@ void MenuSetAction(MenuItem * item, const char *action, const char *value)
 	item->Command.Integer = value ? atoi(value) : 0;
     } else if (!strcasecmp("stick", action)) {
 	item->Type = MENU_ACTION_TOGGLE_STICKY;
-    } else if (!strcasecmp("maximize", action)) {
-	item->Type = MENU_ACTION_MAXIMIZE;
+    } else if (!strcasecmp("toggle-maximize", action)) {
+	item->Type = MENU_ACTION_TOGGLE_MAXIMIZE;
     } else if (!strcasecmp("maximize-horizontal", action)) {
 	item->Type = MENU_ACTION_MAXIMIZE_HORZ;
     } else if (!strcasecmp("maximize-vertical", action)) {
@@ -3576,12 +2569,13 @@ void MenuSetAction(MenuItem * item, const char *action, const char *value)
 #else
 
 /**
-**	Parse menu-action config.
+**	Parse menu command config.
 **
 **	@param array		configuration array for menu action
 **	@param[out] command	command action parsed
 */
-static void MenuActionConfig(const ConfigObject * array, MenuCommand * command)
+static void MenuCommandConfig(const ConfigObject * array,
+    MenuCommand * command)
 {
     const char *sval;
     ssize_t ival;
@@ -3598,8 +2592,8 @@ static void MenuActionConfig(const ConfigObject * array, MenuCommand * command)
 	//
     } else if (ConfigGetObject(array, &oval, "toggle-sticky", NULL)) {
 	command->Type = MENU_ACTION_TOGGLE_STICKY;
-    } else if (ConfigGetObject(array, &oval, "maximize", NULL)) {
-	command->Type = MENU_ACTION_MAXIMIZE;
+    } else if (ConfigGetObject(array, &oval, "toggle-maximize", NULL)) {
+	command->Type = MENU_ACTION_TOGGLE_MAXIMIZE;
     } else if (ConfigGetObject(array, &oval, "maximize-horizontal", NULL)) {
 	command->Type = MENU_ACTION_MAXIMIZE_HORZ;
     } else if (ConfigGetObject(array, &oval, "maximize-vertical", NULL)) {
@@ -3610,20 +2604,6 @@ static void MenuActionConfig(const ConfigObject * array, MenuCommand * command)
 	command->Type = MENU_ACTION_RESTORE;
     } else if (ConfigGetObject(array, &oval, "toggle-shade", NULL)) {
 	command->Type = MENU_ACTION_TOGGLE_SHADE;
-    } else if (ConfigGetObject(array, &oval, "dia-show", NULL)) {
-	command->Type = MENU_ACTION_DIA_SHOW;
-	// string is optional
-	command->String = NULL;
-	if (ConfigCheckString(oval, &sval)) {
-	    command->String = strdup(sval);
-	}
-    } else if (ConfigGetObject(array, &oval, "play-td", NULL)) {
-	command->Type = MENU_ACTION_PLAY_TD;
-	// string is optional
-	command->String = NULL;
-	if (ConfigCheckString(oval, &sval)) {
-	    command->String = strdup(sval);
-	}
     } else if (ConfigGetObject(array, &oval, "move", NULL)) {
 	command->Type = MENU_ACTION_MOVE;
     } else if (ConfigGetObject(array, &oval, "resize", NULL)) {
@@ -3643,13 +2623,15 @@ static void MenuActionConfig(const ConfigObject * array, MenuCommand * command)
 	command->Type = MENU_ACTION_RESTART;
     } else if (ConfigGetObject(array, &oval, "exit", NULL)) {
 	command->Type = MENU_ACTION_EXIT;
-	// exit string is optional
-	command->String = NULL;
+	command->String = NULL;		// exit string is optional
 	if (ConfigCheckString(oval, &sval)) {
 	    command->String = strdup(sval);
 	}
     } else if (ConfigGetString(array, &sval, "execute", NULL)) {
 	command->Type = MENU_ACTION_EXECUTE;
+	command->String = strdup(sval);
+    } else if (ConfigGetString(array, &sval, "file", NULL)) {
+	command->Type = MENU_ACTION_FILE;
 	command->String = strdup(sval);
 
     } else if (ConfigGetInteger(array, &ival, "set-layer", NULL)) {
@@ -3674,11 +2656,29 @@ static void MenuActionConfig(const ConfigObject * array, MenuCommand * command)
     } else if (ConfigGetObject(array, &oval, "toggle-shade-desktop", NULL)) {
 	command->Type = MENU_ACTION_TOGGLE_SHADE_DESKTOP;
 
+    } else if (ConfigGetObject(array, &oval, "dia-show", NULL)) {
+	command->Type = MENU_ACTION_DIA_SHOW;
+	// string is optional
+	command->String = NULL;
+	if (ConfigCheckString(oval, &sval)) {
+	    command->String = strdup(sval);
+	}
+    } else if (ConfigGetObject(array, &oval, "play-td", NULL)) {
+	command->Type = MENU_ACTION_PLAY_TD;
+	// string is optional
+	command->String = NULL;
+	if (ConfigCheckString(oval, &sval)) {
+	    command->String = strdup(sval);
+	}
+
     } else if (ConfigGetArray(array, &oval, "menu", NULL)) {
 	command->Type = MENU_ACTION_SUBMENU;
 	command->Submenu = MenuConfigMenu(oval);
     } else if (ConfigGetObject(array, &oval, "desktop", NULL)) {
 	command->Type = MENU_ACTION_DESKTOP;
+	command->Submenu = NULL;
+    } else if (ConfigGetObject(array, &oval, "window", NULL)) {
+	command->Type = MENU_ACTION_WINDOW;
 	command->Submenu = NULL;
     } else if (ConfigGetObject(array, &oval, "sendto", NULL)) {
 	command->Type = MENU_ACTION_SENDTO;
@@ -3690,6 +2690,7 @@ static void MenuActionConfig(const ConfigObject * array, MenuCommand * command)
 	// FIXME: path is optional
 	command->Type = MENU_ACTION_DIR;
 	command->String = strdup(sval);
+
     } else {
 	Warning("unsupported or missing action for menu-command\n");
 	command->Type = MENU_ACTION_NONE;
@@ -3707,6 +2708,7 @@ static void MenuButtonConfig(const ConfigObject * array, MenuButton ** button)
     MenuCommand command;
     ssize_t ival;
     int b;
+    int s;
     MenuButton *menu_button;
 
     //
@@ -3727,16 +2729,15 @@ static void MenuButtonConfig(const ConfigObject * array, MenuButton ** button)
 	b = ival + 16;
     }
     // parse general command config
-    MenuActionConfig(array, &command);
+    MenuCommandConfig(array, &command);
 
     // append button to buttons
     if ((menu_button = *button)) {
 	uint32_t mask;
-	int s;
 	int n;
 	int i;
 
-	// FIXME: overwrite buttons not supported.
+	// FIXME: overwrite buttons is not supported.
 	if (menu_button->Buttons & 1 << (b - 1)) {
 	    Warning("button %d already defined\n", b);
 	    return;
@@ -3752,13 +2753,12 @@ static void MenuButtonConfig(const ConfigObject * array, MenuButton ** button)
 	    menu_button->Commands[i + 1] = menu_button->Commands[i];
 	}
 	menu_button->Buttons |= 1 << (b - 1);
-	menu_button->Commands[s] = command;
-
     } else {
 	menu_button = malloc(sizeof(*menu_button));
 	menu_button->Buttons = 1 << (b - 1);
-	menu_button->Commands[0] = command;
+	s = 0;
     }
+    menu_button->Commands[s] = command;
     *button = menu_button;
 }
 
@@ -3803,6 +2803,11 @@ MenuItem *MenuItemConfig(const ConfigObject * array)
     ssize_t ival;
 
     item = MenuNewItem(NULL, NULL);
+    // separator ignore all other parameters
+    if (ConfigGetInteger(array, &ival, "separator", NULL) && ival) {
+	// item->Text = NULL && item->IconName flags separator
+	return item;
+    }
 #ifdef USE_ICON
     if (ConfigGetString(array, &sval, "icon", NULL)) {
 	item->IconName = strdup(sval);
@@ -3817,7 +2822,10 @@ MenuItem *MenuItemConfig(const ConfigObject * array)
     //
     //	actions:
     //
-    MenuActionConfig(array, &item->Command);
+    MenuCommandConfig(array, &item->Command);
+    if (item->Command.Type == MENU_ACTION_NONE) {
+	Debug(1, "missing comand '%s'\n", item->Text);
+    }
 
     return item;
 }
@@ -3932,57 +2940,13 @@ void MenuConfig(void)
 
 static MenuButton *RootButtons;		///< root window buttons
 
-#ifdef OLDMENU
-
-/**
-**	Get the size of a root menu.
-**
-**	@param index		menu number (index into #Menus)
-**	@param[out] width	width of menu
-**	@param[out] height	height of menu
-*/
-void RootMenuGetSize(int index, unsigned *width, unsigned *height)
-{
-    Menu *menu;
-
-    *width = 0;
-    *height = 0;
-
-    // check, if we have enough menus.
-    if (0 > index || index >= MenuN) {
-	Debug(3, "index out of range %d\n", index);
-	return;
-    }
-    MenuPatch(menu = Menus[index]);
-    *width = menu->Width;
-    *height = menu->Height;
-    MenuUnpatch(menu);
-}
-
-/**
-**	Root menu callback.  Execute selected menu item action.
-**
-**	@param opaque	private data
-**	@param item	menu item to execute
-*/
-void RootMenuExecute(void
-    __attribute__ ((unused)) * opaque, const MenuItem * item)
-{
-    int x;
-    int y;
-
-    PointerGetPosition(&x, &y);
-    MenuCommandExecute(&item->Command, x, y);
-}
-#else
-
 /**
 **	Root menu callback.  Execute selected menu item command.
 **
 **	@param opaque	private data
 **	@param command	menu command to execute
 */
-void RootMenuExecute(void
+static void RootMenuExecute(void
     __attribute__ ((unused)) * opaque, const MenuCommand * command)
 {
     int x;
@@ -3991,7 +2955,6 @@ void RootMenuExecute(void
     PointerGetPosition(&x, &y);
     MenuCommandExecute(command, x, y);
 }
-#endif
 
 /**
 **	Show/handle a root menu.
@@ -4002,18 +2965,15 @@ void RootMenuExecute(void
 */
 static void RootMenuShow(int index, int x, int y)
 {
+    Runtime *runtime;
+
     // check, if we have enough menus.
     if (0 > index || index >= MenuN) {
 	Debug(3, "index out of range %d\n", index);
 	return;
     }
-#ifdef OLDMENU
-    MenuPatch(Menus[index]);
-    MenuShow(Menus[index], x, y, RootMenuExecute, NULL);
-    MenuUnpatch(Menus[index]);
-#else
-    Runtime *runtime;
 
+    MenuClient = NULL;
     runtime = MenuPrepareRuntime(Menus[index]);
 
     if (x < 0 || y < 0) {		// other side hot-spot
@@ -4028,7 +2988,6 @@ static void RootMenuShow(int index, int x, int y)
     MenuShowRuntime(runtime, x, y, RootMenuExecute, NULL);
 
     MenuCleanupRuntime(runtime);
-#endif
 
     return;
 }
@@ -4058,40 +3017,52 @@ Menu *RootMenuFromDirectory(char *path)
 {
     struct dirent **namelist;
     int n;
+    Menu *submenu;
+
+    submenu = MenuNew();
+    submenu->Label = path;		// ugly hack save path in label
+    //submenu->UserHeight = WindowMenuUserHeight;
 
     n = scandir(path, &namelist, NULL, alphasort);
     if (n > 0) {
-	Menu *submenu;
 	int i;
+	int path_len;
 
-	submenu = MenuNew();
-	submenu->Label = path;		// ugly hack save path in label
-	//submenu->UserHeight = WindowMenuUserHeight;
+	path_len = strlen(path);
+	if (path[path_len - 1] == '/') {	// remove trailing slash
+	    --path_len;
+	}
 
 	for (i = 0; i < n; ++i) {
 	    MenuItem *item;
 
 	    if (strcmp(namelist[i]->d_name, ".")
 		&& strcmp(namelist[i]->d_name, "..")) {
+		char *s;
 
 		item = MenuNewItem(NULL, namelist[i]->d_name);
 		if (namelist[i]->d_type == DT_REG) {	// regular file
 		    item->Command.Type = MENU_ACTION_FILE;
-		    // FIXME: need the complete path.
 		} else if (namelist[i]->d_type == DT_DIR) {	// directory
-		    // item->Command.Type = MENU_ACTION_DIR;
-		    // FIXME: need the complete path.
+		    item->Command.Type = MENU_ACTION_DIR;
 		}
-		item->Command.String = item->Text;
+		if (item->Command.Type != MENU_ACTION_NONE) {
+		    s = malloc(path_len + strlen(item->Text) + 2);
+		    item->Command.String = s;
+		    memcpy(s, path, path_len);
+		    s[path_len] = '/';
+		    strcpy(s + path_len + 1, item->Text);
+		}
 		MenuAppendItem(submenu, item);
 	    }
 	    free(namelist[i]);
 	}
 	free(namelist);
-	return submenu;
+    } else {
+	MenuAppendItem(submenu, MenuNewItem(NULL, "empty or can't read"));
+	Warning("Can't scan dir '%s'\n", path);
     }
-    Error("Can't scan dir '%s'\n", path);
-    return NULL;
+    return submenu;
 }
 
 // ------------------------------------------------------------------------ //
@@ -4101,13 +3072,6 @@ Menu *RootMenuFromDirectory(char *path)
 */
 void RootMenuInit(void)
 {
-#ifdef OLDMENU
-    int i;
-
-    for (i = 0; i < MenuN; ++i) {
-	MenuPrepareDisplay(Menus[i]);
-    }
-#endif
     MenuArrowPixmap =
 	xcb_create_pixmap_from_bitmap_data(Connection, RootWindow,
 	(uint8_t *) MenuSubmenuArrowBitmap, SUB_MENU_ARROW_WIDTH,
@@ -4253,11 +3217,11 @@ static void WindowMenuAppendMenu(Menu * menu, const char *icon,
 /**
 **	Create a window layer submenu.
 **
-**	@param client	client data for current layer
+**	@param on_layer	client current layer
 **
 **	@returns for client created layer menu.
 */
-static Menu *WindowMenuCreateLayer(const Client * client)
+static Menu *WindowMenuCreateLayer(int on_layer)
 {
     Menu *submenu;
     char buf[5];
@@ -4267,23 +3231,23 @@ static Menu *WindowMenuCreateLayer(const Client * client)
     submenu = MenuNew();
     submenu->UserHeight = WindowMenuUserHeight;
 
-    str = client->OnLayer == LAYER_BOTTOM ? "[Bottom]" : "Bottom";
+    str = on_layer == LAYER_BOTTOM ? "[Bottom]" : "Bottom";
     WindowMenuAppend(submenu, NULL, str, MENU_ACTION_SET_LAYER, LAYER_BOTTOM);
 
     buf[4] = 0;
     for (layer = LAYER_BOTTOM + 1; layer < LAYER_TOP; layer++) {
 	switch (layer) {
 	    case LAYER_BELOW:
-		str = client->OnLayer == layer ? "[Below]" : "Below";
+		str = on_layer == layer ? "[Below]" : "Below";
 		break;
 	    case LAYER_NORMAL:
-		str = client->OnLayer == layer ? "[Normal]" : "Normal";
+		str = on_layer == layer ? "[Normal]" : "Normal";
 		break;
 	    case LAYER_ABOVE:
-		str = client->OnLayer == layer ? "[Above]" : "Above";
+		str = on_layer == layer ? "[Above]" : "Above";
 		break;
 	    default:
-		if (client->OnLayer == layer) {
+		if (on_layer == layer) {
 		    buf[0] = '[';
 		    buf[3] = ']';
 		} else {
@@ -4302,38 +3266,10 @@ static Menu *WindowMenuCreateLayer(const Client * client)
 	WindowMenuAppend(submenu, NULL, str, MENU_ACTION_SET_LAYER, layer);
     }
 
-    str = client->OnLayer == LAYER_TOP ? "[Top]" : "Top";
+    str = on_layer == LAYER_TOP ? "[Top]" : "Top";
     WindowMenuAppend(submenu, NULL, str, MENU_ACTION_SET_LAYER, LAYER_TOP);
 
     return submenu;
-}
-
-/**
-**	Create a send to submenu.
-**
-**	@param client	client data for current desktop
-**	@param menu	layer menu is inserted into this menu
-*/
-static void WindowMenuCreateSendTo(const Client * client, Menu * menu)
-{
-    unsigned mask;
-    int desktop;
-    Menu *submenu;
-
-    mask = 0;
-    for (desktop = 0; desktop < DesktopN; desktop++) {
-	if (client->Desktop == desktop || (client->State & WM_STATE_STICKY)) {
-	    mask |= 1 << desktop;
-	}
-    }
-
-    WindowMenuAppend(menu, NULL, "Send to", MENU_ACTION_DESKTOP, 0);
-    // now the last item in the menu is for the desktop list
-
-    submenu = DesktopCreateMenu(mask);
-    submenu->UserHeight = WindowMenuUserHeight;
-    // note: 64 bit pointers
-    menu->ItemTable[menu->ItemCount - 1]->Command.Submenu = submenu;
 }
 
 /**
@@ -4342,6 +3278,7 @@ static void WindowMenuCreateSendTo(const Client * client, Menu * menu)
 **	@param client	menu for this client
 **
 **	@todo add icons to menu
+**	@todo use configuration for window menu
 */
 static Menu *WindowMenuCreate(const Client * client)
 {
@@ -4367,10 +3304,11 @@ static Menu *WindowMenuCreate(const Client * client)
 
 	if ((client->
 		State & (WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT))) {
-	    WindowMenuAppend(menu, NULL, "Unmaximize", MENU_ACTION_MAXIMIZE,
-		0);
+	    WindowMenuAppend(menu, NULL, "Unmaximize",
+		MENU_ACTION_TOGGLE_MAXIMIZE, 0);
 	} else {
-	    WindowMenuAppend(menu, NULL, "Maximize", MENU_ACTION_MAXIMIZE, 0);
+	    WindowMenuAppend(menu, NULL, "Maximize",
+		MENU_ACTION_TOGGLE_MAXIMIZE, 0);
 	}
     }
 
@@ -4391,7 +3329,7 @@ static Menu *WindowMenuCreate(const Client * client)
     // dialog isn't allowed to be moved arround
     if (!(client->State & WM_STATE_WMDIALOG)) {
 	if (!(client->State & WM_STATE_STICKY)) {
-	    WindowMenuCreateSendTo(client, menu);
+	    WindowMenuAppend(menu, NULL, "Send to", MENU_ACTION_DESKTOP, 0);
 	}
 
 	if (client->State & WM_STATE_STICKY) {
@@ -4402,8 +3340,7 @@ static Menu *WindowMenuCreate(const Client * client)
 		0);
 	}
 
-	WindowMenuAppendMenu(menu, NULL, "Layer", MENU_ACTION_LAYER,
-	    WindowMenuCreateLayer(client));
+	WindowMenuAppendMenu(menu, NULL, "Layer", MENU_ACTION_LAYER, 0);
     }
 
     if (client->State & (WM_STATE_MAPPED | WM_STATE_SHADED)) {
@@ -4433,160 +3370,6 @@ static Menu *WindowMenuCreate(const Client * client)
     return menu;
 }
 
-#ifdef OLDMENU
-
-/**
-**	Window menu action callback.
-**
-**	@param client	private data
-**	@param item	menu item to execute
-*/
-static void WindowMenuExecute(void *client, const MenuItem * item)
-{
-    switch (item->Command.Type) {
-	case MENU_ACTION_TOGGLE_STICKY:
-	    if (((Client *) client)->State & WM_STATE_STICKY) {
-		ClientSetSticky(client, 0);
-	    } else {
-		ClientSetSticky(client, 1);
-	    }
-	    break;
-	case MENU_ACTION_MAXIMIZE:
-	    ClientMaximize(client, 1, 1);
-	    break;
-	case MENU_ACTION_MAXIMIZE_HORZ:
-	    ClientMaximize(client, 1, 0);
-	    break;
-	case MENU_ACTION_MAXIMIZE_VERT:
-	    ClientMaximize(client, 0, 1);
-	    break;
-	case MENU_ACTION_MINIMIZE:
-	    ClientMinimize(client);
-	    break;
-	case MENU_ACTION_RESTORE:
-	    ClientRestore(client, 1);
-	    break;
-	case MENU_ACTION_CLOSE:
-	    ClientDelete(client);
-	    break;
-	case MENU_ACTION_SENDTO_DESKTOP:
-	    ClientSetDesktop(client, item->Command.Integer);
-	    break;
-	case MENU_ACTION_TOGGLE_SHADE:
-	    if (((Client *) client)->State & WM_STATE_SHADED) {
-		ClientUnshade(client);
-	    } else {
-		ClientShade(client);
-	    }
-	    break;
-	case MENU_ACTION_MOVE:
-	    ClientMoveKeyboard(client);
-	    break;
-	case MENU_ACTION_RESIZE:
-	    ClientResizeKeyboard(client);
-	    break;
-	case MENU_ACTION_KILL:
-	    ClientKill(client);
-	    break;
-	case MENU_ACTION_SET_LAYER:
-	    ClientSetLayer(client, item->Command.Integer);
-	    break;
-	default:
-	    Debug(0, "unknown window command: %d\n", item->Command.Type);
-	case MENU_ACTION_DESKTOP:
-	case MENU_ACTION_SENDTO:
-	case MENU_ACTION_LAYER:
-	case MENU_ACTION_DIR:
-	    break;
-    }
-}
-
-/**
-**	Get the size of a window menu.
-**
-**	@param client		client for window menu
-**	@param[out] width	width return
-**	@param[out] height	height return
-**
-**	@returns the prepared menu, to show it.
-*/
-Menu *WindowMenuGetSize(const Client * client, unsigned *width,
-    unsigned *height)
-{
-    Menu *menu;
-
-    menu = WindowMenuCreate(client);
-    MenuPrepareDisplay(menu);
-    *width = menu->Width;
-    *height = menu->Height;
-
-    return menu;
-}
-
-/**
-**	Show a window menu.
-**
-**	@param client	client for window menu
-**	@param menu	window menu of client
-**	@param x	x-coordinate of menu (root relative)
-**	@param y	y-coordinate of menu (root relative)
-*/
-void WindowMenuShow(Client * client, Menu * menu, int x, int y)
-{
-    if (!menu) {
-	// FIXME: loose memory here
-	menu = WindowMenuCreate(client);
-	MenuPrepareDisplay(menu);
-    }
-    MenuShow(menu, x, y, WindowMenuExecute, client);
-    MenuDel(menu);
-
-}
-
-/**
-**	Select a window for performing an action.
-**
-**	Grab the mouse to select a window.
-**
-**	@param item	memu item contains action to be executed after choose.
-*/
-void WindowMenuChoose(const MenuItem * item)
-{
-    xcb_grab_pointer_cookie_t cookie;
-    xcb_generic_event_t *event;
-
-    cookie = PointerGrabForChooseRequest();
-
-    PointerGrabReply(cookie);
-    while (KeepLooping) {
-	if ((event = PollNextEvent())) {
-	    switch (XCB_EVENT_RESPONSE_TYPE(event)) {
-		case XCB_BUTTON_PRESS:
-		    if (((xcb_button_press_event_t *) event)->detail ==
-			XCB_BUTTON_INDEX_1) {
-			Client *client;
-
-			if ((client =
-				ClientFindByAny(((xcb_button_press_event_t *)
-					event)->event))) {
-			    WindowMenuExecute(client, item);
-			}
-		    }
-		case XCB_KEY_PRESS:
-		    free(event);
-		    return;
-		default:
-		    xcb_event_handle(&EventHandlers, event);
-		    break;
-	    }
-	    free(event);
-	}
-	WaitForEvent();
-    }
-    xcb_ungrab_pointer(Connection, XCB_CURRENT_TIME);
-}
-#else
-
 /**
 **	Window menu action callback.
 **
@@ -4603,7 +3386,7 @@ static void WindowMenuExecute(void *client, const MenuCommand * command)
 		ClientSetSticky(client, 1);
 	    }
 	    break;
-	case MENU_ACTION_MAXIMIZE:
+	case MENU_ACTION_TOGGLE_MAXIMIZE:
 	    ClientMaximize(client, 1, 1);
 	    break;
 	case MENU_ACTION_MAXIMIZE_HORZ:
@@ -4618,9 +3401,8 @@ static void WindowMenuExecute(void *client, const MenuCommand * command)
 	case MENU_ACTION_RESTORE:
 	    ClientRestore(client, 1);
 	    break;
-	case MENU_ACTION_CLOSE:
-	    ClientDelete(client);
-	    break;
+	    // FIXME: DeskopCreateMenu creates only SET_DESKTOP.
+	case MENU_ACTION_SET_DESKTOP:
 	case MENU_ACTION_SENDTO_DESKTOP:
 	    ClientSetDesktop(client, command->Integer);
 	    break;
@@ -4636,6 +3418,16 @@ static void WindowMenuExecute(void *client, const MenuCommand * command)
 	    break;
 	case MENU_ACTION_RESIZE:
 	    ClientResizeKeyboard(client);
+	    break;
+	case MENU_ACTION_RAISE:
+	    ClientRaise(client);
+	    break;
+	case MENU_ACTION_LOWER:
+	    ClientLower(client);
+	    break;
+
+	case MENU_ACTION_CLOSE:
+	    ClientDelete(client);
 	    break;
 	case MENU_ACTION_KILL:
 	    ClientKill(client);
@@ -4656,6 +3448,55 @@ static void WindowMenuExecute(void *client, const MenuCommand * command)
 }
 
 /**
+**	Select a window for performing an action.
+**
+**	Grab the mouse to select a window.
+**
+**	@param command	memu command to be executed after choose.
+*/
+static void WindowMenuChoose(const MenuCommand * command)
+{
+    xcb_grab_pointer_cookie_t cookie;
+    xcb_generic_event_t *event;
+
+    cookie = PointerGrabForChooseRequest();
+
+    if (PointerGrabReply(cookie)) {
+	Debug(3, "grabbed mouse\n");
+    }
+    while (KeepLooping) {
+	if ((event = PollNextEvent())) {
+	    switch (XCB_EVENT_RESPONSE_TYPE(event)) {
+		case XCB_BUTTON_PRESS:
+		    if (((xcb_button_press_event_t *) event)->detail ==
+			XCB_BUTTON_INDEX_1) {
+			Client *client;
+
+			if ((client =
+				ClientFindByAny(((const
+					    xcb_button_press_event_t *)
+					event)->child))) {
+			    WindowMenuExecute(client, command);
+			} else {
+			    Debug(1, "no client selected\n");
+			}
+		    }
+		case XCB_KEY_PRESS:
+		    free(event);
+		    goto out;
+		default:
+		    xcb_event_handle(&EventHandlers, event);
+		    break;
+	    }
+	    free(event);
+	}
+	WaitForEvent();
+    }
+  out:
+    xcb_ungrab_pointer(Connection, XCB_CURRENT_TIME);
+}
+
+/**
 **	Get the size of a window menu.
 **
 **	@param client		client for window menu
@@ -4669,6 +3510,7 @@ Runtime *WindowMenuGetSize(const Client * client, unsigned *width,
 {
     Runtime *runtime;
 
+    MenuClient = client;
     runtime = MenuPrepareRuntime(WindowMenuCreate(client));
     *width = runtime->Width;
     *height = runtime->Height;
@@ -4688,6 +3530,7 @@ void WindowMenuShow(Runtime * runtime, int x, int y, Client * client)
 {
     Menu *menu;
 
+    MenuClient = client;
     if (!runtime) {
 	runtime = MenuPrepareRuntime(WindowMenuCreate(client));
     }
@@ -4696,7 +3539,6 @@ void WindowMenuShow(Runtime * runtime, int x, int y, Client * client)
     MenuCleanupRuntime(runtime);
     MenuDel(menu);
 }
-#endif
 
 /// @}
 

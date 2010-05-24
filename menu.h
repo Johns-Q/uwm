@@ -198,7 +198,7 @@ typedef enum
     MENU_ACTION_NONE,			///< nothing
     // window actions
     MENU_ACTION_TOGGLE_STICKY,		///< toggle sticky flag of client
-    MENU_ACTION_MAXIMIZE,		///< maximize client
+    MENU_ACTION_TOGGLE_MAXIMIZE,	///< toggle maximize client
     MENU_ACTION_MAXIMIZE_HORZ,		///< maximize client only horizontal
     MENU_ACTION_MAXIMIZE_VERT,		///< maximize client only vertical
     MENU_ACTION_MINIMIZE,		///< minimize client (iconify)
@@ -231,6 +231,7 @@ typedef enum
     // menu actions
     MENU_ACTION_SUBMENU,		///< menu item is sub - menu
     MENU_ACTION_DESKTOP,		///< autogen desktop sub - menu
+    MENU_ACTION_WINDOW,			///< autogen window sub - menu
     MENU_ACTION_SENDTO,			///< autogen sendto sub - menu
     MENU_ACTION_LAYER,			///< autogen layer sub - menu
     MENU_ACTION_DIR,			///< autogen dir sub - menu
@@ -335,21 +336,6 @@ extern void MenuConfig(void);
 //	Prototypes
 //////////////////////////////////////////////////////////////////////////////
 
-#ifdef OLDMENU
-    /// Get the size of a root menu.
-extern void RootMenuGetSize(int, unsigned *, unsigned *);
-
-    /// Root menu callback.  Execute selected menu item action.
-extern void RootMenuExecute(void __attribute__ ((unused)) *, const MenuItem *);
-
-    /// Show/handle a root menu.
-extern void RootMenuShow(int, int, int);
-#else
-    /// Root menu callback.  Execute selected menu item action.
-extern void RootMenuExecute(void
-    __attribute__ ((unused)) *, const MenuCommand *);
-#endif
-
     /// Handle root menu button press.
 extern int RootMenuHandleButtonPress(const xcb_button_press_event_t *);
 
@@ -378,24 +364,11 @@ extern void RootMenuConfig(void);
 //	Prototypes
 //////////////////////////////////////////////////////////////////////////////
 
-#ifdef OLDMENU
-    /// Get the size of a window menu.
-extern Menu *WindowMenuGetSize(const Client *, unsigned *, unsigned *);
-
-    /// Show a window menu.
-extern void WindowMenuShow(Client *, Menu *, int, int);
-
-    /// Select a window for performing an action.
-extern void WindowMenuChoose(const MenuItem *);
-#else
-
     /// Get the size of a window menu.
 extern Runtime *WindowMenuGetSize(const Client *, unsigned *, unsigned *);
 
     /// Show a window menu.
 extern void WindowMenuShow(Runtime *, int, int, Client *);
-
-#endif
 
 /// @}
 /// @}
