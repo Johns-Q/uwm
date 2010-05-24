@@ -1,7 +1,7 @@
 ///
 ///	@file draw.c	@brief drawing functions
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -724,6 +724,7 @@ void ColorConfig(void)
 {
     Color *color;
 
+    // FIXME: get errors here when unconfigured!
     for (color = &Colors.TitleFG; color <= &Colors.MenuActiveDown; ++color) {
 	const char *value;
 
@@ -774,9 +775,15 @@ static xcb_gcontext_t FontGC;		///< font graphic context
 
 /**
 **	Convert an utf-8 string to ucs-2 string.
+**
+**	@param utf8		input utf-8 encoded string
+**	@param len		length of utf-8 string
+**	@param[out] ucs2	output ucs-2 encoded string
+**
+**	@returns the length of the ucs-2 string.
 */
-static size_t FontUtf8ToUcs2(const uint8_t * utf8, xcb_char2b_t * ucs2,
-    size_t len)
+static size_t FontUtf8ToUcs2(const uint8_t * utf8, size_t len,
+    xcb_char2b_t * ucs2)
 {
     size_t in_pos;
     size_t out_pos;
@@ -849,7 +856,7 @@ xcb_query_text_extents_cookie_t FontQueryExtentsRequest(const Font * font,
     size_t i;
 
     chars = alloca(len * sizeof(*chars));
-    i = FontUtf8ToUcs2((const uint8_t *)str, chars, len);
+    i = FontUtf8ToUcs2((const uint8_t *)str, len, chars);
     return xcb_query_text_extents_unchecked(Connection, font->Font, i, chars);
 }
 
@@ -942,7 +949,7 @@ void FontDrawString(xcb_drawable_t drawable, const Font * font, uint32_t pixel,
 
     // UTF-8 to UCS-2 conversion
     chars = alloca(len * sizeof(*chars));
-    i = FontUtf8ToUcs2((const uint8_t *)str, chars, len);
+    i = FontUtf8ToUcs2((const uint8_t *)str, len, chars);
     /*
        Some one broke uft-8 support
        if (*str & 0x80) {
