@@ -58,9 +58,8 @@
 #include "image.h"
 #include "screen.h"
 #include "pointer.h"
-#include "keyboard.h"
-
 #include "client.h"
+#include "keyboard.h"
 #include "icon.h"
 #include "menu.h"
 #include "desktop.h"
@@ -998,7 +997,7 @@ static MenuItem *MenuGetItem(const Runtime * runtime, int index)
 /**
 **	Get the index of previous item in the menu.
 **
-**	Skips seperators.
+**	Skips separators.
 **
 **	@param runtime	menu runtime
 **
@@ -1027,7 +1026,7 @@ static int MenuGetPreviousIndex(const Runtime * runtime)
 /**
 **	Get the index of next item in the menu.
 **
-**	Skips seperators.
+**	Skips separators.
 **
 **	@param runtime	menu runtime
 **
@@ -1478,7 +1477,7 @@ static int MenuHandleKey(Runtime * runtime,
     }
 
     i = -1;
-    switch (KeyboardGet(event->detail)) {
+    switch (KeyboardGet(event->detail, event->state)) {
 	case XK_Up:			// select previous menu item
 	    i = MenuGetPreviousIndex(parent);
 	    break;
@@ -1502,15 +1501,19 @@ static int MenuHandleKey(Runtime * runtime,
 	case XK_Escape:		// leave menu without selection
 	    return -1;
 	case XK_Return:		// select menu item
+	    // item is parent => enter sub-menu
+	    if (parent != runtime) {
+		parent = runtime;
+		i = 0;
+		break;
+	    }
+	    // valid menu entry selected, copy it for execute
 	    if (parent->CurrentIndex >= 0) {
-		// FIXME: don't select sub-menus
 		MenuCommandCopy(&MenuCommandSelected, &MenuGetItem(parent,
-			i)->Command);
+			parent->CurrentIndex)->Command);
 	    }
 	    return 1;
 	default:
-	    Debug(3, "keycode $%x=%d -> %0x\n", event->detail, event->detail,
-		KeyboardGet(event->detail));
 	    break;
     }
 
@@ -1642,7 +1645,7 @@ int MenuHandleMotionNotify(Runtime * runtime,
 	    MenuCommandCleanup(&item->Command);
 
 	    if (status) {		// item selected; destroy the menu tree
-		return 1;
+		return status;
 	    }
 	    MenuUpdate(runtime);
 	}
@@ -1660,13 +1663,18 @@ int MenuHandleMotionNotify(Runtime * runtime,
 */
 static int MenuLoop(Runtime * runtime)
 {
+    int enter_x;
+    int enter_y;
     int press_x;
     int press_y;
     int moved;
     xcb_generic_event_t *event;
-    const xcb_button_release_event_t *re;
+    const xcb_button_press_event_t *bpe;
+    const xcb_button_release_event_t *bre;
 
-    PointerGetPosition(&press_x, &press_y);
+    press_x = -100;
+    press_y = -100;
+    PointerGetPosition(&enter_x, &enter_y);
     moved = 0;
 
     while (KeepLooping) {
@@ -1683,40 +1691,49 @@ static int MenuLoop(Runtime * runtime)
 		    break;
 
 		case XCB_BUTTON_PRESS:
-		    press_x = -100;
-		    press_y = -100;
+		    bpe = (const xcb_button_press_event_t *)event;
+		    enter_x = -100;
+		    enter_y = -100;
 		    moved = 1;
-		    MenuHandleButtonPress(runtime,
-			(const xcb_button_press_event_t *)event);
+		    MenuHandleButtonPress(runtime, bpe);
 		    break;
 
 		case XCB_BUTTON_RELEASE:
-		    re = (const xcb_button_release_event_t *)event;
+		    bre = (const xcb_button_release_event_t *)event;
 		    // FIXME: buttons should be configurable
-		    if (re->detail == XCB_BUTTON_INDEX_4) {
+		    if (bre->detail == XCB_BUTTON_INDEX_4) {
 			break;
 		    }
-		    if (re->detail == XCB_BUTTON_INDEX_5) {
+		    if (bre->detail == XCB_BUTTON_INDEX_5) {
 			break;
 		    }
 		    if (!moved) {
 			break;
 		    }
-		    if (abs(re->root_x - press_x) < DoubleClickDelta
-			&& abs(re->root_y - press_y) < DoubleClickDelta) {
+		    // pointer only a little moved
+		    if (abs(bre->root_x - enter_x) < DoubleClickDelta
+			&& abs(bre->root_y - enter_y) < DoubleClickDelta) {
 			break;
 		    }
+		    Debug(4, "button release\n");
 		    // entry selected and no sub directory
 		    if (runtime->CurrentIndex >= 0) {
-			printf("sub-menu %d\n", runtime->CurrentIndex);
 			// no action on sub-menus for touch-screens
 			if (runtime->Menu->ItemTable[runtime->CurrentIndex]
 			    ->Command.Type >= MENU_ACTION_SUBMENU) {
+			    Debug(3, "sub-menu %d\n", runtime->CurrentIndex);
 			    break;
 			}
 			MenuCommandCopy(&MenuCommandSelected,
 			    &runtime->Menu->ItemTable[runtime->CurrentIndex]
 			    ->Command);
+		    } else {
+			Debug(4, "no valid menu-entry\n");
+			if (runtime->Parent
+			    && runtime->Parent->Window == bre->child) {
+			    Debug(3, "have parent\n");
+			    break;
+			}
 		    }
 		    free(event);
 		    return 1;
@@ -2569,7 +2586,7 @@ void MenuSetAction(MenuItem * item, const char *action, const char *value)
 #else
 
 /**
-**	Parse menu command config.
+**	Parse menu command configuration.
 **
 **	@param array		configuration array for menu action
 **	@param[out] command	command action parsed
@@ -2698,7 +2715,7 @@ static void MenuCommandConfig(const ConfigObject * array,
 }
 
 /**
-**	Parse single menu pointer button config.
+**	Parse single menu pointer button configuration.
 **
 **	@param array		array of config values for pointer button
 **	@param[in,out] button	button config result
@@ -2730,7 +2747,9 @@ static void MenuButtonConfig(const ConfigObject * array, MenuButton ** button)
     }
     // parse general command config
     MenuCommandConfig(array, &command);
-
+    if (command.Type == MENU_ACTION_NONE) {
+	Warning("\tfor button %d\n", b);
+    }
     // append button to buttons
     if ((menu_button = *button)) {
 	uint32_t mask;
@@ -2763,7 +2782,7 @@ static void MenuButtonConfig(const ConfigObject * array, MenuButton ** button)
 }
 
 /**
-**	Parse menu pointer buttons config.
+**	Parse menu pointer buttons configuration.
 **
 **	@param array		array of config values for buttons
 **	@param[in,out] button	button config result
@@ -2790,7 +2809,7 @@ void MenuButtonsConfig(const ConfigObject * array, MenuButton ** button)
 }
 
 /**
-**	Parse menu-item config.
+**	Parse menu-item configuration.
 **
 **	@param array	configuration array for menu item
 **
@@ -2824,7 +2843,7 @@ MenuItem *MenuItemConfig(const ConfigObject * array)
     //
     MenuCommandConfig(array, &item->Command);
     if (item->Command.Type == MENU_ACTION_NONE) {
-	Debug(1, "missing comand '%s'\n", item->Text);
+	Warning("\tfor comand '%s'-'%s'\n", item->IconName, item->Text);
     }
 
     return item;
@@ -2871,7 +2890,7 @@ static Menu *MenuConfigMenu(const ConfigObject * array)
 }
 
 /**
-**	Parse menu config.
+**	Parse menu configuration.
 */
 void MenuConfig(void)
 {
@@ -3140,7 +3159,7 @@ void RootSetMenu(int index, Menu * menu)
 #else
 
 /**
-**	Parse root menu/command config.
+**	Parse root menu/command configuration.
 */
 void RootMenuConfig(void)
 {
@@ -3290,20 +3309,20 @@ static Menu *WindowMenuCreate(const Client * client)
     if ((client->Border & BORDER_MAXIMIZE)
 	&& (client->State & WM_STATE_MAPPED)) {
 
-	if (!(client->
-		State & (WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT))) {
+	if (!(client->State & (WM_STATE_MAXIMIZED_HORZ |
+		    WM_STATE_MAXIMIZED_VERT))) {
 	    WindowMenuAppend(menu, NULL, "Maximize-y",
 		MENU_ACTION_MAXIMIZE_VERT, 0);
 	}
 
-	if (!(client->
-		State & (WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT))) {
+	if (!(client->State & (WM_STATE_MAXIMIZED_HORZ |
+		    WM_STATE_MAXIMIZED_VERT))) {
 	    WindowMenuAppend(menu, NULL, "Maximize-x",
 		MENU_ACTION_MAXIMIZE_HORZ, 0);
 	}
 
-	if ((client->
-		State & (WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT))) {
+	if ((client->State & (WM_STATE_MAXIMIZED_HORZ |
+		    WM_STATE_MAXIMIZED_VERT))) {
 	    WindowMenuAppend(menu, NULL, "Unmaximize",
 		MENU_ACTION_TOGGLE_MAXIMIZE, 0);
 	} else {

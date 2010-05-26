@@ -316,13 +316,13 @@ extern void MenuDelItem(MenuItem *);
     /// Append a menu item to menu.
 extern void MenuAppendItem(Menu *, MenuItem *);
 
-    /// Parse menu pointer buttons config.
+    /// Parse menu pointer buttons configuration.
 extern void MenuButtonsConfig(const ConfigObject *, MenuButton **);
 
-    /// Parse menu-item config.
+    /// Parse menu-item configuration.
 extern MenuItem *MenuItemConfig(const ConfigObject *);
 
-    /// Parse menu config.
+    /// Parse menu configuration.
 extern void MenuConfig(void);
 
 // ------------------------------------------------------------------------ //
@@ -348,7 +348,7 @@ extern void RootMenuInit(void);
     /// Cleanup the root menu module.
 extern void RootMenuExit(void);
 
-    /// Parse root menu config.
+    /// Parse root menu configuration.
 extern void RootMenuConfig(void);
 
 /// @}
