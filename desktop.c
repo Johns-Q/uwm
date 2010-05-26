@@ -50,6 +50,7 @@
 #include "image.h"
 #include "icon.h"
 #include "menu.h"
+#include "background.h"
 #include "desktop.h"
 
 #include "panel.h"
