@@ -155,7 +155,6 @@ static void SwallowResize(Plugin * plugin)
 	values[1] = plugin->Height - swallow_plugin->Border * 2;
 	xcb_configure_window(Connection, plugin->Window,
 	    XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, values);
-	Debug(3, "swallow resize window\n");
     }
 }
 
@@ -276,7 +275,7 @@ int SwallowHandleDestroyNotify(const xcb_destroy_notify_event_t * event)
 {
     SwallowPlugin *swallow_plugin;
 
-    Debug(3, "swallow search %x - %x\n", event->window, event->event);
+    Debug(4, "swallow search %x - %x\n", event->window, event->event);
     SLIST_FOREACH(swallow_plugin, &Swallows, Next) {
 	if (event->window == swallow_plugin->Plugin->Window) {
 	    Debug(3, "found destroy swallow '%s'\n", swallow_plugin->Name);
@@ -309,7 +308,7 @@ int SwallowHandleConfigureNotify(const xcb_configure_notify_event_t * event)
 	    unsigned width;
 	    unsigned height;
 
-	    Debug(3, "found configure swallow\n");
+	    Debug(3, "found configure swallow %s\n", swallow_plugin->Name);
 
 	    width = event->width + swallow_plugin->Border * 2;
 	    height = event->height + swallow_plugin->Border * 2;
@@ -339,13 +338,13 @@ int SwallowHandleResizeRequest(const xcb_resize_request_event_t * event)
 {
     SwallowPlugin *swallow_plugin;
 
-    Debug(3, "swallow search %x\n", event->window);
+    Debug(4, "swallow search %x\n", event->window);
     SLIST_FOREACH(swallow_plugin, &Swallows, Next) {
 	if (event->window == swallow_plugin->Plugin->Window) {
 	    unsigned width;
 	    unsigned height;
 
-	    Debug(3, "found resize swallow\n");
+	    Debug(3, "found resize swallow %s\n", swallow_plugin->Name);
 
 	    width = event->width + swallow_plugin->Border * 2;
 	    height = event->height + swallow_plugin->Border * 2;
@@ -372,8 +371,9 @@ void SwallowInit(void)
     SwallowPlugin *swallow_plugin;
 
 #ifdef DEBUG
+    // clients need to be initialized before this plugin!
     if (!ClientLayers[0].tqh_first && !ClientLayers[0].tqh_last) {
-	Debug(0, "FIXME: clients missing init %s\n", __FUNCTION__);
+	FatalError("FIXME: clients missing init %s\n", __FUNCTION__);
     }
 #endif
 
