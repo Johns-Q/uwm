@@ -718,7 +718,7 @@ void ColorExit(void)
 // Config
 
 /**
-**	Parse config for color module
+**	Parse configuration for color module
 */
 void ColorConfig(void)
 {
@@ -1130,7 +1130,7 @@ void FontExit(void)
 // Config
 
 /**
-**	Parse config for font module
+**	Parse configuration for font module
 */
 void FontConfig(void)
 {

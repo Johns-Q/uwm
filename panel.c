@@ -1467,7 +1467,7 @@ void PanelAddPlugin(Panel * panel, Plugin * plugin)
 #else
 
 /**
-**	Parse a single panel config.
+**	Parse a single panel configuration.
 **
 **	@param array	config array of panel with plugins
 */

@@ -157,7 +157,7 @@ extern void ColorExit(void);
     /// Set the color to use for a modul.
 extern void ColorSet(const char *, const char *);
 #else
-    /// Parse the color config.
+    /// Parse the color configuration.
 extern void ColorConfig(void);
 #endif
 
@@ -245,7 +245,7 @@ extern void FontExit(void);
     /// Set the font to use for a component.
 extern void FontSet(const char *, const char *);
 #else
-    /// Parse the font config.
+    /// Parse the font configuration.
 extern void FontConfig(void);
 #endif
 
