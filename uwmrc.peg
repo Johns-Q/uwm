@@ -1,0 +1,127 @@
+##
+##	@file uwmrc.peg		@brief PE grammer for µwm resource config file
+##
+##	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+##
+##	Contributor(s):
+##
+##	License: AGPLv3
+##
+##	This program is free software: you can redistribute it and/or modify
+##	it under the terms of the GNU Affero General Public License as
+##	published by the Free Software Foundation, either version 3 of the
+##	License.
+##
+##	This program is distributed in the hope that it will be useful,
+##	but WITHOUT ANY WARRANTY; without even the implied warranty of
+##	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##	GNU Affero General Public License for more details.
+##
+##	$Id: $
+##############################################################################
+
+#
+#	NOTE: the grammer self is also AGPLv3 and (c)
+#
+
+configs <- spaces (include / config &{YYACCEPT})* end_of_file
+
+include <- "include" spaces string
+	    { ParseInclude(ParsePop()); }
+
+config <- lvalue '=' spaces expr
+	    { const ConfigObject * v1 = ParsePop();
+		ParseAssign(ParsePop(), v1); }
+
+lvalue <- identifier
+	    { ParseLvalue() }
+	    ((('.' spaces identifier) / ('[' spaces expr ']' spaces))
+	    { const ConfigObject * v1 = ParsePop();
+		ParseDot(ParsePop(), v1); } )*
+
+array <-    { ParseArrayStart(); }
+	'[' spaces (array_item (',' spaces)?)* ']' spaces
+	    { ParseArrayFinal(); }
+
+array_item
+	<- '[' spaces expr ']' spaces '=' spaces expr
+	    { const ConfigObject * v1 = ParsePop();
+		ParseArrayAddItem(ParsePop(), v1); }
+	/ (identifier / word) '=' spaces expr
+	    { const ConfigObject * v1 = ParsePop();
+		ParseArrayAddItem(ParsePop(), v1); }
+	/ expr
+	    { ParseArrayNextItem(ParsePop()); }
+
+expr	<- '(' spaces expr ')' spaces
+	/ expr0 '~' spaces expr
+	    { const ConfigObject * v1 = ParsePop();
+		ParseStringCat(ParsePop(), v1); }
+	/ expr0
+
+expr0	<- "nil" spaces
+	    { ParsePushNil(); }
+	/ "false" spaces
+	    { ParsePushI(0); }
+	/ "true" spaces
+	    { ParsePushI(1); }
+	/ number / string / word
+	/ identifier
+	    { ParseVariable(ParsePop()); }
+	/ array
+
+#----------------------------------------------------------------------------
+
+word <- '`' identifier
+
+identifier <-	< [a-zA-Z_][-0-9a-zA-Z_]* > spaces
+	{ ParsePushS(yytext); }
+
+string <- string1
+	{ ParsePushS(yytext); }
+
+string1 <- '"' < (!'"' char)* > '"' spaces
+	/ '{' end_of_line? < (!(end_of_line? '}') .)* > end_of_line? '}' spaces
+
+character <- '\'' < char > spaces
+	{ ParsePushI(*yytext); }
+
+char <- '\\' [abefnrtv'"\\]
+	/ '\\' [xX] hex_digit hex_digit
+	/ '\\' [0-3][0-7][0-7]
+	/ '\\' [uU] hex_digit hex_digit hex_digit hex_digit
+	/ !'\\' .
+
+number <-  float / integer / character
+
+integer <- (decimal / hex / octal ) spaces
+	{ ParsePushI(strtol(yytext, NULL, 0)); }
+
+decimal <- < [-+]? [1-9] [0-9]* >
+
+hex <- < '0' [xX] hex_digit+ >
+
+hex_digit <- [0-9a-fA-F]
+
+octal <- < '0' [0-7]* >
+
+float <- float1
+	{ ParsePushF(strtod(yytext, NULL)); }
+
+float1 <- < [-+]? [0-9]+ '.' [0-9]* ([eE] [+-]? [0-9]*)?  > spaces
+	/ < [-+]? [0-9]* '.' [0-9]+ ([eE] [+-]? [0-9]*)?  > spaces
+	/ < [-+]? [0-9]+ [eE] [+-]? [0-9]*  > spaces
+
+#----------------------------------------------------------------------------
+
+spaces <- (space / comment)*
+
+comment <- ";{" (!";}" .)* ";}"
+	/ ';' (!end_of_line .)* end_of_line
+
+space <- ' ' / '\t' / '\f' / '\v' / end_of_line
+
+end_of_line <- "\r\n" / '\r' / '\n'
+	    { ++ParseLineNr; }
+
+end_of_file <- !.
