@@ -1,7 +1,7 @@
 ///
-///	@file menu.c @brief menu functions
+///	@file menu.c	@brief menu functions
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -929,6 +929,8 @@ static const uint8_t MenuSubmenuArrowBitmap[SUB_MENU_ARROW_HEIGHT] = {
 
 ///	locale forward definitions
 ///@{
+
+static int WindowMenuUserHeight;
 
 static Runtime *MenuPrepareRuntime(Menu *);
 static void MenuCleanupRuntime(Runtime *);
@@ -2083,6 +2085,7 @@ static void MenuCommandPrepare(MenuCommand * command)
 		i = 1 << DesktopCurrent;
 	    }
 	    command->Submenu = DesktopCreateMenu(i);
+	    command->Submenu->UserHeight = WindowMenuUserHeight;
 	    break;
 	case MENU_ACTION_LAYER:
 	    if (MenuClient) {
@@ -2905,6 +2908,10 @@ void MenuConfig(void)
 	    "show-kill-confirmation", NULL)) {
 	ShowKillConfirmation = ival != 0;
     }
+    if (ConfigGetInteger(ConfigDict(UwmConfig), &ival,
+	    "window-menu-user-height", NULL)) {
+	WindowMenuUserHeight = ival;
+    }
     //
     //	array of menus
     //
@@ -3189,7 +3196,7 @@ void RootMenuConfig(void)
 ///
 /// @{
 
-static int WindowMenuUserHeight = 40;	///< user height of menus
+static int WindowMenuUserHeight;	///< user height of menus
 
 /**
 **	Append an item to the current window menu.
