@@ -56,6 +56,7 @@
 #include "array.h"
 #include "config.h"
 #include "draw.h"
+#include "tooltip.h"
 #include "hints.h"
 #include "screen.h"
 #include "pointer.h"
@@ -1538,7 +1539,7 @@ static void PanelConfigPanel(const ConfigObject * array)
 	}
     }
     //
-    //	gravity
+    //	gravity FIXME: use general gravity parser
     //
     if (ConfigGetString(array, &sval, "gravity", NULL)) {
 	if (!strcasecmp(sval, "static")) {

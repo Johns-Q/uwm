@@ -1,7 +1,7 @@
 ///
 ///	@file button.c	@brief button panel plugin functions.
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -47,6 +47,7 @@
 #include "config.h"
 
 #include "draw.h"
+#include "tooltip.h"
 #include "screen.h"
 #include "image.h"
 #include "pointer.h"

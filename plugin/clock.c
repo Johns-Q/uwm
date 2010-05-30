@@ -48,6 +48,7 @@
 #include "config.h"
 
 #include "draw.h"
+#include "tooltip.h"
 #include "client.h"
 
 #include "image.h"

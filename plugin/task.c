@@ -53,6 +53,7 @@
 #include "config.h"
 
 #include "draw.h"
+#include "tooltip.h"
 #include "pointer.h"
 #include "screen.h"
 #include "hints.h"
