@@ -47,11 +47,13 @@
 #include "array.h"
 #include "config.h"
 
+#include "event.h"
 #include "draw.h"
 #include "tooltip.h"
 #include "pointer.h"
 #include "image.h"
 #include "client.h"
+#include "border.h"
 
 #include "icon.h"
 #include "menu.h"

@@ -1,7 +1,7 @@
 ///
 ///	@file pager.h	@brief pager panel plugin header file.
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -47,6 +47,6 @@ Plugin *PagerConfig(const ConfigObject *);
     /// Dummy for cleanup pager(s).
 #define PagerExit()
 
-#endif // } USE_PAGER
+#endif // } !USE_PAGER
 
 /// @}

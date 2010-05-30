@@ -57,11 +57,11 @@
 #include "config.h"
 #include "draw.h"
 #include "tooltip.h"
-#include "hints.h"
 #include "screen.h"
 #include "pointer.h"
 #include "image.h"
 #include "client.h"
+#include "hints.h"
 
 #include "icon.h"
 #include "menu.h"
@@ -546,6 +546,12 @@ int PanelHandleEnterNotify(const xcb_enter_notify_event_t * event)
 	PanelShow(panel);
 	return 1;
     }
+    /*
+       // FIXME: moved from global event handler
+       if (SwallowHandleEnterNotify(event)) {
+       return 1;
+       }
+     */
     return 0;
 }
 
@@ -1137,7 +1143,7 @@ void PanelInit(void)
     TaskUpdate();
     PagerUpdate();
 
-    HintWriteNetWorkarea();
+    HintSetNetWorkarea();
 }
 
 /**

@@ -1,7 +1,7 @@
 ///
-///	@file desktop.c @brief desktop management functions
+///	@file desktop.c		@brief desktop management functions
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -28,11 +28,11 @@
 ///
 /// @{
 
+#include <sys/queue.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <sys/queue.h>
 
 #include <xcb/xcb.h>
 #include <xcb/xcb_icccm.h>
@@ -43,10 +43,10 @@
 
 #include "uwm.h"
 
-#include "draw.h"
-#include "hints.h"
 #include "client.h"
+#include "hints.h"
 
+#include "draw.h"
 #include "image.h"
 #include "icon.h"
 #include "menu.h"

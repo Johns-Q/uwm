@@ -44,13 +44,18 @@
 #include <xcb/xcb_atom.h>
 #include <xcb/xcb_icccm.h>
 #include <xcb/xcb_image.h>
+#ifdef USE_RENDER
+#include <xcb/xcb_pixel.h>
+#include <xcb/xcb_renderutil.h>
+#include <xcb/render.h>
+#endif
 
 #include "array.h"
 #include "config.h"
 
 #include "draw.h"
-#include "hints.h"
 #include "client.h"
+#include "hints.h"
 
 #include "image.h"
 #include "icon.h"

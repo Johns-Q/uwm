@@ -68,9 +68,6 @@
 #ifndef NO_ICON
 #define USE_ICON			///< include icon support
 #endif
-#ifndef NO_DIA_SHOW
-#define USE_DIA_SHOW			///< include dia-show support
-#endif
 
 #ifdef USE_ICON				// loading icons are supported for:
 #ifndef NO_JPEG
@@ -116,9 +113,12 @@
 #ifndef NO_XMU
 #define USE_XMU				///< xmu emulation support
 #endif
+#ifndef NO_COLORMAPS
+#define USE_COLORMAPS			///< x11 colormaps support
+#endif
 
 #ifndef NO_DEBUG
-#define DEBUG				///< generate debug code
+#define NO_DEBUG			///< generate debug code
 #endif
 
 //
@@ -267,16 +267,21 @@ extern int DebugLevel;			///< debug level
 extern const char *DisplayString;	///< X11 display string
 extern xcb_connection_t *Connection;	///< connection to X11 server
 extern xcb_screen_t *XcbScreen;		///< our screen
+
+#define RootWidth (XcbScreen->width_in_pixels)	///< FIXME: quick fix
+#define RootHeight (XcbScreen->height_in_pixels)	///< FIXME: quick fix
 extern xcb_window_t RootWindow;		///< our root window
-extern unsigned RootWidth;		///< root window width
-extern unsigned RootHeight;		///< root window height
 extern unsigned RootDepth;		///< root window depth
-extern xcb_colormap_t RootColormap;	///< root colormap
 extern xcb_gcontext_t RootGC;		///< root graphic context
 extern xcb_visualtype_t *RootVisualType;	///< root visual type
 
-// FIXME: in which module?
-extern int DoubleClickDelta;		///< maximal movement for double click
+#ifdef USE_SHAPE
+extern int HaveShape;			///< shape extension found
+extern int ShapeEvent;			///< first shape event code
+#endif
+#ifdef USE_RENDER
+extern int HaveRender;			///< xrender extension found
+#endif
 
 extern char KeepRunning;		///< keep running
 extern char KeepLooping;		///< keep looping
@@ -288,21 +293,6 @@ extern char KeepLooping;		///< keep looping
     /// Execute an external program. @ingroup commands
 extern void CommandRun(const char *);
 
-    /// Wait for event.
-extern void WaitForEvent(void);
-
-    /// Poll for next event.
-extern xcb_generic_event_t *PollNextEvent(void);
-
-    /// Look if there is a event.
-extern int IsNextEventAvail(void);
-
-    /// Peek window event.
-extern xcb_generic_event_t *PeekWindowEvent(xcb_window_t, int);
-
-    /// Discard further motion events on same window.
-extern void DiscardMotionEvents(xcb_motion_notify_event_t **, xcb_window_t);
-
     /// Get ticks in ms.
 extern uint32_t GetMsTicks(void);
 
@@ -311,6 +301,9 @@ extern void ExpandPath(char **path);
 
     /// Update desktop change.
 extern void PanelButtonDesktopUpdate(void);
+
+    /// Parse gravity.
+extern int ParseGravity(const char *, const char *);
 
     /// Signal desktop change
 #define DesktopUpdate() \

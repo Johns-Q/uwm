@@ -44,28 +44,30 @@
 
 #include <sys/queue.h>
 
-#include <xcb/xcb_icccm.h>
-#include <xcb/xcb_atom.h>
-#include <xcb/xcb_aux.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include <xcb/xcb_icccm.h>
+#include <xcb/xcb_atom.h>
+#include <xcb/xcb_aux.h>
+
 #include "array.h"
 #include "config.h"
 
+#include "client.h"
 #include "hints.h"
 
 #include "draw.h"
 #include "image.h"
-#include "client.h"
 #include "icon.h"
 #include "menu.h"
 #include "desktop.h"
 #include "background.h"
 
 extern Config *UwmConfig;		///< µwm config
+
+//////////////////////////////////////////////////////////////////////////////
 
 /**
 **	Enumeration of desktop background types.

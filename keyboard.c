@@ -99,8 +99,7 @@ int KeyboardGrabReply(xcb_grab_keyboard_cookie_t cookie)
 **
 **	@returns keyboard symbol mapped on keycode.
 **
-**	Somebody: bugs here, I, GNU? xcb?
-**	NoSymbol returned for any key, check Xephyr!
+**	To fix keyboard with Xephyr 1.8.1 use "-keybd ephyr,,,xkbmodel=evdev".
 */
 xcb_keysym_t KeyboardGet(xcb_keycode_t keycode, unsigned modifier)
 {
@@ -121,18 +120,17 @@ xcb_keysym_t KeyboardGet(xcb_keycode_t keycode, unsigned modifier)
 	ks1 = xcb_key_symbols_get_keysym(XcbKeySymbols, keycode, 1);
     }
 
+    Debug(3, " %x+%x\n", ks0, ks1);
+
     // use first keysym, if second keysym didn't exists
     if (ks1 == XCB_NO_SYMBOL) {
 	ks1 = ks0;
     }
     // see xcb-util-0.3.6/keysyms/keysyms.c:
     if (!(modifier & XCB_MOD_MASK_SHIFT) && !(modifier & XCB_MOD_MASK_LOCK)) {
-	Debug(3, " %x\n", ks0);
 	return ks0;
     }
     // FIXME: more cases
-
-    Debug(3, " %x\n", ks0);
 
     return ks0;
 }

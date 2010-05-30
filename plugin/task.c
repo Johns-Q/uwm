@@ -42,6 +42,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+
 #include <sys/queue.h>
 
 #include <xcb/xcb_icccm.h>
@@ -56,9 +57,9 @@
 #include "tooltip.h"
 #include "pointer.h"
 #include "screen.h"
-#include "hints.h"
 #include "image.h"
 #include "client.h"
+#include "hints.h"
 #include "icon.h"
 #include "menu.h"
 #include "desktop.h"
@@ -569,7 +570,7 @@ void TaskAddClient(Client * client)
     }
 
     TaskUpdate();
-    HintWriteNetClientList();
+    HintSetNetClientList();
 }
 
 /**
@@ -582,7 +583,7 @@ void TaskDelClient(Client * client)
     TAILQ_REMOVE(&TaskClientList, client, TaskQueue);
 
     TaskUpdate();
-    HintWriteNetClientList();
+    HintSetNetClientList();
 }
 
 // ------------------------------------------------------------------------ //
@@ -767,7 +768,7 @@ void TaskExit(void)
 **
 **	@todo FIXME: belongs into hints
 */
-void HintWriteNetClientList(void)
+void HintSetNetClientList(void)
 {
     xcb_window_t *window;
     int count;

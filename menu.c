@@ -52,13 +52,15 @@
 #include "array.h"
 #include "config.h"
 
+#include "event.h"
 #include "command.h"
-#include "hints.h"
 #include "draw.h"
 #include "image.h"
 #include "screen.h"
 #include "pointer.h"
 #include "client.h"
+#include "border.h"
+#include "hints.h"
 #include "keyboard.h"
 #include "icon.h"
 #include "menu.h"
@@ -2846,7 +2848,7 @@ MenuItem *MenuItemConfig(const ConfigObject * array)
     //
     MenuCommandConfig(array, &item->Command);
     if (item->Command.Type == MENU_ACTION_NONE) {
-	Warning("\tfor comand '%s'-'%s'\n", item->IconName, item->Text);
+	Warning("\tfor command '%s'-'%s'\n", item->IconName, item->Text);
     }
 
     return item;

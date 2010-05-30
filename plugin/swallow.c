@@ -1,7 +1,7 @@
 ///
-///	@file swallow.c @brief swallow panel plugin functions.
+///	@file swallow.c		@brief swallow panel plugin functions.
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -35,6 +35,7 @@
 #ifdef USE_SWALLOW			// {
 
 #include <sys/queue.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,10 +45,10 @@
 #include "array.h"
 #include "config.h"
 
-#include "hints.h"
-#include "draw.h"
 #include "client.h"
+#include "hints.h"
 
+#include "draw.h"
 #include "image.h"
 #include "icon.h"
 #include "menu.h"

@@ -1,7 +1,7 @@
 ///
 ///	@file screen.c	@brief physical screen management functions
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -44,10 +44,10 @@
 
 #include "uwm.h"
 
-#include "draw.h"
-#include "hints.h"
 #include "client.h"
+#include "hints.h"
 
+#include "draw.h"
 #include "image.h"
 #include "icon.h"
 #include "menu.h"
