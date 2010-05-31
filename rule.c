@@ -610,13 +610,15 @@ static void RuleConfigRule(const ConfigObject * array)
 		}
 	    }
 	    if (ConfigGetDouble(aval, &dval, "opacity", NULL)) {
+		uint32_t uval;
+
 		if (dval <= 0.0 || dval > 1.0) {
 		    Warning("invalid panel opacity: %g\n", dval);
 		    dval = 1.0;
 		}
-		ival = UINT32_MAX * dval;
-		if (ival != UINT32_MAX) {
-		    RuleConfigAddOption(rule, n++, RULE_ACTION_OPACITY, ival);
+		uval = UINT32_MAX * dval;
+		if (uval != UINT32_MAX) {
+		    RuleConfigAddOption(rule, n++, RULE_ACTION_OPACITY, uval);
 		}
 	    }
 	    if (ConfigGetInteger(aval, &ival, "maximize-horizontal", NULL)) {
