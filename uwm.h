@@ -297,7 +297,9 @@ extern void CommandRun(const char *);
 extern uint32_t GetMsTicks(void);
 
     /// Expand a path.
-extern void ExpandPath(char **path);
+extern char *ExpandPath(const char *path);
+
+//extern void ExpandPath(char **path);
 
     /// Update desktop change.
 extern void PanelButtonDesktopUpdate(void);

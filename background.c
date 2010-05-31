@@ -390,10 +390,13 @@ static void BackgroundLoadImage(Background * background)
     unsigned width;
     unsigned height;
     xcb_rectangle_t rectangle;
+    char *name;
 
     // load icon
-    ExpandPath(&background->Value);
-    icon = IconLoadNamed(background->Value);
+    name = ExpandPath(background->Value);
+    icon = IconLoadNamed(name);
+    free(name);
+
     if (!icon) {
 	background->Pixmap = XCB_NONE;
 	Warning("background image not found: \"%s\"", background->Value);

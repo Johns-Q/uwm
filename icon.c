@@ -1,5 +1,5 @@
 ///
-///	@file icon.c	@brief icon handling functions.
+///	@file icon.c		@brief icon handling functions.
 ///
 ///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
@@ -978,6 +978,7 @@ void IconExit(void)
 */
 void IconAddPath(const char *path)
 {
+#if 0
     size_t len;
     char *str;
 
@@ -994,10 +995,14 @@ void IconAddPath(const char *path)
     str[len] = '\0';
 
     ExpandPath(&str);
+#endif
+    if (!path || !*path) {		// empty path
+	return;
+    }
 
     ++IconPathN;
     IconPaths = realloc(IconPaths, IconPathN * sizeof(*IconPaths));
-    IconPaths[IconPathN - 1] = str;
+    IconPaths[IconPathN - 1] = ExpandPath(path);
 }
 
 #else
@@ -1016,11 +1021,11 @@ void IconConfig(void)
 	int len;
 
 	//
-	//	calculate needed length of path.
+	//	join all paths to a string
 	//
 	len = 0;
-	index = NULL;
 	path = NULL;
+	index = NULL;
 	value = ConfigArrayFirstFixedKey(array, &index);
 	while (value) {
 	    const char *s;
@@ -1028,12 +1033,8 @@ void IconConfig(void)
 	    int n;
 
 	    if (ConfigCheckString(value, &s) && *s) {
-		p = strdup(s);
-		ExpandPath(&p);
+		p = ExpandPath(s);
 		n = strlen(p);
-		if (p[n - 1] == '/') {
-		    p[--n] = '\0';
-		}
 		path = realloc(path, len + n + 2);
 		strcpy(path + len, p);
 		free(p);
