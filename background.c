@@ -264,10 +264,8 @@ void BackgroundConfig(void)
 	    const ConfigObject *table;
 
 	    if (ConfigCheckArray(value, &table)) {
-		const ConfigObject *type;
-
 		ConfigCheckInteger(index, &ival);
-		printf("background %zd\n", ival);
+		Debug(3, "background %zd\n", ival);
 		// check for valid desktop numbers
 		if (ival != -1 && DesktopN) {
 		    if (ival < 0 || ival >= DesktopN) {
@@ -277,39 +275,21 @@ void BackgroundConfig(void)
 		}
 
 		if (ConfigGetString(table, &sval, "solid", NULL)) {
-		    printf("Solid %s\n", sval);
+		    Debug(3, "\tSolid %s\n", sval);
 		    BackgroundSet(ival, BACKGROUND_SOLID, sval);
 		} else if (ConfigGetString(table, &sval, "gradient", NULL)) {
-		    printf("Gradient %s\n", sval);
+		    Debug(3, "\tGradient %s\n", sval);
 		    BackgroundSet(ival, BACKGROUND_GRADIENT, sval);
 		} else if (ConfigGetString(table, &sval, "execute", NULL)) {
-		    printf("Execute %s\n", sval);
+		    Debug(3, "\tExecute %s\n", sval);
 		    BackgroundSet(ival, BACKGROUND_COMMAND, sval);
 		} else if (ConfigGetString(table, &sval, "image", NULL)) {
-		    printf("Image %s\n", sval);
+		    Debug(3, "\tImage %s\n", sval);
 		    BackgroundSet(ival, BACKGROUND_IMAGE, sval);
 		} else if (ConfigGetString(table, &sval, "scale", NULL)) {
-		    printf("Scale %s\n", sval);
+		    Debug(3, "\tScale %s\n", sval);
 		    BackgroundSet(ival, BACKGROUND_SCALE, sval);
 		}
-
-		type = NULL;
-#if 0
-		value = ConfigArrayFirst(table, &type);
-		while (value) {
-		    if (ConfigCheckString(type, &sval)) {
-			printf("type %s\n", sval);
-			if (ConfigCheckString(value, &sval)) {
-			    printf("value %s\n", sval);
-			} else {
-			    Warning("background value must be string\n");
-			}
-		    } else {
-			Warning("background type must be string\n");
-		    }
-		    value = ConfigArrayNext(table, &type);
-		}
-#endif
 	    } else {
 		Warning("value in background ignored\n");
 	    }
