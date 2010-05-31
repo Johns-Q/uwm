@@ -396,7 +396,7 @@ static int ColorGetByName(const char *color_name, xcb_coloritem_t * c)
     xcb_lookup_color_cookie_t cookie;
 
     cookie =
-	xcb_lookup_color_unchecked(Connection, RootColormap,
+	xcb_lookup_color_unchecked(Connection, XcbScreen->default_colormap,
 	strlen(color_name), color_name);
     reply = xcb_lookup_color_reply(Connection, cookie, NULL);
     if (reply) {
@@ -611,7 +611,8 @@ void ColorInit(void)
 		for (green = 0; green < 8; green++) {
 		    for (blue = 0; blue < 4; blue++) {
 			cookies[i++] =
-			    xcb_alloc_color_unchecked(Connection, RootColormap,
+			    xcb_alloc_color_unchecked(Connection,
+			    XcbScreen->default_colormap,
 			    (uint16_t) ((74898 * red) / 8),
 			    (uint16_t) ((74898 * green) / 8),
 			    (uint16_t) ((87381 * blue) / 4));
@@ -706,7 +707,8 @@ void ColorInit(void)
 void ColorExit(void)
 {
     if (ColorRgb8Map) {
-	xcb_free_colors(Connection, RootColormap, 0, 256, ColorRgb8Map);
+	xcb_free_colors(Connection, XcbScreen->default_colormap, 0, 256,
+	    ColorRgb8Map);
 	free(ColorRgb8Map);
 	ColorRgb8Map = NULL;
 	free(ColorReverseMap);
