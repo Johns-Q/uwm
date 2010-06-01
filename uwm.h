@@ -31,6 +31,9 @@
 #ifndef NO_OUTLINE
 #define USE_OUTLINE			///< include outline window move/resize
 #endif
+#ifndef NO_STATUS
+#define USE_STATUS			///< include move/resize status window
+#endif
 #ifndef NO_DIALOG
 #define USE_DIALOG			///< include confirm dialog
 #endif
@@ -96,7 +99,7 @@
 #define USE_TD				///< include tower-defense plugin
 #endif
 
-#ifndef NO_LUA
+#ifndef NO_LUA				// FIXME: will be romoved
 #define USE_LUA				///< include lua config support
 #endif
 
@@ -118,7 +121,7 @@
 #endif
 
 #ifndef NO_DEBUG
-#define NO_DEBUG			///< generate debug code
+#define NO_USE_DEBUG			///< generate debug code
 #endif
 
 //
