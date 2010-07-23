@@ -183,6 +183,7 @@ int SwallowTryWindow(int already_mapped, xcb_window_t window)
 	}
 	if (already_mapped && swallow_plugin->Command
 	    && !swallow_plugin->UseOld) {
+	    // without command, can only use already mapped clients
 	    continue;			// don't use old clients
 	}
 	// request class hints, if not already done
@@ -191,6 +192,8 @@ int SwallowTryWindow(int already_mapped, xcb_window_t window)
 	    if (!xcb_get_wm_class_reply(Connection, cookie, &prop, NULL)) {
 		return 0;		// can't get hints, give up
 	    }
+	    // not null terminated class is a xcb bug!
+	    Debug(3, "swallow: %s.%s\n", prop.instance_name, prop.class_name);
 	}
 	if ((!swallow_plugin->Name
 		|| !strcmp(prop.instance_name, swallow_plugin->Name))
@@ -480,7 +483,7 @@ Plugin *SwallowConfig(const ConfigObject * array)
     name = NULL;
     sval = NULL;
     if (!ConfigGetString(array, &name, "name", NULL)
-	&& !ConfigGetString(array, &sval, "sval", NULL)) {
+	&& !ConfigGetString(array, &sval, "class", NULL)) {
 	Warning("cannot swallow a client with no name\n");
 	return NULL;
     }
