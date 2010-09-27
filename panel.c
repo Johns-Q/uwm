@@ -73,8 +73,6 @@
 #include "plugin/systray.h"
 #include "plugin/clock.h"
 
-extern Config *UwmConfig;		///< µwm config
-
 // ------------------------------------------------------------------------ //
 
     /// list of all panels
@@ -1660,8 +1658,10 @@ static void PanelConfigPanel(const ConfigObject * array)
 
 /**
 **	Parse panel config
+**
+**	@param config	global config dictionary
 */
-void PanelConfig(void)
+void PanelConfig(const Config * config)
 {
     const ConfigObject *array;
     double opacity;
@@ -1669,7 +1669,7 @@ void PanelConfig(void)
     //
     //	array of panels
     //
-    if (ConfigGetArray(ConfigDict(UwmConfig), &array, "panel", NULL)) {
+    if (ConfigGetArray(ConfigDict(config), &array, "panel", NULL)) {
 	const ConfigObject *index;
 	const ConfigObject *value;
 

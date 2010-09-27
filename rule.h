@@ -39,14 +39,14 @@ extern void RulesApplyDelClient(const Client *);
 extern void RuleExit(void);
 
     /// Parse client rules configuration.
-extern void RuleConfig(const ConfigObject *);
+extern void RuleConfig(const Config *);
 
 #ifndef USE_RULE
 
     /// Dummy for cleanup the rule module.
 #define RuleExit(void)
     /// Dummy for parse client rules configuration.
-#define RuleConfig(void)
+#define RuleConfig(config)
 
 #endif
 

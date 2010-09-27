@@ -46,8 +46,6 @@
 
 #include "client.h"
 
-extern Config *UwmConfig;		///< µwm config
-
 //////////////////////////////////////////////////////////////////////////////
 
 static xcb_key_symbols_t *XcbKeySymbols;	///< Keyboard symbols
@@ -257,12 +255,14 @@ void KeyboardExit(void)
 
 /**
 **	Parse keyboard/command configuration.
+**
+**	@param config	global config dictionary
 */
-void KeyboardConfig(void)
+void KeyboardConfig(const Config * config)
 {
     const ConfigObject *array;
 
-    if (ConfigGetArray(ConfigDict(UwmConfig), &array, "key-bindings", NULL)) {
+    if (ConfigGetArray(ConfigDict(config), &array, "key-bindings", NULL)) {
 	//MenuButtonsConfig(array, &RootButtons);
 	Debug(0, "FIXME: parse key bindings\n");
     }

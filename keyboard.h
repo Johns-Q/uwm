@@ -54,6 +54,6 @@ extern void KeyboardInit(void);
 extern void KeyboardExit(void);
 
     /// Parse keyboard configuration.
-extern void KeyboardConfig(void);
+extern void KeyboardConfig(const Config * config);
 
 /// @}

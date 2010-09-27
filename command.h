@@ -47,7 +47,7 @@ extern void CommandInit(void);
     /// Cleanup command module.
 extern void CommandExit(void);
 
-    /// Parse config for command module.
-extern void CommandConfig(void);
+    /// Parse configuration for command module.
+extern void CommandConfig(const Config *);
 
 /// @}

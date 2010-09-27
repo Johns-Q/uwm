@@ -57,7 +57,7 @@ extern void TooltipInit(void);
 extern void TooltipExit(void);
 
     /// Parse tooltip configuration.
-extern void TooltipConfig(void);
+extern void TooltipConfig(const Config *);
 
     /// Initialize the tooltip module (noop)
 #define TooltipInit()	do { } while(0)

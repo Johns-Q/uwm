@@ -158,7 +158,7 @@ extern void ColorExit(void);
 extern void ColorSet(const char *, const char *);
 #else
     /// Parse the color configuration.
-extern void ColorConfig(void);
+extern void ColorConfig(const Config *);
 #endif
 
 /// @}
@@ -246,7 +246,7 @@ extern void FontExit(void);
 extern void FontSet(const char *, const char *);
 #else
     /// Parse the font configuration.
-extern void FontConfig(void);
+extern void FontConfig(const Config *);
 #endif
 
 /// @}

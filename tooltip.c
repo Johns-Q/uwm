@@ -47,8 +47,6 @@
 #include "draw.h"
 #include "screen.h"
 
-extern Config *UwmConfig;		///< µwm config
-
 //////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -325,12 +323,14 @@ void TooltipSetDelay(int delay)
 
 /**
 **	Get tooltip configuration.
+**
+**	@param config	global config dictionary
 */
-void TooltipConfig(void)
+void TooltipConfig(const Config * config)
 {
     ssize_t ival;
 
-    if (ConfigGetInteger(ConfigDict(UwmConfig), &ival, "tooltip", "delay",
+    if (ConfigGetInteger(ConfigDict(config), &ival, "tooltip", "delay",
 	    NULL)) {
 	if (ival < 0) {
 	    Warning("invalid tooltip delay specified: %zd\n", ival);
@@ -338,7 +338,7 @@ void TooltipConfig(void)
 	    TooltipDelay = ival;
 	}
     }
-    if (ConfigGetInteger(ConfigDict(UwmConfig), &ival, "tooltip", "enabled",
+    if (ConfigGetInteger(ConfigDict(config), &ival, "tooltip", "enabled",
 	    NULL)) {
 	TooltipEnabled = ival != 0;
     }

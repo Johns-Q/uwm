@@ -57,8 +57,6 @@
 #include "plugin/task.h"
 #include "plugin/pager.h"
 
-extern Config *UwmConfig;		///< µwm config
-
 // ------------------------------------------------------------------------ //
 
 /**
@@ -384,16 +382,18 @@ void DesktopSetName(int desktop, const char *str)
 #else
 
 /**
-**	Parse config for desktop module.
+**	Parse configuration for desktop module.
+**
+**	@param config	global config dictionary
 */
-void DesktopConfig(void)
+void DesktopConfig(const Config * config)
 {
     const ConfigObject *array;
 
     //
     //	array of desktop
     //
-    if (ConfigGetArray(ConfigDict(UwmConfig), &array, "desktop", NULL)) {
+    if (ConfigGetArray(ConfigDict(config), &array, "desktop", NULL)) {
 	ssize_t ival;
 	const ConfigObject *index;
 	const ConfigObject *value;

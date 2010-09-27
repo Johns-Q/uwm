@@ -65,8 +65,6 @@
 #include "desktop.h"
 #include "background.h"
 
-extern Config *UwmConfig;		///< µwm config
-
 //////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -240,16 +238,16 @@ static void BackgroundSet(int desktop, BackgroundType type, const char *value)
 }
 
 /**
-**	Parse config for background module.
+**	Parse configuration for background module.
 */
-void BackgroundConfig(void)
+void BackgroundConfig(const Config * config)
 {
     const ConfigObject *array;
 
     //
     //	get array of background(s)
     //
-    if (ConfigGetArray(ConfigDict(UwmConfig), &array, "background", NULL)) {
+    if (ConfigGetArray(ConfigDict(config), &array, "background", NULL)) {
 	ssize_t ival;
 	const ConfigObject *index;
 	const ConfigObject *value;

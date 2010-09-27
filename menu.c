@@ -78,8 +78,6 @@ extern xcb_event_handlers_t EventHandlers;	///< xcb event handlers
 extern const char *xcb_event_get_label(uint8_t);
 #endif
 
-extern Config *UwmConfig;		///< µwm config
-
 // ------------------------------------------------------------------------ //
 // Dialog
 // ------------------------------------------------------------------------ //
@@ -2859,6 +2857,8 @@ MenuItem *MenuItemConfig(const ConfigObject * array)
 
 /**
 **	Parse the menu config of a single menu or sub menu.
+**
+**	@param array	config table of a single menu
 */
 static Menu *MenuConfigMenu(const ConfigObject * array)
 {
@@ -2896,28 +2896,31 @@ static Menu *MenuConfigMenu(const ConfigObject * array)
 
 /**
 **	Parse menu configuration.
+**
+**	@param config	global config dictionary
 */
-void MenuConfig(void)
+void MenuConfig(const Config * config)
 {
     const ConfigObject *array;
     ssize_t ival;
 
-    if (ConfigGetInteger(ConfigDict(UwmConfig), &ival,
+    // FIXME: use GetBoolean
+    if (ConfigGetInteger(ConfigDict(config), &ival,
 	    "show-exit-confirmation", NULL)) {
 	ShowExitConfirmation = ival != 0;
     }
-    if (ConfigGetInteger(ConfigDict(UwmConfig), &ival,
+    if (ConfigGetInteger(ConfigDict(config), &ival,
 	    "show-kill-confirmation", NULL)) {
 	ShowKillConfirmation = ival != 0;
     }
-    if (ConfigGetInteger(ConfigDict(UwmConfig), &ival,
+    if (ConfigGetInteger(ConfigDict(config), &ival,
 	    "window-menu-user-height", NULL)) {
 	WindowMenuUserHeight = ival;
     }
     //
     //	array of menus
     //
-    if (ConfigGetArray(ConfigDict(UwmConfig), &array, "root-menu", NULL)) {
+    if (ConfigGetArray(ConfigDict(config), &array, "root-menu", NULL)) {
 	const ConfigObject *index;
 	const ConfigObject *value;
 	double opacity;
@@ -3169,12 +3172,14 @@ void RootSetMenu(int index, Menu * menu)
 
 /**
 **	Parse root menu/command configuration.
+**
+**	@param config	global config dictionary
 */
-void RootMenuConfig(void)
+void RootMenuConfig(const Config * config)
 {
     const ConfigObject *array;
 
-    if (ConfigGetArray(ConfigDict(UwmConfig), &array, "root", NULL)) {
+    if (ConfigGetArray(ConfigDict(config), &array, "root", NULL)) {
 	MenuButtonsConfig(array, &RootButtons);
     }
 }

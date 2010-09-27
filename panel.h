@@ -206,6 +206,6 @@ extern void PanelResize(Panel *);
 
 extern void PanelInit(void);		///< Initialize panel support.
 extern void PanelExit(void);		///< Cleanup panel support.
-extern void PanelConfig(void);		///< Configure panel support.
+extern void PanelConfig(const Config *);///< Configure panel support.
 
 /// @}

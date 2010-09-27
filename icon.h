@@ -87,8 +87,8 @@ extern void IconInit(void);
     /// Cleanup icon module.
 extern void IconExit(void);
 
-    /// Parse icon config
-extern void IconConfig(void);
+    /// Parse icon module configuration.
+extern void IconConfig(const Config *);
 
 #else // }{ USE_ICON
 

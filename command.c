@@ -42,8 +42,6 @@
 
 #include "command.h"
 
-extern Config *UwmConfig;		///< µwm config
-
 // ------------------------------------------------------------------------ //
 
 /**
@@ -228,16 +226,17 @@ void CommandAddRestart(const char *command)
 #else
 
 /**
-**	Parse config of a command list.
+**	Parse configuration of a command list.
 **
+**	@param config	global config dictionary
 **	@param head	command list head
 **	@param index	config index key
 */
-void CommandAdd(Commands * head, const char *index)
+void CommandAdd(const Config * config, Commands * head, const char *index)
 {
     const ConfigObject *array;
 
-    if (ConfigGetArray(ConfigDict(UwmConfig), &array, index, NULL)) {
+    if (ConfigGetArray(ConfigDict(config), &array, index, NULL)) {
 	const ConfigObject *index;
 	const ConfigObject *value;
 	int len;
@@ -264,7 +263,7 @@ void CommandAdd(Commands * head, const char *index)
 	    head->Commands = dst = malloc(len + 1);
 
 	    //
-	    //	Coppy the commands
+	    //	Copy the commands
 	    //
 	    index = NULL;
 	    value = ConfigArrayFirst(array, &index);
@@ -283,13 +282,15 @@ void CommandAdd(Commands * head, const char *index)
 }
 
 /**
-**	Parse config for command module.
+**	Parse configuration for command module.
+**
+**	@param config	global config dictionary
 */
-void CommandConfig(void)
+void CommandConfig(const Config * config)
 {
-    CommandAdd(&CommandsStartup, "command-startup");
-    CommandAdd(&CommandsRestart, "command-restart");
-    CommandAdd(&CommandsExiting, "command-exiting");
+    CommandAdd(config, &CommandsStartup, "command-startup");
+    CommandAdd(config, &CommandsRestart, "command-restart");
+    CommandAdd(config, &CommandsExiting, "command-exiting");
 }
 
 #endif

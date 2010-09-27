@@ -323,7 +323,7 @@ extern void MenuButtonsConfig(const ConfigObject *, MenuButton **);
 extern MenuItem *MenuItemConfig(const ConfigObject *);
 
     /// Parse menu configuration.
-extern void MenuConfig(void);
+extern void MenuConfig(const Config *);
 
 // ------------------------------------------------------------------------ //
 // Root menu
@@ -349,7 +349,7 @@ extern void RootMenuInit(void);
 extern void RootMenuExit(void);
 
     /// Parse root menu configuration.
-extern void RootMenuConfig(void);
+extern void RootMenuConfig(const Config *);
 
 /// @}
 

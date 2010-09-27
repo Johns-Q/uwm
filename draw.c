@@ -36,11 +36,9 @@
 #include <xcb/xcb_aux.h>
 
 #include "uwm.h"
-#include "draw.h"
 #include "array.h"
 #include "config.h"
-
-extern Config *UwmConfig;		///< µwm config
+#include "draw.h"
 
 // ------------------------------------------------------------------------ //
 // XCB
@@ -721,8 +719,10 @@ void ColorExit(void)
 
 /**
 **	Parse configuration for color module
+**
+**	@param config	global config dictionary
 */
-void ColorConfig(void)
+void ColorConfig(const Config * config)
 {
     Color *color;
 
@@ -731,7 +731,7 @@ void ColorConfig(void)
 	const char *value;
 
 	if (color->Name
-	    && ConfigGetString(ConfigDict(UwmConfig), &value, "color",
+	    && ConfigGetString(ConfigDict(config), &value, "color",
 		color->Name, NULL)) {
 	    color->Value = strdup(value);
 	}
@@ -1133,15 +1133,17 @@ void FontExit(void)
 
 /**
 **	Parse configuration for font module
+**
+**	@param config	global config dictionary
 */
-void FontConfig(void)
+void FontConfig(const Config * config)
 {
     Font *font;
 
     for (font = &Fonts.Titlebar; font <= &Fonts.Fallback; ++font) {
 	const char *value;
 
-	if (ConfigGetString(ConfigDict(UwmConfig), &value, "font",
+	if (ConfigGetString(ConfigDict(config), &value, "font",
 		font->ModuleName, NULL)) {
 	    font->FontName = strdup(value);
 	}

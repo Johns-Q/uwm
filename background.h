@@ -34,8 +34,8 @@ extern void BackgroundInit(void);
     /// Cleanup background support.
 extern void BackgroundExit(void);
 
-    /// Parse config for background module.
-extern void BackgroundConfig(void);
+    /// Parse configuration for background module.
+extern void BackgroundConfig(const Config *);
 
 #else // }{ USE_BACKGROUND
 
@@ -47,7 +47,7 @@ extern void BackgroundConfig(void);
     /// Dummy for cleanup background module.
 #define BackgroundExit()
 
-    /// Dummy for parse config for background module.
+    /// Dummy for parse configuration for background module.
 #define BackgroundConfig()
 
 #endif // } !USE_BACKGROUND

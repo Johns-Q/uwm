@@ -45,8 +45,6 @@
 #include "menu.h"
 #include "panel.h"
 
-extern Config *UwmConfig;		///< µwm config
-
 //////////////////////////////////////////////////////////////////////////////
 
 // ------------------------------------------------------------------------ //
@@ -381,8 +379,10 @@ static StatusType StatusParseType(const char *str)
 
 /**
 **	Parse status window configuration.
+**
+**	@param config	global config dictionary
 */
-void StatusConfig(void)
+void StatusConfig(const Config * config)
 {
     const char *sval;
     ssize_t ival;
@@ -391,7 +391,7 @@ void StatusConfig(void)
     StatusMoveX = 0;
     StatusMoveY = 0;
     // FIXME: get array and than values
-    if (ConfigGetString(ConfigDict(UwmConfig), &sval, "move", "status", "type",
+    if (ConfigGetString(ConfigDict(config), &sval, "move", "status", "type",
 	    NULL)) {
 	StatusType type;
 
@@ -403,11 +403,11 @@ void StatusConfig(void)
 	    Warning("invalid move status type: \"%s\"\n", sval);
 	}
     }
-    if (ConfigGetInteger(ConfigDict(UwmConfig), &ival, "move", "status", "x",
+    if (ConfigGetInteger(ConfigDict(config), &ival, "move", "status", "x",
 	    NULL)) {
 	StatusMoveX = ival;
     }
-    if (ConfigGetInteger(ConfigDict(UwmConfig), &ival, "move", "status", "y",
+    if (ConfigGetInteger(ConfigDict(config), &ival, "move", "status", "y",
 	    NULL)) {
 	StatusMoveY = ival;
     }
@@ -415,7 +415,7 @@ void StatusConfig(void)
     StatusResizeX = 0;
     StatusResizeY = 0;
     // FIXME: get array and than values
-    if (ConfigGetString(ConfigDict(UwmConfig), &sval, "resize", "status",
+    if (ConfigGetString(ConfigDict(config), &sval, "resize", "status",
 	    "type", NULL)) {
 	StatusType type;
 
@@ -427,11 +427,11 @@ void StatusConfig(void)
 	    Warning("invalid resize status type: \"%s\"\n", sval);
 	}
     }
-    if (ConfigGetInteger(ConfigDict(UwmConfig), &ival, "resize", "status", "x",
+    if (ConfigGetInteger(ConfigDict(config), &ival, "resize", "status", "x",
 	    NULL)) {
 	StatusResizeX = ival;
     }
-    if (ConfigGetInteger(ConfigDict(UwmConfig), &ival, "resize", "status", "y",
+    if (ConfigGetInteger(ConfigDict(config), &ival, "resize", "status", "y",
 	    NULL)) {
 	StatusResizeY = ival;
     }

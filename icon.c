@@ -60,8 +60,6 @@
 #include "image.h"
 #include "icon.h"
 
-extern Config *UwmConfig;		///< µwm config
-
 // ------------------------------------------------------------------------ //
 
 /**
@@ -1009,12 +1007,14 @@ void IconAddPath(const char *path)
 
 /**
 **	Parse icon config
+**
+**	@param config	global config dictionary
 */
-void IconConfig(void)
+void IconConfig(const Config * config)
 {
     const ConfigObject *array;
 
-    if (ConfigGetArray(ConfigDict(UwmConfig), &array, "icon-path", NULL)) {
+    if (ConfigGetArray(ConfigDict(config), &array, "icon-path", NULL)) {
 	const ConfigObject *index;
 	const ConfigObject *value;
 	char *path;

@@ -35,7 +35,7 @@
 #ifdef USE_STATUS
 
     /// Parse status window configuration.
-extern void StatusConfig(void);
+extern void StatusConfig(const Config *);
 
 #else
 

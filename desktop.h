@@ -49,6 +49,7 @@ extern void DesktopToggleShade(void);	///< Toggle the "shade desktop" state.
 extern void DesktopInit(void);		///< Initialize desktop support.
 extern void DesktopExit(void);		///< Cleanup desktop support.
 
-extern void DesktopConfig(void);	///< Parse config for desktop module.
+    /// Parse configuration for desktop module.
+extern void DesktopConfig(const Config *);
 
 /// @}
