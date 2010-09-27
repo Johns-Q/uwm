@@ -1,6 +1,6 @@
-@file README.txt		µ window manager.
+@file README.txt		@brief µ window manager
 
-Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 
 Contributor(s):
 
@@ -20,7 +20,10 @@ $Id$
 
 Based on jwm from Joe Wingbermuehle, but rewritten from scratch.
 
-To compile you must have libxcb (xcb-dev) installed.
+To compile you must have the 'requires' installed.
+
+Note: The current GIT version is still incomplete, if you like to
+play contact the author.
 
 Just type make and use.
 

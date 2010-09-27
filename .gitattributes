@@ -3,3 +3,4 @@
 *.[ch]	ident
 *.txt	ident
 Makefile	ident
+README.txt	ident
