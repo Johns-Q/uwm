@@ -252,6 +252,9 @@ void TaskFocusPrevious(void)
 **
 **	@param client	client in task list
 **
+**	@retval false	should not be shown in task bar/list.
+**	@retval true	should not be shown in task bar/list.
+**
 **	@todo config what task should be in task list
 */
 static int TaskShouldShowItem(const Client * client)
@@ -326,7 +329,7 @@ static unsigned TaskGetItemWidth(const TaskPlugin * task_plugin, int n)
 }
 
 /**
-**	Get client associated with an xy-coordinate on task.
+**	Get client associated with a xy-coordinate on task.
 **
 **	@param task_plugin	search in this task plugin
 **	@param xy		x or y coordinate to search
@@ -886,6 +889,8 @@ void TaskSetMaxItemWidth(Plugin * plugin, int value)
 **	Create a new task panel plugin from config data.
 **
 **	@param array	configuration array for task panel plugin
+**
+**	@returns created task panel plugin.
 */
 Plugin *TaskConfig(const ConfigObject * array)
 {

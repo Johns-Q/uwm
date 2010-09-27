@@ -1,7 +1,7 @@
 ///
 ///	@file clock.c	@brief clock panel plugin functions.
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -83,7 +83,7 @@ struct _clock_plugin_
 
     /// Clock plugin list head structure
 SLIST_HEAD(_clock_head_, _clock_plugin_);
-    //
+
     /// list of all clocks of the plugin
 static struct _clock_head_ Clocks = SLIST_HEAD_INITIALIZER(Clocks);
 
@@ -374,6 +374,8 @@ Plugin *ClockNew(const char *short_format, const char *long_format,
 **	Create a new clock panel plugin from config data.
 **
 **	@param array	configuration array for clock panel plugin
+**
+**	@returns created clock panel plugin.
 */
 Plugin *ClockConfig(const ConfigObject * array)
 {

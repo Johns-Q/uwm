@@ -271,7 +271,7 @@ SUBGROUPING            = YES
 # be useful for C code in case the coding convention dictates that all compound
 # types are typedef'ed and only the typedef is referenced, never the tag name.
 
-TYPEDEF_HIDES_STRUCT   = NO
+TYPEDEF_HIDES_STRUCT   = YES
 
 # The SYMBOL_CACHE_SIZE determines the size of the internal cache use to
 # determine which symbols to keep in memory and which to flush to disk.
@@ -1332,13 +1332,13 @@ ENABLE_PREPROCESSING   = YES
 # compilation will be performed. Macro expansion can be done in a controlled
 # way by setting EXPAND_ONLY_PREDEF to YES.
 
-MACRO_EXPANSION        = NO
+MACRO_EXPANSION        = YES
 
 # If the EXPAND_ONLY_PREDEF and MACRO_EXPANSION tags are both set to YES
 # then the macro expansion is limited to the macros specified with the
 # PREDEFINED and EXPAND_AS_DEFINED tags.
 
-EXPAND_ONLY_PREDEF     = NO
+EXPAND_ONLY_PREDEF     = YES
 
 # If the SEARCH_INCLUDES tag is set to YES (the default) the includes files
 # in the INCLUDE_PATH (see below) will be search if a #include is found.
@@ -1366,30 +1366,39 @@ INCLUDE_FILE_PATTERNS  =
 # undefined via #undef or recursively expanded use the := operator
 # instead of the = operator.
 
-PREDEFINED             = USE_OUTLINE \
-                         USE_DIALOG \
-                         USE_MENU \
-                         USE_PANEL \
-                         USE_BUTTON \
-                         USE_PAGER \
-                         USE_TASK \
-                         USE_SWALLOW \
-                         USE_SYSTRAY \
-                         USE_CLOCK \
-                         USE_BACKGROUND \
-                         USE_ICON \
-                         USE_DIA_SHOW \
-                         USE_JPEG \
-                         USE_PNG \
-                         USE_TIFF \
-                         USE_XPM \
-                         USE_RULE \
-                         USE_DIA \
-                         USE_TD \
-                         USE_XINERMA \
-                         USE_SHAPE \
-                         USE_RENDER \
-                         USE_XMU
+PREDEFINED             = "__attribute__(x)=" \
+			"SLIST_ENTRY(t)=struct t" \
+			"SLIST_HEAD(t,v)=struct t" \
+			"LIST_ENTRY(t)=struct t" \
+			"LIST_HEAD(t,v)=struct t" \
+			"STAILQ_ENTRY(t)=struct t" \
+			"STAILQ_HEAD(t,v)=struct t" \
+			"TAILQ_ENTRY(t)=struct t" \
+			"TAILQ_HEAD(t,v)=struct t" \
+			USE_OUTLINE \
+                        USE_DIALOG \
+                        USE_MENU \
+                        USE_PANEL \
+                        USE_BUTTON \
+                        USE_PAGER \
+                        USE_TASK \
+                        USE_SWALLOW \
+                        USE_SYSTRAY \
+                        USE_CLOCK \
+                        USE_BACKGROUND \
+                        USE_ICON \
+                        USE_DIA_SHOW \
+                        USE_JPEG \
+                        USE_PNG \
+                        USE_TIFF \
+                        USE_XPM \
+                        USE_RULE \
+                        USE_DIA \
+                        USE_TD \
+                        USE_XINERMA \
+                        USE_SHAPE \
+                        USE_RENDER \
+                        USE_XMU
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then
 # this tag can be used to specify a list of macro names that should be expanded.

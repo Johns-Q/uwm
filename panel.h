@@ -1,7 +1,7 @@
 ///
 ///	@file panel.h @brief panel header file
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -206,6 +206,6 @@ extern void PanelResize(Panel *);
 
 extern void PanelInit(void);		///< Initialize panel support.
 extern void PanelExit(void);		///< Cleanup panel support.
-extern void PanelConfig(const Config *);///< Configure panel support.
+extern void PanelConfig(const Config *);	///< Configure panel support.
 
 /// @}

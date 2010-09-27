@@ -99,6 +99,8 @@ static struct _pager_head_ Pagers = SLIST_HEAD_INITIALIZER(Pagers);
 **	@param pager_plugin	pager plugin to use
 **	@param x		x-coordinate relative to plugin
 **	@param y		y-coordinate relative to plugin
+**
+**	@returns desktop under @a x and @a y.
 */
 static int PagerGetDesktop(PagerPlugin * pager_plugin, int x, int y)
 {
@@ -115,6 +117,8 @@ static int PagerGetDesktop(PagerPlugin * pager_plugin, int x, int y)
 **	@param pager_plugin	pager plugin to use
 **	@param x		x-coordinate relative to plugin
 **	@param y		y-coordinate relative to plugin
+**
+**	@returns client which contains point @a x @a y.
 */
 static Client *PagerGetClient(PagerPlugin * pager_plugin, int x, int y)
 {
@@ -854,6 +858,8 @@ Plugin *PagerNew(int labeled, int sticky)
 **	Create a new pager panel plugin from config data.
 **
 **	@param array	configuration array for pager panel plugin
+**
+**	@returns created pager panel plugin.
 */
 Plugin *PagerConfig(const ConfigObject * array)
 {

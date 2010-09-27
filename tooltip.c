@@ -167,16 +167,12 @@ void TooltipShow(int x, int y, const char *text)
 	values[4] =
 	    XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_BUTTON_PRESS |
 	    XCB_EVENT_MASK_BUTTON_RELEASE;
-	xcb_create_window(Connection,	// connection
-	    XCB_COPY_FROM_PARENT,	// depth (same as root)
-	    TooltipVars->Window,	// window Id
-	    RootWindow,			// parent window
-	    TooltipVars->X, TooltipVars->Y,	// x, y
-	    TooltipVars->Width, TooltipVars->Height,	// width, height
-	    1,				// border_width
-	    XCB_WINDOW_CLASS_INPUT_OUTPUT,	// class
-	    XCB_COPY_FROM_PARENT,	// visual (same as root)
-	    XCB_CW_BACK_PIXEL | XCB_CW_BORDER_PIXEL | XCB_CW_SAVE_UNDER | XCB_CW_EVENT_MASK | XCB_CW_DONT_PROPAGATE, values);	// mask, values
+	xcb_create_window(Connection, XCB_COPY_FROM_PARENT,	// depth (same as root)
+	    TooltipVars->Window, RootWindow,	// parent window
+	    TooltipVars->X, TooltipVars->Y, TooltipVars->Width, TooltipVars->Height, 1,	// border_width
+	    XCB_WINDOW_CLASS_INPUT_OUTPUT, XCB_COPY_FROM_PARENT,	// visual (same as root)
+	    XCB_CW_BACK_PIXEL | XCB_CW_BORDER_PIXEL | XCB_CW_SAVE_UNDER |
+	    XCB_CW_EVENT_MASK | XCB_CW_DONT_PROPAGATE, values);
 
 #ifdef DEBUG
 	if (0) {
@@ -330,8 +326,7 @@ void TooltipConfig(const Config * config)
 {
     ssize_t ival;
 
-    if (ConfigGetInteger(ConfigDict(config), &ival, "tooltip", "delay",
-	    NULL)) {
+    if (ConfigGetInteger(ConfigDict(config), &ival, "tooltip", "delay", NULL)) {
 	if (ival < 0) {
 	    Warning("invalid tooltip delay specified: %zd\n", ival);
 	} else {

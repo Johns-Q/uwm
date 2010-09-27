@@ -35,6 +35,7 @@
 ///
 ///	@todo support tile / zoom / centered images
 ///
+///	@todo remove list use table
 /// @{
 
 #include <xcb/xcb.h>

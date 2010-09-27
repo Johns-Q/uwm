@@ -1,7 +1,7 @@
 ///
 ///	@file menu.h	@brief menu header file
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -337,7 +337,7 @@ extern void MenuConfig(const Config *);
 //////////////////////////////////////////////////////////////////////////////
 
     /// Handle root menu button press.
-extern int RootMenuHandleButtonPress(const xcb_button_press_event_t *);
+extern void RootMenuHandleButtonPress(const xcb_button_press_event_t *);
 
     /// Build menu from directory.
 extern Menu *RootMenuFromDirectory(char *);

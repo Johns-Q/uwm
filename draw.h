@@ -1,7 +1,7 @@
 ///
 ///	@file draw.h	@brief drawing function header file
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -57,10 +57,12 @@ typedef struct _color_table_ ColorTable;
 
 /**
 **	Color table structure
+**
+**	@warning #TitleFG must be first element in ColorTable
+**	@warning #MenuActiveDown must be last element in ColorTable
 */
 struct _color_table_
 {
-    /// @warning TitleFG must be first element in ColorTable
     Color TitleFG;			///< window title foreground
     Color TitleBG1;			///< window title background start
     Color TitleBG2;			///< window title background end
@@ -121,7 +123,6 @@ struct _color_table_
     Color MenuUp;			///< menu 3d up color
     Color MenuDown;			///< menu 3d down color
     Color MenuActiveUp;			///< active menu item 3d up color
-    /// @warning MenuActiveDown must be last element in ColorTable
     Color MenuActiveDown;		///< active menu item 3d down color
 };
 

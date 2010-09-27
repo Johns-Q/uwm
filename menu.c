@@ -2905,16 +2905,16 @@ void MenuConfig(const Config * config)
     ssize_t ival;
 
     // FIXME: use GetBoolean
-    if (ConfigGetInteger(ConfigDict(config), &ival,
-	    "show-exit-confirmation", NULL)) {
+    if (ConfigGetInteger(ConfigDict(config), &ival, "show-exit-confirmation",
+	    NULL)) {
 	ShowExitConfirmation = ival != 0;
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival,
-	    "show-kill-confirmation", NULL)) {
+    if (ConfigGetInteger(ConfigDict(config), &ival, "show-kill-confirmation",
+	    NULL)) {
 	ShowKillConfirmation = ival != 0;
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival,
-	    "window-menu-user-height", NULL)) {
+    if (ConfigGetInteger(ConfigDict(config), &ival, "window-menu-user-height",
+	    NULL)) {
 	WindowMenuUserHeight = ival;
     }
     //
@@ -3030,11 +3030,10 @@ static void RootMenuShow(int index, int x, int y)
 **
 **	@todo double-click isn't working perfect get click, double-click
 */
-int RootMenuHandleButtonPress(const xcb_button_press_event_t * event)
+void RootMenuHandleButtonPress(const xcb_button_press_event_t * event)
 {
     MenuButtonExecute(RootButtons, event->detail, event->root_x, event->root_y,
 	NULL);
-    return 1;
 }
 
 /**
@@ -3196,7 +3195,7 @@ void RootMenuConfig(const Config * config)
 ///	@ingroup menu
 ///	@defgroup windowmenu The window menu module.
 ///
-///	This module handles menu of window.
+///	This module handles the menu of a client window.
 ///
 ///	@todo	support of user configurable menu
 ///	@todo	icons, perhaps this can be combined with above.

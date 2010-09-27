@@ -274,6 +274,9 @@ int SwallowHandleMapRequest(const xcb_map_request_event_t * event)
 **	Handle a destroy notify.
 **
 **	@param event	destroy notify event
+**
+**	@retval true	destroy notify was for swallowed window
+**	@retval false	destroy notify not handled by plugin
 */
 int SwallowHandleDestroyNotify(const xcb_destroy_notify_event_t * event)
 {
@@ -471,6 +474,8 @@ Plugin *SwallowNew(const char *name, const char *command, unsigned width,
 **	Create a new swallow panel plugin from config data.
 **
 **	@param array	configuration array for swallow panel plugin
+**
+**	@returns created swallow panel plugin.
 */
 Plugin *SwallowConfig(const ConfigObject * array)
 {

@@ -415,8 +415,8 @@ void StatusConfig(const Config * config)
     StatusResizeX = 0;
     StatusResizeY = 0;
     // FIXME: get array and than values
-    if (ConfigGetString(ConfigDict(config), &sval, "resize", "status",
-	    "type", NULL)) {
+    if (ConfigGetString(ConfigDict(config), &sval, "resize", "status", "type",
+	    NULL)) {
 	StatusType type;
 
 	type = StatusParseType(sval);
