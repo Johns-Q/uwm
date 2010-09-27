@@ -3318,20 +3318,20 @@ static Menu *WindowMenuCreate(const Client * client)
     if ((client->Border & BORDER_MAXIMIZE)
 	&& (client->State & WM_STATE_MAPPED)) {
 
-	if (!(client->
-		State & (WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT))) {
+	if (!(client->State & (WM_STATE_MAXIMIZED_HORZ |
+		    WM_STATE_MAXIMIZED_VERT))) {
 	    WindowMenuAppend(menu, NULL, "Maximize-y",
 		MENU_ACTION_MAXIMIZE_VERT, 0);
 	}
 
-	if (!(client->
-		State & (WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT))) {
+	if (!(client->State & (WM_STATE_MAXIMIZED_HORZ |
+		    WM_STATE_MAXIMIZED_VERT))) {
 	    WindowMenuAppend(menu, NULL, "Maximize-x",
 		MENU_ACTION_MAXIMIZE_HORZ, 0);
 	}
 
-	if ((client->
-		State & (WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT))) {
+	if ((client->State & (WM_STATE_MAXIMIZED_HORZ |
+		    WM_STATE_MAXIMIZED_VERT))) {
 	    WindowMenuAppend(menu, NULL, "Unmaximize",
 		MENU_ACTION_TOGGLE_MAXIMIZE, 0);
 	} else {

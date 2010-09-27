@@ -27,6 +27,10 @@
 ///
 ///	All events are collected here and distributed to the other moduls.
 ///
+///	@todo
+///		FIXME: rewrite event handling, to support double click
+///		and long click better.
+///
 /// @{
 
 #include <xcb/xcb.h>

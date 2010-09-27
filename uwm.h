@@ -99,8 +99,8 @@
 #define USE_TD				///< include tower-defense plugin
 #endif
 
-#ifndef NO_LUA				// FIXME: will be romoved
-#define USE_LUA				///< include lua config support
+#ifndef NO_LUA				// FIXME: will be removed
+#define NO_LUA				///< include lua config support
 #endif
 
 	// x11/xcb features
@@ -117,7 +117,7 @@
 #define USE_XMU				///< xmu emulation support
 #endif
 #ifndef NO_COLORMAPS
-#define USE_COLORMAPS			///< x11 colormaps support
+#define NO_COLORMAPS			///< x11 colormaps support
 #endif
 
 #ifndef NO_DEBUG

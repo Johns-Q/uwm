@@ -1140,8 +1140,11 @@ void PanelInit(void)
 	xcb_map_window(Connection, panel->Window);
     }
 
+#if 0
+    // Task + Pager needs client module, which isn't up yet.
     TaskUpdate();
     PagerUpdate();
+#endif
 
     HintSetNetWorkarea();
 }
