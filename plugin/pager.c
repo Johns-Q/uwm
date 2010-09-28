@@ -45,7 +45,7 @@
 #include <xcb/xcb_event.h>
 
 #include "array.h"
-#include "config.h"
+#include "core-rc/core-rc.h"
 
 #include "event.h"
 #include "draw.h"

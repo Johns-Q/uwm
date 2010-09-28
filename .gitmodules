@@ -1,0 +1,3 @@
+[submodule "core-rc"]
+	path = core-rc
+	url = ./core-rc/

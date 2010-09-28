@@ -1,7 +1,7 @@
 ///
 ///	@file command.c @brief command functions.
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -38,7 +38,7 @@
 #include <sys/wait.h>
 
 #include "array.h"
-#include "config.h"
+#include "core-rc/core-rc.h"
 
 #include "command.h"
 

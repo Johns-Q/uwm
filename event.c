@@ -51,7 +51,7 @@
 #include <xcb/shape.h>
 
 #include "array.h"
-#include "config.h"
+#include "core-rc/core-rc.h"
 
 #include "event.h"
 #include "client.h"

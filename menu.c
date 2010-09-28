@@ -50,7 +50,7 @@
 #include <X11/keysym.h>			// keysym XK_
 
 #include "array.h"
-#include "config.h"
+#include "core-rc/core-rc.h"
 
 #include "event.h"
 #include "command.h"

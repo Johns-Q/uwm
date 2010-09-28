@@ -45,7 +45,7 @@
 #include <xcb/xcb_icccm.h>
 
 #include "array.h"
-#include "config.h"
+#include "core-rc/core-rc.h"
 
 #include "draw.h"
 #include "tooltip.h"
