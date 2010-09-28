@@ -120,6 +120,10 @@
 #define NO_COLORMAPS			///< x11 colormaps support
 #endif
 
+#ifndef NO_MOTIF_HINTS
+#define USE_MOTIF_HINTS			///< support motif hints
+#endif
+
 #ifndef NO_DEBUG
 #define NO_USE_DEBUG			///< generate debug code
 #endif

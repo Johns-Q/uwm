@@ -1398,7 +1398,8 @@ PREDEFINED             = "__attribute__(x)=" \
                         USE_XINERMA \
                         USE_SHAPE \
                         USE_RENDER \
-                        USE_XMU
+                        USE_XMU \
+			USE_MOTIF_HINTS
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then
 # this tag can be used to specify a list of macro names that should be expanded.
