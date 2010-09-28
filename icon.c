@@ -786,6 +786,9 @@ Icon *IconLoadNamed(const char *name)
 
 /**
 **	Create an icon from binary data (as specified via window properties).
+**
+**	@param input	width, height, argb-data * width * height
+**	@param length	length of input data
 */
 static Icon *IconNewFromEWMH(const uint32_t * input, unsigned length)
 {
@@ -832,6 +835,9 @@ static Icon *IconNewFromEWMH(const uint32_t * input, unsigned length)
 **	in rows, left to right and top to bottom.
 **
 **	@param client	read icon from our client
+**
+**	@todo move into hints?
+**	@todo rewrite to support multiple icon sizes
 */
 static void IconReadNetWMIcon(Client * client)
 {
@@ -844,12 +850,16 @@ static void IconReadNetWMIcon(Client * client)
 
     reply = xcb_get_property_reply(Connection, cookie, NULL);
     if (reply) {
-	count = xcb_get_property_value_length(reply);
+	count = xcb_get_property_value_length(reply) / sizeof(uint32_t);
 	data = xcb_get_property_value(reply);
 	// validate icon data
 	if (reply->type == CARDINAL && reply->format == 32 && count > 2
 	    && data) {
 	    client->Icon = IconNewFromEWMH(data, count);
+	} else {
+	    // this application has wrong _NET_WM_ICON
+	    //Warning("_NET_WM_ICON of client %#x unsupported\n", client->Window);
+	    //Debug(0, "%d\n", reply->value_len);
 	}
 	// FIXME: if I understand specs correct, there could be multiple
 	// sized icons, choose best size.
@@ -865,10 +875,9 @@ static void IconReadNetWMIcon(Client * client)
 void IconLoadClient(Client * client)
 {
     Debug(0, "FIXME: %s(%p)\n", __FUNCTION__, client);
-
     Debug(0, "FIXME: SetIconSize(); \n");
+
     // if client already has an icon, destroy it first
-    // this is dangerous, if same icon is used in menu!
     IconDel(client->Icon);
     client->Icon = NULL;
 
