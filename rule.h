@@ -1,7 +1,7 @@
 ///
-///	@file rule.h @brief window/client rules header file
+///	@file rule.h	@brief window/client rules header file
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -28,7 +28,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
     /// Apply rules to new client.
-extern void RulesApplyNewClient(Client *);
+extern void RulesApplyNewClient(Client *, int);
 
     /// Apply rules for delete client.
 extern void RulesApplyDelClient(const Client *);

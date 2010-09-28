@@ -67,6 +67,7 @@
 #include "menu.h"
 #include "desktop.h"
 #include "panel.h"
+#include "rule.h"
 
 // ------------------------------------------------------------------------ //
 // Rule
@@ -155,10 +156,14 @@ static int RuleN;			///< number of rules in table
 /**
 **	Apply rule to client.
 **
-**	@param client	client which options are set
-**	@param options	options of client to set
+**	When the client is already mapped, move and resize rules are skipped.
+**
+**	@param client		client which options are set
+**	@param already_mapped	true if already mapped, false if unmapped
+**	@param options		options of client to set
 */
-static void RuleApplyOptions(Client * client, const RuleOption * options)
+static void RuleApplyOptions(Client * client, int already_mapped,
+    const RuleOption * options)
 {
     int i;
 
@@ -215,7 +220,7 @@ static void RuleApplyOptions(Client * client, const RuleOption * options)
     }
     if (options->Actions & RULE_ACTION_NOTITLE) {
 	client->Border &= ~BORDER_TITLE;
-	// Shaded window needs window title
+	// shaded window needs window title
 	client->State &= ~WM_STATE_SHADED;
     }
 
@@ -230,7 +235,7 @@ static void RuleApplyOptions(Client * client, const RuleOption * options)
     }
     if (options->Actions & RULE_ACTION_SHADED) {
 	client->State |= WM_STATE_SHADED;
-	// Shaded window needs window title
+	// shaded window needs window title
 	client->Border |= BORDER_TITLE;
     }
     if (options->Actions & RULE_ACTION_OPACITY) {
@@ -251,83 +256,96 @@ static void RuleApplyOptions(Client * client, const RuleOption * options)
     }
     if (options->Actions & RULE_ACTION_X) {
 	Debug(3, "   x %d\n", options->Values[i].Integer);
-	client->X = options->Values[i].Integer;
-	client->SizeHints.flags |= XCB_SIZE_HINT_US_POSITION;
+	if (!already_mapped) {
+	    client->X = options->Values[i].Integer;
+	    client->SizeHints.flags |= XCB_SIZE_HINT_US_POSITION;
+	}
 	++i;
     }
     if (options->Actions & RULE_ACTION_Y) {
 	Debug(3, "   y %d\n", options->Values[i].Integer);
-	client->Y = options->Values[i].Integer;
-	client->SizeHints.flags |= XCB_SIZE_HINT_US_POSITION;
+	if (!already_mapped) {
+	    client->Y = options->Values[i].Integer;
+	    client->SizeHints.flags |= XCB_SIZE_HINT_US_POSITION;
+	}
 	++i;
     }
     if (options->Actions & RULE_ACTION_WIDTH) {
 	Debug(3, "   width %d\n", options->Values[i].Integer);
-	if (options->Values[i].Integer <= 0) {
-	    // FIXME: should use strut? and don't use RootWidth
-	    client->Width = RootWidth - options->Values[i].Integer;
-	} else {
-	    client->Width = options->Values[i].Integer;
+	if (!already_mapped) {
+	    if (options->Values[i].Integer <= 0) {
+		// FIXME: should use strut? and don't use RootWidth
+		client->Width = RootWidth - options->Values[i].Integer;
+	    } else {
+		client->Width = options->Values[i].Integer;
+	    }
+	    client->SizeHints.flags |= XCB_SIZE_HINT_US_SIZE;
 	}
-	client->SizeHints.flags |= XCB_SIZE_HINT_US_SIZE;
 	// FIXME: update dimensions of client
 	++i;
     }
     if (options->Actions & RULE_ACTION_HEIGHT) {
 	Debug(3, "   height %d\n", options->Values[i].Integer);
-	if (options->Values[i].Integer <= 0) {
-	    // FIXME: should use strut? and don't use RootHeight
-	    client->Height = RootHeight - options->Values[i].Integer;
-	} else {
-	    client->Height = options->Values[i].Integer;
+	if (!already_mapped) {
+	    if (options->Values[i].Integer <= 0) {
+		// FIXME: should use strut? and don't use RootHeight
+		client->Height = RootHeight - options->Values[i].Integer;
+	    } else {
+		client->Height = options->Values[i].Integer;
+	    }
+	    client->SizeHints.flags |= XCB_SIZE_HINT_US_SIZE;
+	    // FIXME: update dimensions of client
 	}
-	client->SizeHints.flags |= XCB_SIZE_HINT_US_SIZE;
-	// FIXME: update dimensions of client
 	++i;
     }
     // @note: must be after x, y, width, height
     if (options->Actions & RULE_ACTION_GRAVITY) {
-	Debug(3, "   gravity %d\n", options->Values[i].Integer);
-	// FIXME: use strut? and don't use RootWidth/RootHeight
-	switch (options->Values[i].Integer) {
-	    case PANEL_GRAVITY_STATIC:
-		break;
-	    case PANEL_GRAVITY_NORTH_WEST:
-		break;
-	    case PANEL_GRAVITY_NORTH:
-		client->X = RootWidth / 2 - client->Width / 2 + client->X;
-		break;
-	    case PANEL_GRAVITY_NORTH_EAST:
-		client->X = RootWidth - client->Width + client->X;
-		break;
-	    case PANEL_GRAVITY_WEST:
-		client->Y = RootHeight / 2 - client->Height / 2 + client->Y;
-		break;
-	    case PANEL_GRAVITY_CENTER:
-		client->X = RootWidth / 2 - client->Width / 2 + client->X;
-		client->Y = RootHeight / 2 - client->Height / 2 + client->Y;
-		break;
-	    case PANEL_GRAVITY_EAST:
-		client->X = RootWidth - client->Width + client->X;
-		client->Y = RootHeight / 2 - client->Height / 2 + client->Y;
-		break;
-	    case PANEL_GRAVITY_SOUTH_WEST:
-		client->Y = RootHeight - client->Height + client->Y;
-		break;
-	    case PANEL_GRAVITY_SOUTH:
-		client->X = RootWidth / 2 - client->Width / 2 + client->X;
-		client->Y = RootHeight - client->Height + client->Y;
-		break;
-	    case PANEL_GRAVITY_SOUTH_EAST:
-		client->X = RootWidth - client->Width + client->X;
-		client->Y = RootHeight - client->Height + client->Y;
-		break;
-	}
-	Debug(3, "   gravity: %dx%d%+d%+d\n", client->Width, client->Height,
+	Debug(3, "   gravity %d - %+d%+d\n", options->Values[i].Integer,
 	    client->X, client->Y);
-	// disable automatic window placement
-	client->SizeHints.flags |= XCB_SIZE_HINT_US_POSITION;
-	++i;
+	if (!already_mapped) {
+	    // FIXME: use strut? and don't use RootWidth/RootHeight
+	    switch (options->Values[i].Integer) {
+		case PANEL_GRAVITY_STATIC:
+		    break;
+		case PANEL_GRAVITY_NORTH_WEST:
+		    break;
+		case PANEL_GRAVITY_NORTH:
+		    client->X = RootWidth / 2 - client->Width / 2 + client->X;
+		    break;
+		case PANEL_GRAVITY_NORTH_EAST:
+		    client->X = RootWidth - client->Width + client->X;
+		    break;
+		case PANEL_GRAVITY_WEST:
+		    client->Y =
+			RootHeight / 2 - client->Height / 2 + client->Y;
+		    break;
+		case PANEL_GRAVITY_CENTER:
+		    client->X = RootWidth / 2 - client->Width / 2 + client->X;
+		    client->Y =
+			RootHeight / 2 - client->Height / 2 + client->Y;
+		    break;
+		case PANEL_GRAVITY_EAST:
+		    client->X = RootWidth - client->Width + client->X;
+		    client->Y =
+			RootHeight / 2 - client->Height / 2 + client->Y;
+		    break;
+		case PANEL_GRAVITY_SOUTH_WEST:
+		    client->Y = RootHeight - client->Height + client->Y;
+		    break;
+		case PANEL_GRAVITY_SOUTH:
+		    client->X = RootWidth / 2 - client->Width / 2 + client->X;
+		    client->Y = RootHeight - client->Height + client->Y;
+		    break;
+		case PANEL_GRAVITY_SOUTH_EAST:
+		    client->X = RootWidth - client->Width + client->X;
+		    client->Y = RootHeight - client->Height + client->Y;
+		    break;
+	    }
+	    Debug(3, "	 gravity: %dx%d%+d%+d\n", client->Width,
+		client->Height, client->X, client->Y);
+	    // disable automatic window placement
+	    client->SizeHints.flags |= XCB_SIZE_HINT_US_POSITION;
+	}
     }
 }
 
@@ -363,9 +381,10 @@ static const char *RuleMatchPattern(const char *pattern, const char *name)
 /**
 **	Apply rules to new client.
 **
-**	@param client	client to get default options.
+**	@param client		client to get default options
+**	@param already_mapped	true if already mapped, false if unmapped
 */
-void RulesApplyNewClient(Client * client)
+void RulesApplyNewClient(Client * client, int already_mapped)
 {
     Rule *rule;
 
@@ -395,7 +414,7 @@ void RulesApplyNewClient(Client * client)
 		continue;
 	    }
 	    // all pattern of this string matched, apply options
-	    RuleApplyOptions(client, rule->Options);
+	    RuleApplyOptions(client, already_mapped, rule->Options);
 	    break;			// next rule
 	}
     }
@@ -717,17 +736,16 @@ static void RuleConfigRule(const ConfigObject * array)
 /**
 **	Parse client rules configuration.
 **
-**	@param global	global config array
+**	@param config	global config dictionary
 */
-void RuleConfig(const ConfigObject * global)
+void RuleConfig(const Config * config)
 {
     const ConfigObject *array;
 
     //
     //	array of rules
     //
-    if (ConfigGetArray(global, &array, "rule", NULL))
-    {
+    if (ConfigGetArray(ConfigDict(config), &array, "rule", NULL)) {
 	const ConfigObject *index;
 	const ConfigObject *value;
 
