@@ -180,9 +180,7 @@ static void RuleApplyOptions(Client * client, const RuleOption * options)
     if (options->Actions & RULE_ACTION_LAYER) {
 	Debug(3, "   layer %d\n", options->Values[i].Integer);
 	if (options->Values[i].Integer < LAYER_MAX) {
-	    // FIXME: use client->OnLayer = options->Values[i].Integer;
-	    // FIXME: need to move layer setting after call to apply rules
-	    ClientSetLayer(client, options->Values[i].Integer);
+	    client->OnLayer = options->Values[i].Integer;
 	} else {
 	    Warning("invalid rule layer: %d\n", options->Values[i].Integer);
 	}
@@ -325,8 +323,9 @@ static void RuleApplyOptions(Client * client, const RuleOption * options)
 		client->Y = RootHeight - client->Height + client->Y;
 		break;
 	}
-	Debug(3, "   %dx%d%+d%+d\n", client->Width, client->Height, client->X,
-	    client->Y);
+	Debug(3, "   gravity: %dx%d%+d%+d\n", client->Width, client->Height,
+	    client->X, client->Y);
+	// disable automatic window placement
 	client->SizeHints.flags |= XCB_SIZE_HINT_US_POSITION;
 	++i;
     }
@@ -555,10 +554,10 @@ static void RuleConfigRule(const ConfigObject * array)
 		}
 	    }
 	    // FIXME: should support layer names!
+	    // FIXME: use ParseLayer
 	    if (ConfigGetInteger(aval, &ival, "layer", NULL)) {
 		RuleConfigAddOption(rule, n++, RULE_ACTION_LAYER, ival);
 	    }
-	    // FIXME: use ParseLayer
 	    if (ConfigGetInteger(aval, &ival, "desktop", NULL)) {
 		RuleConfigAddOption(rule, n++, RULE_ACTION_DESKTOP, ival);
 	    }
@@ -872,7 +871,7 @@ static void RuleApplyOptions(const struct _option_head_ *head, Client * client)
 		break;
 	    case RULE_ACTION_LAYER:
 		if (option->Integer < LAYER_MAX) {
-		    ClientSetLayer(client, option->Integer);
+		    client->OnLayer = option->Integer;
 		} else {
 		    Warning("invalid rule layer: %d\n", option->Integer);
 		}
