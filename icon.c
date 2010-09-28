@@ -787,7 +787,7 @@ Icon *IconLoadNamed(const char *name)
 /**
 **	Create an icon from binary data (as specified via window properties).
 **
-**	@param input	width, height, argb-data * width * height
+**	@param input	[width, height, argb-data * width * height]
 **	@param length	length of input data
 */
 static Icon *IconNewFromEWMH(const uint32_t * input, unsigned length)
@@ -812,7 +812,7 @@ static Icon *IconNewFromEWMH(const uint32_t * input, unsigned length)
     }
 
     icon = IconNew();
-    icon->Image = ImageFromEWMH(input);
+    icon->Image = ImageFromARGB(width, height, input + 2);
 
     // don't insert this icon since it is transient
     return icon;

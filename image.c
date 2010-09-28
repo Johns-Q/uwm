@@ -730,24 +730,26 @@ static Image *ImageLoadXPM(const char *name)
 #endif // } !USE_XPM
 
 /**
-**	Create an image from EWMH data.
+**	Create an image from ARGB data.
 **
-**	@param data	EWMH data [width, height, width * height]
+**	ARGB with high byte being A, low byte being B.	Data is in rows, left
+**	to right and top to bottom.
+**
+**	Used in EMWH hint _NET_WM_ICON.
+**
+**	@param width	width of ARGB data
+**	@param height	height of ARGB data
+**	@param data	ARGB data [width * height]
 */
-Image *ImageFromEWMH(const uint32_t * data)
+Image *ImageFromARGB(unsigned width, unsigned height, const uint32_t * data)
 {
     Image *image;
-    unsigned width;
-    unsigned height;
     uint8_t *argb;
     const uint32_t *end;
 
-    width = data[0];
-    height = data[1];
     image = ImageNew(width, height);
     argb = image->Data;
-
-    for (data += 2, end = data + width * height; data < end; data++) {
+    for (end = data + width * height; data < end; data++) {
 	*argb++ = *data >> 24;
 	*argb++ = *data >> 16;
 	*argb++ = *data >> 8;

@@ -58,8 +58,8 @@ extern Image *ImageLoadJPEG0(const char *name, unsigned, unsigned);
 extern Image *ImageFromData(const char *const *);
 #endif
 
-    /// Create an image from EWMH data.
-extern Image *ImageFromEWMH(const uint32_t *);
+    /// Create an image from ARGB data.
+extern Image *ImageFromARGB(unsigned, unsigned, const uint32_t *);
 
     /// Load an image from the specified file.
 extern Image *ImageLoadFile(const char *);
