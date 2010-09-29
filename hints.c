@@ -290,7 +290,7 @@ void AtomPreInit(void)
     // send requests
     for (atom = &Atoms.COMPOUND_TEXT; atom <= &Atoms.UWM_EXIT; ++atom) {
 	IfDebug(if (!atom->Name) {
-	    Debug(0, "missing atom %td\n", atom - &Atoms.COMPOUND_TEXT);
+	    Debug(2, "missing atom %td\n", atom - &Atoms.COMPOUND_TEXT);
 		continue;}
 	) ;
 
@@ -648,7 +648,7 @@ static void HintGetWMNormal(xcb_get_property_cookie_t cookie, Client * client)
 */
 static void HintGetWMColormaps(Client * client)
 {
-    Debug(0, "%s: FIXME: for %p\n", __FUNCTION__, client);
+    Debug(2, "%s: FIXME: for %p\n", __FUNCTION__, client);
 }
 #endif
 
@@ -924,7 +924,7 @@ static void HintGetNetWmWindowType(xcb_get_property_cookie_t cookie,
 		    atoms[i], client->Window);
 
 		/*
-		   Debug(0, "%s: FIXME: not written %p\n", __FUNCTION__, client);
+		   Debug(2, "%s: FIXME: not written %p\n", __FUNCTION__, client);
 
 		   _NET_WM_WINDOW_TYPE_TOOLBAR
 		   _NET_WM_WINDOW_TYPE_MENU
@@ -1072,7 +1072,7 @@ void HintSetNetWorkarea(void)
     int i;
     uint32_t values[DesktopN * 4];
 
-    Debug(0, "%s: FIXME: only dummy function written\n", __FUNCTION__);
+    Debug(2, "%s: FIXME: only dummy function written\n", __FUNCTION__);
 
     // _NET_WORKAREA
     for (i = 0; i < DesktopN; i++) {
@@ -1283,7 +1283,7 @@ void HintSetAllStates(const Client * client)
 void HintNetMoveResizeWindow(Client * client,
     const xcb_client_message_event_t * event)
 {
-    Debug(0, "FIXME: %s(%p,%p) not written\n", __FUNCTION__, client, event);
+    Debug(2, "FIXME: %s(%p,%p) not written\n", __FUNCTION__, client, event);
 }
 
 /**
@@ -1385,7 +1385,7 @@ void HintNetWmState(Client * client, const xcb_client_message_event_t * event)
 	    }
 	    break;
 	default:
-	    Debug(0, "bad _NET_WM_STATE action: %u", event->data.data32[0]);
+	    Debug(2, "bad _NET_WM_STATE action: %u", event->data.data32[0]);
 	    break;
     }
 }

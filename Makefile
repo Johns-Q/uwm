@@ -48,7 +48,7 @@ CONFIG += -DNO_XMU
 #	enable debug
 #CONFIG += -DDEBUG
 #	disable debug
-#CONFIG += -DNO_DEBUG
+CONFIG += -DNO_DEBUG
 
 DEFS = $(CONFIG) #### $(addprefix -D, $(CONFIG))
 

@@ -468,7 +468,7 @@ void BackgroundInit(void)
 	free(ia_reply);
     }
 
-    Debug(0, "FIXME: handle old pixmaps\n");
+    Debug(2, "FIXME: handle old pixmaps\n");
 #if 0
 
     if (XGetWindowProperty(dpy2, root2, XA_XSETROOT_ID, 0L, 1L, True,
@@ -508,7 +508,7 @@ void BackgroundInit(void)
 		break;
 #endif
 	    default:
-		Debug(0, "invalid background type %d\n", background->Type);
+		Debug(2, "invalid background type %d\n", background->Type);
 		break;
 	}
 

@@ -110,7 +110,7 @@ static void ClockDraw(ClockPlugin * clock_plugin, const time_t * now)
 
     plugin = clock_plugin->Plugin;
     if (!(panel = plugin->Panel)) {
-	Debug(0, "clock not inside a panel\n");
+	Debug(2, "clock not inside a panel\n");
 	return;
     }
     // draw only, if text changed

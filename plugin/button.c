@@ -291,7 +291,7 @@ static void PanelButtonHandleButtonRelease(Plugin * plugin, int
 	return;
     }
 
-    Debug(0, "button release on panel button still needed?\n");
+    Debug(2, "button release on panel button still needed?\n");
 }
 
 /**

@@ -805,10 +805,10 @@ static Icon *IconNewFromEWMH(const uint32_t * input, unsigned length)
     height = input[1];
 
     if (width * height + 2 > length) {
-	Debug(0, "invalid image size: %dx%d + 2 >%d\n", width, height, length);
+	Debug(2, "invalid image size: %dx%d + 2 >%d\n", width, height, length);
 	return NULL;
     } else if (!width || !height) {
-	Debug(0, "invalid image size: %dx%d\n", width, height);
+	Debug(2, "invalid image size: %dx%d\n", width, height);
 	return NULL;
     }
 
@@ -875,8 +875,8 @@ static void IconReadNetWMIcon(Client * client)
 */
 void IconLoadClient(Client * client)
 {
-    Debug(0, "FIXME: %s(%p)\n", __FUNCTION__, client);
-    Debug(0, "FIXME: SetIconSize(); \n");
+    Debug(2, "FIXME: %s(%p)\n", __FUNCTION__, client);
+    Debug(2, "FIXME: SetIconSize(); \n");
 
     // if client already has an icon, destroy it first
     IconDel(client->Icon);

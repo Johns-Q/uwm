@@ -911,7 +911,7 @@ void FontDrawString(xcb_drawable_t drawable, const Font * font, uint32_t pixel,
     xcb_char2b_t *chars;
 
     if (region) {
-	Debug(0, "FIXME: %s didn't support region clipping yet\n",
+	Debug(2, "FIXME: %s didn't support region clipping yet\n",
 	    __FUNCTION__);
     }
     if (!str || !(len = strlen(str))) {
@@ -1198,12 +1198,12 @@ void GradientDrawHorizontal(xcb_drawable_t drawable, xcb_gcontext_t gc,
 
     // return if there's nothing to do
     if (!width || !height) {
-	Debug(0, "Hey dude, check the caller can check this\n");
+	Debug(2, "Hey dude, check the caller can check this\n");
 	return;
     }
     // here we assume that background was filled elsewhere
     if (from_pixel == to_pixel) {
-	Debug(0, "Hey dude, check the caller can check this\n");
+	Debug(2, "Hey dude, check the caller can check this\n");
 	return;
     }
     // load "from" color

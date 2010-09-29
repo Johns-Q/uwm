@@ -586,11 +586,11 @@ void PagerUpdate(void)
     }
 #ifdef DEBUG
     if (SLIST_EMPTY(&Pagers)) {
-	Debug(0, "FIXME: pagers missing init %s\n", __FUNCTION__);
+	Debug(2, "FIXME: pagers missing init %s\n", __FUNCTION__);
     }
 #endif
     if (!ClientLayers[0].tqh_first && !ClientLayers[0].tqh_last) {
-	Debug(0, "FIXME: clients missing init %s\n", __FUNCTION__);
+	Debug(2, "FIXME: clients missing init %s\n", __FUNCTION__);
 	return;
     }
 

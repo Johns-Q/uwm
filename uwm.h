@@ -218,6 +218,10 @@
 
 /**
 **	Debug output function.
+**
+**	- 0	fatal errors and errors
+**	- 1	warnings
+**	- 2	important debug and fixme's
 */
 #define Debug(level, fmt...) \
     do { if (level<DebugLevel) { printf(fmt); fflush(stdout); } } while (0)

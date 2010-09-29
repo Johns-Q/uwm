@@ -406,7 +406,7 @@ static void TaskDraw(TaskPlugin * task_plugin)
 
     plugin = task_plugin->Plugin;
     if (!(panel = plugin->Panel)) {
-	Debug(0, "task not inside a panel\n");
+	Debug(2, "task not inside a panel\n");
 	return;
     }
 
@@ -530,11 +530,11 @@ void TaskUpdate(void)
     }
 #ifdef DEBUG
     if (SLIST_EMPTY(&Tasks)) {
-	Debug(0, "FIXME: tasks missing init %s\n", __FUNCTION__);
+	Debug(2, "FIXME: tasks missing init %s\n", __FUNCTION__);
     }
 #endif
     if (!ClientLayers[0].tqh_first && !ClientLayers[0].tqh_last) {
-	Debug(0, "FIXME: clients missing init %s\n", __FUNCTION__);
+	Debug(2, "FIXME: clients missing init %s\n", __FUNCTION__);
 	return;
     }
 
@@ -551,7 +551,7 @@ void TaskUpdate(void)
 		    PanelResize(task_plugin->Plugin->Panel);
 		}
 	    } else {
-		Debug(0, "FIXME: %s for horizontal not yet written\n",
+		Debug(2, "FIXME: %s for horizontal not yet written\n",
 		    __FUNCTION__);
 	    }
 	}

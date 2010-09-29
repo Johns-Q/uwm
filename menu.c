@@ -2240,7 +2240,7 @@ static void MenuCommandExecute(const MenuCommand * command, int x, int y)
 
 	case MENU_ACTION_DIR:
 	default:
-	    Debug(0, "invalid menu command: %d\n", command->Type);
+	    Debug(2, "invalid menu command: %d\n", command->Type);
 	    break;
     }
 }
@@ -3149,7 +3149,7 @@ void RootSetMenu(int index, Menu * menu)
     if (RootMenu[index] && RootMenu[index] != menu) {
 	unsigned u;
 
-	Debug(0, "FIXME: free overwritten root menu\n");
+	Debug(2, "FIXME: free overwritten root menu\n");
 
 	// check if overwriting this value will cause an orphan
 	for (u = 0; u < sizeof(RootMenu) / sizeof(*RootMenu); u++) {
@@ -3468,13 +3468,13 @@ static void WindowMenuExecute(void *client, const MenuCommand * command)
 	    ClientSetLayer(client, command->Integer);
 	    break;
 	default:
-	    Debug(0, "unknown window command: %d\n", command->Type);
+	    Debug(2, "unknown window command: %d\n", command->Type);
 	    break;
 	case MENU_ACTION_DESKTOP:
 	case MENU_ACTION_SENDTO:
 	case MENU_ACTION_LAYER:
 	case MENU_ACTION_DIR:
-	    Debug(0, "wrong window command: %d\n", command->Type);
+	    Debug(2, "wrong window command: %d\n", command->Type);
 	    break;
     }
 }
@@ -3510,7 +3510,7 @@ static void WindowMenuChoose(const MenuCommand * command)
 					event)->child))) {
 			    WindowMenuExecute(client, command);
 			} else {
-			    Debug(1, "no client selected\n");
+			    Debug(2, "no client selected\n");
 			}
 		    }
 		case XCB_KEY_PRESS:

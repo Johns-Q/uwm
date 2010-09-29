@@ -140,7 +140,7 @@ xcb_keysym_t KeyboardGet(xcb_keycode_t keycode, unsigned modifier)
 */
 void KeyboardGrabBindings(Client * client)
 {
-    Debug(0, "%s: FIXME: %p\n", __FUNCTION__, client);
+    Debug(2, "%s: FIXME: %p\n", __FUNCTION__, client);
 }
 
 /**
@@ -264,7 +264,7 @@ void KeyboardConfig(const Config * config)
 
     if (ConfigGetArray(ConfigDict(config), &array, "key-bindings", NULL)) {
 	//MenuButtonsConfig(array, &RootButtons);
-	Debug(0, "FIXME: parse key bindings\n");
+	Debug(2, "FIXME: parse key bindings\n");
     }
 }
 

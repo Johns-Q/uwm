@@ -124,11 +124,11 @@ static int HandleEvent( __attribute__ ((unused))
     send_event = XCB_EVENT_SENT(event);
     type = XCB_EVENT_RESPONSE_TYPE(event);
     if (type) {
-	Debug(0, "Event %s following sequence number %d%s\n",
+	Debug(2, "Event %s following sequence number %d%s\n",
 	    xcb_event_get_label(type), event->sequence,
 	    send_event ? " (from sent_event)" : "");
     } else {
-	Debug(0, "Error %s on sequence number %d (%s)\n",
+	Debug(2, "Error %s on sequence number %d (%s)\n",
 	    xcb_event_get_error_label(((xcb_request_error_t *)
 		    event)->error_code), event->sequence,
 	    xcb_event_get_request_label(((xcb_request_error_t *)
@@ -553,7 +553,7 @@ static int HandleDestroyNotify( __attribute__ ((unused))
     } else if (SwallowHandleDestroyNotify(event)) {
 	return 1;
     }
-    Debug(0, "FIXME: return HandleSystrayDestroy(event->window);\n");
+    Debug(2, "FIXME: return HandleSystrayDestroy(event->window);\n");
 
     return 0;
 }
@@ -693,7 +693,7 @@ static int HandleConfigureRequest( __attribute__ ((unused))
 	client->State &= ~(WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT);
 	if (client->State & WM_STATE_SHADED) {
 	    // FIXME: shaded? fullscreen
-	    Debug(1, "loose shading?\n");
+	    Debug(2, "loose shading?\n");
 	}
 
 	ClientUpdateShape(client);
