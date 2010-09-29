@@ -44,7 +44,7 @@
 #include <xcb/xcb_icccm.h>
 #include <xcb/xcb_event.h>
 
-#include "array.h"
+#include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 
 #include "event.h"

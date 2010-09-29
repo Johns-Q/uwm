@@ -50,7 +50,7 @@
 #include <xcb/render.h>
 #endif
 
-#include "array.h"
+#include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 
 #include "draw.h"
@@ -353,6 +353,7 @@ static ScaledIcon *IconGetScaled(Icon * icon, int width, int height)
     }
     Debug(4, "icon %dx%d -> %dx%d\n", icon->Image->Width, icon->Image->Height,
 	width, height);
+
     // keep icon aspect ratio
     i = (icon->Image->Width * 65536) / icon->Image->Height;
     width = MIN(width * 65536, height * i);

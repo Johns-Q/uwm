@@ -1,3 +1,6 @@
 [submodule "core-rc"]
 	path = core-rc
 	url = ./core-rc/
+[submodule "core-array"]
+	path = core-array
+	url = ./core-array/

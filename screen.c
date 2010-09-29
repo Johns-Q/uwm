@@ -39,7 +39,7 @@
 #include <xcb/xcb_atom.h>
 #include <xcb/xinerama.h>
 
-#include "array.h"
+#include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 
 #include "uwm.h"
