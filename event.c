@@ -125,7 +125,7 @@ static int HandleEvent( __attribute__ ((unused))
     send_event = XCB_EVENT_SENT(event);
     type = XCB_EVENT_RESPONSE_TYPE(event);
     if (type) {
-	Debug(2, "Event %s following sequence number %d%s\n",
+	Debug(3, "Event %s following sequence number %d%s\n",
 	    xcb_event_get_label(type), event->sequence,
 	    send_event ? " (from sent_event)" : "");
     } else {

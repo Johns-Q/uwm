@@ -84,8 +84,8 @@ extern xcb_grab_pointer_cookie_t PointerGrabForMoveRequest(void);
     /// Request pointer grab for choosing a window.
 extern xcb_grab_pointer_cookie_t PointerGrabForChooseRequest(void);
 
-    /// Send query pointer request.
-extern xcb_grab_pointer_cookie_t PointerGrabForChooseRequest(void);
+    /// Request pointer grab for resizing window.
+extern xcb_grab_pointer_cookie_t PointerGrabForResizeRequest(int);
 
     /// Get query pointer reply.
 extern void PointerQueryReply(xcb_query_pointer_cookie_t);
