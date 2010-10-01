@@ -304,14 +304,6 @@ extern char KeepLooping;		///< keep looping
     /// Execute an external program. @ingroup commands
 extern void CommandRun(const char *);
 
-    /// Get ticks in ms.
-extern uint32_t GetMsTicks(void);
-
-    /// Expand a path.
-extern char *ExpandPath(const char *path);
-
-//extern void ExpandPath(char **path);
-
     /// Update desktop change.
 extern void PanelButtonDesktopUpdate(void);
 

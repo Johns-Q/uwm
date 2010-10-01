@@ -55,6 +55,8 @@
 
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
+
+#include "misc.h"
 #include "draw.h"
 #include "tooltip.h"
 #include "screen.h"

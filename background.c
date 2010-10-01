@@ -56,6 +56,7 @@
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 
+#include "misc.h"
 #include "client.h"
 #include "hints.h"
 
