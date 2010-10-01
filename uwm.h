@@ -28,7 +28,7 @@
 //
 //	Which modules to build.
 //
-#ifndef NO_OUTLINE
+#if !defined(NO_OUTLINE) && !defined(USE_OUTLINE)
 #define USE_OUTLINE			///< include outline window move/resize
 #endif
 #ifndef NO_STATUS

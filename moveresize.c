@@ -357,6 +357,8 @@ void StatusUpdateResize(const Client * client, unsigned width, unsigned height)
 **	Set location of resize status windows.
 **
 **	@param str	location (off, screen, window, or corner)
+**
+**	@returns the #StatusType for window location.
 */
 static StatusType StatusParseType(const char *str)
 {
@@ -440,4 +442,91 @@ void StatusConfig(const Config * config)
 #else // }{ USE_STATUS
 
 #endif // } !USE_STATUS
+
+/// @}
+
+// ------------------------------------------------------------------------ //
+// Outline
+// ------------------------------------------------------------------------ //
+
+///
+///	@defgroup outline The outline module
+///
+///	This module handles outline for client window move and resize.
+///
+/// @{
+
+#ifdef USE_OUTLINE			// { USE_OUTLINE
+
+static int OutlineDrawn;		///< flag outline drawn on screen
+static xcb_rectangle_t OutlineLast;	///< last outline rectangle
+static xcb_gcontext_t OutlineGC;	///< outline graphic context
+
+/**
+**	Draw an outline.
+**
+**	@param x	x-coordinate
+**	@param y	y-coordinate
+**	@param width	width of outline
+**	@param height	height of outline
+*/
+void OutlineDraw(int x, int y, unsigned width, unsigned height)
+{
+    if (!OutlineDrawn) {
+	xcb_aux_sync(Connection);
+	xcb_grab_server(Connection);
+
+	OutlineLast.x = x;
+	OutlineLast.y = y;
+	OutlineLast.width = width;
+	OutlineLast.height = height;
+	xcb_poly_rectangle(Connection, RootWindow, OutlineGC, 1, &OutlineLast);
+
+	OutlineDrawn = 1;
+    }
+}
+
+/**
+**	Clear last outline.
+*/
+void OutlineClear(void)
+{
+    if (OutlineDrawn) {
+	xcb_poly_rectangle(Connection, RootWindow, OutlineGC, 1, &OutlineLast);
+
+	xcb_aux_sync(Connection);
+	xcb_ungrab_server(Connection);
+
+	OutlineDrawn = 0;
+    }
+}
+
+/**
+**	Initialize outlines.
+*/
+void OutlineInit(void)
+{
+    uint32_t values[3];
+
+    OutlineGC = xcb_generate_id(Connection);
+
+    values[0] = XCB_GX_INVERT;
+    values[1] = 2;
+    values[2] = XCB_SUBWINDOW_MODE_INCLUDE_INFERIORS;
+    xcb_create_gc(Connection, OutlineGC, RootWindow,
+	XCB_GC_FUNCTION | XCB_GC_LINE_WIDTH | XCB_GC_SUBWINDOW_MODE, values);
+
+    OutlineDrawn = 0;
+}
+
+/**
+**	Cleanup outlines.
+*/
+void OutlineExit(void)
+{
+    xcb_free_gc(Connection, OutlineGC);
+}
+
+#endif // } USE_OUTLINE
+
 /// @}

@@ -45,3 +45,46 @@ extern void StatusConfig(const Config *);
 #endif
 
 /// @}
+
+/// @ingroup client
+/// @addtogroup outline
+/// @{
+
+// ------------------------------------------------------------------------ //
+// Outline
+// ------------------------------------------------------------------------ //
+
+//////////////////////////////////////////////////////////////////////////////
+//	Prototypes
+//////////////////////////////////////////////////////////////////////////////
+
+    /// Draw an outline.
+extern void OutlineDraw(int, int, unsigned, unsigned);
+
+    /// Clear last outline.
+extern void OutlineClear(void);
+
+#ifdef USE_OUTLINE
+
+    /// Initialize the outline module
+extern void OutlineInit(void);
+
+    /// Cleanup the outline module
+extern void OutlineExit(void);
+
+    /// Parse outline configuration.
+extern void OutlineConfig(const Config *);
+
+#else
+
+    /// Dummy for Initialize outline module.
+#define OutlineInit()
+    /// Dummy for Cleanup outline module.
+#define OutlineExit()
+
+#endif
+
+    /// Dummy for parse outline configuration.
+#define OutlineConfig(config)
+
+/// @}

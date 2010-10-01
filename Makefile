@@ -30,6 +30,10 @@
 #
 #CONFIG	+=	'-DDEFAULT_FONT="-*-luxi sans-*-*-*-*-*-*-*-*-*-*-*-*"'
 
+#	enable/disable outline window move/resize
+#CONFIG += -DUSE_OUTLINE
+CONFIG += -DNO_OUTLINE
+
 #	support desktop background setting(s) (depends on ICON/JPEG/PNG)
 #CONFIG	+= -DNO_BACKGROUND
 #CONFIG  += -DUSE_BACKGROUND
@@ -42,7 +46,7 @@ CONFIG += -DNO_RENDER
 CONFIG += -DNO_XMU
 #	use buildin DIA show (image viewer/slide show)
 #CONFIG += -DUSE_DIA
-#	diable buildin DIA show (image viewer/slide show)
+#	disable buildin DIA show (image viewer/slide show)
 #CONFIG += -DNO_DIA
 
 #	enable debug
