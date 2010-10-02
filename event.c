@@ -230,9 +230,11 @@ static int HandleButtonPress( __attribute__ ((unused))
     if (DiaHandleButtonPress(event)) {
 	return 1;
     }
+#ifdef USE_TD
     if (TdHandleButtonPress(event)) {
 	return 1;
     }
+#endif
     //
     //	Client
     //
@@ -323,9 +325,11 @@ static int HandleButtonRelease( __attribute__ ((unused))
     if (DiaHandleButtonRelease(event)) {
 	return 1;
     }
+#ifdef USE_TD
     if (TdHandleButtonRelease(event)) {
 	return 1;
     }
+#endif
     if (PanelHandleButtonRelease(event)) {
 	return 1;
     }
@@ -466,9 +470,11 @@ static int HandleExpose( __attribute__ ((unused))
     if (DiaHandleExpose(event)) {
 	return 1;
     }
+#ifdef USE_TD
     if (TdHandleExpose(event)) {
 	return 1;
     }
+#endif
     return 0;
 }
 
@@ -924,7 +930,9 @@ static void HandleTimeout(void)
     PanelTimeout(tick, x, y);
     TooltipTimeout(tick, x, y);
     DiaTimeout(tick, x, y);
+#ifdef USE_TD
     TdTimeout(tick, x, y);
+#endif
 }
 
 /**

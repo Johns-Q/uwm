@@ -2189,7 +2189,9 @@ static void MenuCommandExecute(const MenuCommand * command, int x, int y)
 	    DiaCreate(command->String);
 	    break;
 	case MENU_ACTION_PLAY_TD:
+#ifdef USE_TD
 	    TdCreate(command->String);
+#endif
 	    break;
 
 	case MENU_ACTION_SENDTO_DESKTOP:

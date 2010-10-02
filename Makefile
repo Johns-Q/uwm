@@ -101,6 +101,13 @@ FILES=	Makefile u.xpm \
 
 all:	uwm #udm
 
+#	fix missing files
+td.c:
+	touch td.c
+
+plugin/systray.c:
+	touch plugin/systray.c
+
 #----------------------------------------------------------------------------
 #	Modules
 #
