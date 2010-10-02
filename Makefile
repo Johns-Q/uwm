@@ -50,10 +50,10 @@ CONFIG += -DNO_RENDER
 #CONFIG += -DNO_SHAPE
 #	use XMU emulation (needed for rounded corners)
 CONFIG += -DNO_XMU
-#	enable/disable buildin DIA show plugin (image viewer/slide show)
+#	enable/disable buildin DIA show application (image viewer/slide show)
 #CONFIG += -DUSE_DIA
 #CONFIG += -DNO_DIA
-#	enable/disable buildin tower defense plugin
+#	enable/disable buildin tower defense application
 #CONFIG += -DUSE_TD
 #CONFIG += -DNO_TD
 
@@ -104,6 +104,14 @@ all:	uwm #udm
 #----------------------------------------------------------------------------
 #	Modules
 #
+
+core-rc/core-rc.mk:
+	git submodule init core-rc
+	git submodule update core-rc
+
+core-array/core-array.mk:
+	git submodule init core-array
+	git submodule update core-array
 
 include core-rc/core-rc.mk
 include core-array/core-array.mk

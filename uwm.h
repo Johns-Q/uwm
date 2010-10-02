@@ -95,11 +95,11 @@
 #endif
 
 #ifndef NO_DIA
-#define NO_DIA				///< include dia-show plugin
+#define NO_DIA				///< include dia-show application
 #endif
 
 #ifndef NO_TD
-#define NO_TD				///< include tower-defense plugin
+#define NO_TD				///< include tower-defense application
 #endif
 
 #ifndef NO_LUA				// FIXME: will be removed

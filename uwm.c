@@ -1098,8 +1098,7 @@ static void PrintUsage(void)
 	"\t-e\texit µWM (send _UWM_EXIT to the root window)\n"
 	"\t-r\trestart µWM (send _UWM_RESTART to the root window)\n"
 	"\t-p\tparse the configuration file and exit\n"
-	"\t-? -h\tdisplay this message\n"
-	"\t-v\tdisplay version information\n"
+	"\t-? -h\tdisplay this message\n" "\t-v\tdisplay version information\n"
 	"Only idiots print usage on stderr!\n");
 }
 
