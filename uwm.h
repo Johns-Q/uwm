@@ -31,8 +31,11 @@
 #if !defined(NO_OUTLINE) && !defined(USE_OUTLINE)
 #define USE_OUTLINE			///< include outline window move/resize
 #endif
-#ifndef NO_STATUS
+#if !defined(NO_STATUS) && !defined(USE_STATUS)
 #define USE_STATUS			///< include move/resize status window
+#endif
+#if !defined(NO_SNAP) && !defined(USE_SNAP)
+#define USE_SNAP			///< include snap for move/resize
 #endif
 #ifndef NO_DIALOG
 #define USE_DIALOG			///< include confirm dialog

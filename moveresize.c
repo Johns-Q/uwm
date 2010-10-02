@@ -32,9 +32,13 @@
 #include <xcb/xcb_icccm.h>
 #include <xcb/xcb_aux.h>
 
+#include <X11/keysym.h>			// keysym XK_
+
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 
+#include "event.h"
+#include "pointer.h"
 #include "client.h"
 #include "border.h"
 
@@ -44,6 +48,11 @@
 #include "icon.h"
 #include "menu.h"
 #include "panel.h"
+
+#include "moveresize.h"
+#include "keyboard.h"
+
+#include "plugin/pager.h"
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -450,13 +459,14 @@ void StatusConfig(const Config * config)
 // ------------------------------------------------------------------------ //
 
 ///
+///	@ingroup client
 ///	@defgroup outline The outline module
 ///
 ///	This module handles outline for client window move and resize.
 ///
 /// @{
 
-#ifdef USE_OUTLINE			// { USE_OUTLINE
+#ifdef USE_OUTLINE			// {
 
 static int OutlineDrawn;		///< flag outline drawn on screen
 static xcb_rectangle_t OutlineLast;	///< last outline rectangle
@@ -528,5 +538,896 @@ void OutlineExit(void)
 }
 
 #endif // } USE_OUTLINE
+
+/// @}
+
+// ------------------------------------------------------------------------ //
+// Client snap
+// ------------------------------------------------------------------------ //
+
+///
+///	@ingroup client
+///	@defgroup snap The client snap module.
+///
+///	This module contains the client snap functions.
+///
+/// @{
+
+#ifdef USE_SNAP				// {
+
+/**
+**	Window snap modes enumeration.
+*/
+typedef enum
+{
+    SNAP_NONE,				///< don't snap
+    SNAP_CLIENT,			///< snap to edges of windows
+    SNAP_SCREEN,			///< snap to edges of screen
+    SNAP_BORDER				///< snap to all borders
+} SnapMode;
+
+/**
+**	Box structure for snapping.
+*/
+typedef struct _box_
+{
+    int16_t X1;				///< left side x-coordinate
+    int16_t Y1;				///< top side y-coordinate
+    int16_t X2;				///< right side x-coordinate
+    int16_t Y2;				///< bottom side y-coordinate
+} Box;
+
+    /// client window snap mode
+static SnapMode ClientSnapMode;
+
+    /// client window snap distance
+static int ClientSnapDistance;
+
+/**
+**	Get box to represent client window.
+**
+**	@param client	create the box for this client
+**	@param[out] box	box of client top/left bottom/right coordinates
+*/
+static void ClientGetBox(const Client * client, Box * box)
+{
+    int north;
+    int south;
+    int east;
+    int west;
+
+    BorderGetSize(client, &north, &south, &east, &west);
+
+    box->X1 = client->X - west;
+    box->X2 = client->X + client->Width + east;
+    box->Y1 = client->Y - north;
+    if (client->State & WM_STATE_SHADED) {
+	box->Y2 = client->Y + south;
+    } else {
+	box->Y2 = client->Y + client->Height + south;
+    }
+
+}
+
+/**
+**	Check if current right snap position is valid.
+**
+**	@param self	box arround our client
+**	@param other	box arround other object
+**	@param right	old right snap box, until now best snap box
+**
+**	@retval	true	keep the right box
+**	@retval	false	other is better
+*/
+static int ClientCheckRight(const Box * self, const Box * other,
+    const Box * right)
+{
+    if (right->X1 < other->X1) {
+	return 1;
+    }
+    // if right and client go higher than other then still valid
+    if (right->Y1 < other->Y1 && self->Y1 < other->Y1) {
+	return 1;
+    }
+    // if right and client go lower than other then still valid
+    if (right->Y2 > other->Y2 && self->Y2 > other->Y2) {
+	return 1;
+    }
+    if (other->X2 <= right->X1) {
+	return 1;
+    }
+
+    return 0;
+}
+
+/**
+**	Check if current left snap position is valid.
+**
+**	@param self	box arround our client
+**	@param other	box arround other object
+**	@param left	old left snap box, until now best snap box
+**
+**	@retval	true	keep the left box
+**	@retval	false	other is better
+*/
+static int ClientCheckLeft(const Box * self, const Box * other,
+    const Box * left)
+{
+    if (left->X2 > other->X2) {
+	return 1;
+    }
+    // if left and client go higher than other then still valid
+    if (left->Y1 < other->Y1 && self->Y1 < other->Y1) {
+	return 1;
+    }
+    // If left and client go lower than other then still valid
+    if (left->Y2 > other->Y2 && self->Y2 > other->Y2) {
+	return 1;
+    }
+
+    if (other->X1 >= left->X2) {
+	return 1;
+    }
+
+    return 0;
+}
+
+/**
+**	Check if current top snap position is valid.
+**
+**	@param self	box arround our client
+**	@param other	box arround other object
+**	@param top	old top snap box, until now best snap box
+**
+**	@retval	true	keep the top box
+**	@retval	false	other is better
+*/
+static int ClientCheckTop(const Box * self, const Box * other, const Box * top)
+{
+    if (top->Y2 > other->Y2) {
+	return 1;
+    }
+    // if top and client are to left of other then still valid
+    if (top->X1 < other->X1 && self->X1 < other->X1) {
+	return 1;
+    }
+    // If top and client are to right of other then still valid
+    if (top->X2 > other->X2 && self->X2 > other->X2) {
+	return 1;
+    }
+    if (other->Y1 >= top->Y2) {
+	return 1;
+    }
+
+    return 0;
+}
+
+/**
+**	Check if current bottom snap position is valid.
+**
+**	@param self	box arround our client
+**	@param other	box arround other object
+**	@param bottom	old bottom snap box, until now best snap box
+**
+**	@retval	true	keep the bottom box
+**	@retval	false	other is better
+*/
+static int ClientCheckBottom(const Box * self, const Box * other,
+    const Box * bottom)
+{
+    if (bottom->Y1 < other->Y1) {
+	return 1;
+    }
+    // if bottom and client are to left of other then still valid
+    if (bottom->X1 < other->X1 && self->X1 < other->X1) {
+	return 1;
+    }
+    // if bottom and client are to right of other then still valid
+    if (bottom->X2 > other->X2 && self->X2 > other->X2) {
+	return 1;
+    }
+    if (other->Y2 <= bottom->Y1) {
+	return 1;
+    }
+
+    return 0;
+}
+
+/**
+**	Check for top/bottom overlap.
+**
+**	@param self	box arround our client
+**	@param other	box arround other object
+**
+**	@returns true if the two boxes intersect, false if not.
+*/
+static int ClientCheckTopBottom(const Box * self, const Box * other)
+{
+    if (self->Y1 >= other->Y2 || self->Y2 <= other->Y1) {
+	return 0;
+    } else {
+	return 1;
+    }
+}
+
+/**
+**	Check for left/right overlap.
+**
+**	@param self	box arround our client
+**	@param other	box arround other object
+**
+**	@returns true if the two boxes intersect, false if not.
+*/
+static int ClientCheckLeftRight(const Box * self, const Box * other)
+{
+    if (self->X1 >= other->X2 || self->X2 <= other->X1) {
+	return 0;
+    } else {
+	return 1;
+    }
+}
+
+/**
+**	Determine if we should snap to specified client.
+**
+**	Hidden or minimized windows are ignored.
+**
+**	@param client	window client to check
+**
+**	@returns true if we should use this client, false if not.
+*/
+static int ClientShouldSnap(const Client * client)
+{
+    if (client->State & (WM_STATE_HIDDEN | WM_STATE_MINIMIZED)) {
+	return 0;
+    } else {
+	return 1;
+    }
+}
+
+/**
+**	Check if new border box is better than existing snap boxes.
+**
+**	@param self		box arround our client
+**	@param other		box arround other object
+**	@param left_valid	left snap box is valid
+**	@param left		best left snap box
+**	@param right_valid	right snap box is valid
+**	@param right		best right snap box
+**	@param top_valid	top snap box is valid
+**	@param top		best top snap box
+**	@param bottom_valid	bottom snap box is valid
+**	@param bottom		best bottom snap box
+*/
+static void ClientDoSnapWork(const Box * self, Box * other, int *left_valid,
+    Box * left, int *right_valid, Box * right, int *top_valid, Box * top,
+    int *bottom_valid, Box * bottom)
+{
+    // check if this border invalidates any previous value
+    if (*left_valid) {
+	*left_valid = ClientCheckLeft(self, other, left);
+    }
+    if (*right_valid) {
+	*right_valid = ClientCheckRight(self, other, right);
+    }
+    if (*top_valid) {
+	*top_valid = ClientCheckTop(self, other, top);
+    }
+    if (*bottom_valid) {
+	*bottom_valid = ClientCheckBottom(self, other, bottom);
+    }
+    // compute new snap values.
+    if (ClientCheckTopBottom(self, other)) {
+	if (abs(self->X1 - other->X2) <= ClientSnapDistance) {
+	    *left_valid = 1;
+	    *left = *other;
+	}
+	if (abs(self->X2 - other->X1) <= ClientSnapDistance) {
+	    *right_valid = 1;
+	    *right = *other;
+	}
+    }
+    if (ClientCheckLeftRight(self, other)) {
+	if (abs(self->Y1 - other->Y2) <= ClientSnapDistance) {
+	    *top_valid = 1;
+	    *top = *other;
+	}
+	if (abs(self->Y2 - other->Y1) <= ClientSnapDistance) {
+	    *bottom_valid = 1;
+	    *bottom = *other;
+	}
+    }
+}
+
+/**
+**	Snap to window borders.
+**
+**	@param client	client wich should be snapped.
+*/
+static void ClientSnapToBorder(Client * client)
+{
+    Box self;
+    Box other;
+    int left_valid;
+    Box left;
+    int right_valid;
+    Box right;
+    int top_valid;
+    Box top;
+    int bottom_valid;
+    Box bottom;
+    int layer;
+    int north;
+    int south;
+    int east;
+    int west;
+
+    ClientGetBox(client, &self);
+
+    left_valid = 0;
+    right_valid = 0;
+    top_valid = 0;
+    bottom_valid = 0;
+
+#ifdef DEBUG
+    // keep gcc happy
+    memset(&bottom, 0, sizeof(bottom));
+    memset(&top, 0, sizeof(top));
+    memset(&right, 0, sizeof(right));
+    memset(&left, 0, sizeof(left));
+#endif
+
+    // work from bottom of window stack to top.
+    for (layer = LAYER_BOTTOM; layer < LAYER_MAX; layer++) {
+	const Panel *panel;
+	const Client *temp;
+
+	// check panel windows
+	SLIST_FOREACH(panel, &Panels, Next) {
+	    // ignore hidden panels
+	    if (panel->Hidden) {
+		continue;
+	    }
+
+	    other.X1 = panel->X;
+	    other.X2 = panel->X + panel->Width;
+	    other.Y1 = panel->Y;
+	    other.Y2 = panel->Y + panel->Height;
+
+	    ClientDoSnapWork(&self, &other, &left_valid, &left, &right_valid,
+		&right, &top_valid, &top, &bottom_valid, &bottom);
+	}
+
+	// check client windows
+	TAILQ_FOREACH(temp, &ClientLayers[layer], LayerQueue) {
+	    // ignore self and invalid windows
+	    if (temp == client || !ClientShouldSnap(temp)) {
+		continue;
+	    }
+
+	    ClientGetBox(temp, &other);
+
+	    ClientDoSnapWork(&self, &other, &left_valid, &left, &right_valid,
+		&right, &top_valid, &top, &bottom_valid, &bottom);
+	}
+    }
+
+    BorderGetSize(client, &north, &south, &east, &west);
+
+    // any valid points found use them
+    if (left_valid) {			// prefer left
+	client->X = left.X2 + east;
+    } else if (right_valid) {
+	client->X = right.X1 - client->Width - west;
+    }
+    if (top_valid) {			// prefer top
+	client->Y = top.Y2 + north;
+    } else if (bottom_valid) {
+	client->Y = bottom.Y1 - south;
+	if (!(client->State & WM_STATE_SHADED)) {
+	    client->Y -= client->Height;
+	}
+    }
+}
+
+/**
+**	Snap to screen.
+**
+**	@param client	client moved arround.
+*/
+static void ClientSnapToScreen(Client * client)
+{
+    Box self;
+    int north;
+    int south;
+    int east;
+    int west;
+    int s;
+
+    ClientGetBox(client, &self);
+    BorderGetSize(client, &north, &south, &east, &west);
+
+    for (s = 0; s < ScreenN; s++) {
+	Screen *screen;
+
+	screen = Screens + s;
+
+	// try four screen sides
+	if (abs(self.X1 - screen->X) <= ClientSnapDistance) {
+	    client->X = screen->X + east;
+	    Debug(4, "snap %d\n", client->X);
+	} else if (abs(self.X2 - screen->Width - screen->X) <=
+	    ClientSnapDistance) {
+	    client->X = screen->X + screen->Width - west - client->Width;
+	    Debug(4, "snap %d\n", client->X);
+	}
+	if (abs(self.Y1 - screen->Y) <= ClientSnapDistance) {
+	    client->Y = north + screen->Y;
+	    Debug(4, "snap %d\n", client->Y);
+	} else if (abs(self.Y2 - screen->Height - screen->Y) <=
+	    ClientSnapDistance) {
+	    client->Y = screen->Y + screen->Height - south;
+	    if (!(client->State & WM_STATE_SHADED)) {
+		client->Y -= client->Height;
+	    }
+	    Debug(4, "snap %d\n", client->Y);
+	}
+    }
+}
+
+/**
+**	Snap to screen and/or neighboring windows.
+**
+**	@param client	client moved arround.
+*/
+void ClientSnap(Client * client)
+{
+    switch (ClientSnapMode) {
+	case SNAP_CLIENT:
+	    ClientSnapToBorder(client);
+	    break;
+	case SNAP_BORDER:
+	    ClientSnapToBorder(client);
+	    // fall through snaps larger distance, not good!
+	case SNAP_SCREEN:
+	    ClientSnapToScreen(client);
+	    break;
+	default:
+	    break;
+    }
+}
+
+// ------------------------------------------------------------------------ //
+// Config
+
+/**
+**	Parse snap configuration.
+**
+**	@param config	global config dictionary
+*/
+void SnapConfig(const Config * config)
+{
+    const char *sval;
+    ssize_t ival;
+
+    // snap.mode
+    if (ConfigGetString(ConfigDict(config), &sval, "snap", "mode", NULL)) {
+	if (!strcasecmp(sval, "none")) {
+	    ClientSnapMode = SNAP_NONE;
+	} else if (!strcasecmp(sval, "client")) {
+	    ClientSnapMode = SNAP_CLIENT;
+	} else if (!strcasecmp(sval, "screen")) {
+	    ClientSnapMode = SNAP_SCREEN;
+	} else if (!strcasecmp(sval, "border")) {
+	    ClientSnapMode = SNAP_BORDER;
+	} else {
+	    ClientSnapMode = SNAP_BORDER;
+	    Warning("invalid snap mode: '%s'\n", sval);
+	}
+    }
+    // snap.distance
+    if (ConfigGetInteger(ConfigDict(config), &ival, "snap", "distance", NULL)) {
+	if (SNAP_MINIMAL_DISTANCE <= ival && ival <= SNAP_MAXIMAL_DISTANCE) {
+	    ClientSnapDistance = ival;
+	} else {
+	    ClientSnapDistance = SNAP_DEFAULT_DISTANCE;
+	    Warning("snap distance %zd out of range\n", ival);
+	}
+    }
+}
+
+#endif // } USE_SNAP
+
+/// @}
+
+// ------------------------------------------------------------------------ //
+// Client move
+// ------------------------------------------------------------------------ //
+
+///
+///	@ingroup client
+///	@defgroup move The client move module.
+///
+///	This module contains the client move functions.
+///
+/// @{
+
+/**
+**	Window move modes enumeration.
+*/
+typedef enum
+{
+    MOVE_OPAQUE,			///< show window contents while moving
+    MOVE_OUTLINE			///< show an outline while moving
+} MoveMode;
+
+int ClientFinishAction;			///< finish current action
+
+// FIXME: void (*ClientController) (void);	///< callback to stop move/resize.
+// FIXME: Client * ClientControlled;		///< current client
+
+    /// client window move mode
+static MoveMode ClientMoveMode = MOVE_OPAQUE;
+
+/**
+**	Stop client move.
+**
+**	@param client	client moved arround
+**	@param do_move	client is already moved
+**	@param oldx	original x-coordinate
+**	@param oldy	original y-coordinate
+**	@param hmax	original hmax flag
+**	@param vmax	original vmax flag
+*/
+static void ClientStopMove(Client * client, int do_move, int oldx, int oldy,
+    int hmax, int vmax)
+{
+    client->Controller();
+    client->Controller = ClientDefaultController;
+
+    if (do_move) {
+	int north;
+	int south;
+	int east;
+	int west;
+	uint32_t values[2];
+
+	BorderGetSize(client, &north, &south, &east, &west);
+
+	values[0] = client->X - west;
+	values[1] = client->Y - north;
+	xcb_configure_window(Connection, client->Parent,
+	    XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, values);
+	ClientSendConfigureEvent(client);
+
+	// restore maximized status, if only maximized in one direction.
+	if ((hmax || vmax) && !(hmax && vmax)) {
+	    // FIXME: this sends configure the second time, see above
+	    ClientMaximize(client, hmax, vmax);
+	}
+    } else {
+	client->X = oldx;
+	client->Y = oldy;
+    }
+}
+
+/**
+**	Callback for stopping moves.
+*/
+static void ClientMoveController(void)
+{
+    xcb_ungrab_keyboard(Connection, XCB_CURRENT_TIME);
+    xcb_ungrab_pointer(Connection, XCB_CURRENT_TIME);
+
+    if (ClientMoveMode == MOVE_OUTLINE) {
+	OutlineClear();
+    }
+    StatusDestroyMove();
+
+    ClientFinishAction = 1;
+}
+
+/**
+**	Interactive move client window.
+**
+**	@param client	client to move
+**	@param button	button initiating move (0 keyboard/menu)
+**	@param startx	starting mouse x-coordinate (window relative)
+**	@param starty	starting mouse y-coordinate (window relative)
+**
+**	@returns true if client moved, false otherwise.
+**
+**	@todo make keyboard move distance configurable.
+*/
+int ClientMoveLoop(Client * client, int button, int startx, int starty)
+{
+    xcb_grab_pointer_cookie_t gp_cookie;
+    xcb_grab_keyboard_cookie_t gk_cookie;
+    int oldx;
+    int oldy;
+    int north;
+    int south;
+    int east;
+    int west;
+    int vmax;
+    int hmax;
+    int do_move;
+    int height;
+
+    // move allowed?
+    if (!(client->Border & BORDER_MOVE)) {
+	return 0;
+    }
+
+    gp_cookie = PointerGrabForMoveRequest();
+    NO_WARNING(gk_cookie);
+    if (!button) {
+	gk_cookie = KeyboardGrabRequest(client->Window);
+    }
+
+    ClientFinishAction = 0;
+    client->Controller = ClientMoveController;
+
+    oldx = client->X;
+    oldy = client->Y;
+
+    BorderGetSize(client, &north, &south, &east, &west);
+
+    if (button) {
+	startx -= west;
+	starty -= north;
+    }
+
+    height = north + south;		// window height for outline/keyboard
+    if (!(client->State & WM_STATE_SHADED)) {
+	height += client->Height;
+    }
+
+    vmax = 0;
+    hmax = 0;
+    do_move = 0;
+
+    PointerGrabReply(gp_cookie);
+    // FIXME: what if grab failed?
+    if (button) {
+	// FIXME; must convert button into mask
+	if (!(PointerGetButtonMask() & (XCB_BUTTON_MASK_1 |
+		    XCB_BUTTON_MASK_2))) {
+	    Debug(3, "only border clicked, leave early\n");
+	    ClientStopMove(client, 0, oldx, oldy, 0, 0);
+	    return 0;
+	}
+    } else {
+	// FIXME: fails if shaded
+	if (!KeyboardGrabReply(gk_cookie)) {
+	    ClientStopMove(client, 0, oldx, oldy, 0, 0);
+	    return 0;
+	}
+    }
+
+    for (;;) {
+	for (;;) {
+	    xcb_generic_event_t *event;
+
+	    if (ClientFinishAction || !KeepLooping) {
+		client->Controller = ClientDefaultController;
+		return do_move;
+	    }
+	    if (!(event = PollNextEvent())) {
+		break;
+	    }
+
+	    switch (XCB_EVENT_RESPONSE_TYPE(event)) {
+		    int delta_x;
+		    int delta_y;
+
+		case XCB_KEY_RELEASE:
+		    break;
+		case XCB_KEY_PRESS:
+		    delta_x = 0;
+		    delta_y = 0;
+		    switch (KeyboardGet(((xcb_key_press_event_t *)
+				event)->detail, ((xcb_key_press_event_t *)
+				event)->state)) {
+			case XK_Left:
+			    delta_x = -10;
+			    break;
+			case XK_Right:
+			    delta_x = 10;
+			    break;
+			case XK_Up:
+			    delta_y = -10;
+			    break;
+			case XK_Down:
+			    delta_y = 10;
+			    break;
+			case XK_Home:
+			    delta_x = -10;
+			    delta_y = -10;
+			    break;
+			case XK_End:
+			    delta_x = -10;
+			    delta_y = 10;
+			    break;
+			case XK_Page_Up:
+			    delta_x = 10;
+			    delta_y = -10;
+			    break;
+			case XK_Page_Down:
+			    delta_x = 10;
+			    delta_y = 10;
+			    break;
+
+			case XK_Shift_L:
+			case XK_Shift_R:
+			case XK_Control_L:
+			case XK_Control_R:
+			    break;
+			case XK_Escape:
+			case XK_Return:
+			default:
+			    ClientStopMove(client, do_move, oldx, oldy, hmax,
+				vmax);
+			    free(event);
+			    return do_move;
+		    }
+		    if (((xcb_key_press_event_t *) event)->state &
+			XCB_MOD_MASK_CONTROL) {
+			delta_x /= 10;
+			delta_y /= 10;
+		    }
+		    if (((xcb_key_press_event_t *) event)->state &
+			XCB_MOD_MASK_SHIFT) {
+			delta_x *= 3;
+			delta_y *= 3;
+		    }
+		    //
+		    //	Keep window on screen
+		    //
+		    if (client->X + delta_x + west + (signed)client->Width > 0
+			&& client->X + delta_x - west <
+			(signed)XcbScreen->width_in_pixels) {
+			client->X += delta_x;
+		    }
+		    if (client->Y + delta_y - north + height > 0
+			&& client->Y + delta_y - north <
+			(signed)XcbScreen->height_in_pixels) {
+			client->Y += delta_y;
+		    }
+#if 0
+		    // FIXME: see ClientMoveKeyboard
+		    PointerWrap(RootWindow, client->X + west,
+			client->Y + north);
+		    DiscardMotionEvents((xcb_motion_notify_event_t **) & event,
+			client->Window);
+#endif
+		    goto do_move;
+
+		case XCB_BUTTON_RELEASE:
+		    if (((xcb_button_press_event_t *) event)->detail ==
+			XCB_BUTTON_INDEX_1
+			|| ((xcb_button_press_event_t *) event)->detail ==
+			XCB_BUTTON_INDEX_2) {
+			ClientStopMove(client, do_move, oldx, oldy, hmax,
+			    vmax);
+			free(event);
+			return do_move;
+		    }
+		case XCB_BUTTON_PRESS:
+		    break;
+		case XCB_MOTION_NOTIFY:
+
+		    Debug(3, "window %x\n",
+			((xcb_motion_notify_event_t *) event)->event);
+		    DiscardMotionEvents((xcb_motion_notify_event_t **) & event,
+			client->Window);
+
+		    // FIXME: when we don't change client->X here, we don't
+		    // FIXME: need to restore X,Y in StopMove!!
+		    client->X =
+			((xcb_motion_notify_event_t *) event)->root_x - startx;
+		    client->Y =
+			((xcb_motion_notify_event_t *) event)->root_y - starty;
+
+		  do_move:
+		    ClientSnap(client);
+
+		    // only if moved first time
+		    if (!do_move) {
+			if (abs(client->X - oldx) > CLIENT_MOVE_DELTA
+			    || abs(client->Y - oldy) > CLIENT_MOVE_DELTA) {
+
+			    if (client->State & WM_STATE_MAXIMIZED_HORZ) {
+				hmax = 1;
+			    }
+			    if (client->State & WM_STATE_MAXIMIZED_VERT) {
+				vmax = 1;
+			    }
+			    if (hmax || vmax) {
+				ClientMaximize(client, 0, 0);
+				startx = client->Width / 2;
+				starty = -north / 2;
+				PointerWrap(client->Parent, startx, starty);
+			    }
+
+			    StatusCreateMove(client);
+			    do_move = 1;
+			} else {
+			    break;
+			}
+		    }
+
+		    if (ClientMoveMode == MOVE_OUTLINE) {
+			OutlineClear();
+			OutlineDraw(client->X - west, client->Y - north,
+			    client->Width + west + east, height);
+		    } else {
+			uint32_t values[2];
+
+			values[0] = client->X - west;
+			values[1] = client->Y - north;
+			xcb_configure_window(Connection, client->Parent,
+			    XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, values);
+			ClientSendConfigureEvent(client);
+		    }
+		    StatusUpdateMove(client);
+		    PagerUpdate();
+
+		    break;
+		default:
+		    EventHandleEvent(event);
+		    break;
+	    }
+	    free(event);
+	}
+	WaitForEvent();
+    }
+    return 0;
+}
+
+/**
+**	Move client window (keyboard or menu initiated).
+**	Move client window using keyboard (mouse optional).
+**
+**	@param client	client to move
+**
+**	@returns 1 if client moved, 0 otherwise.
+*/
+int ClientMoveKeyboard(Client * client)
+{
+#if 0
+    //
+    //	FIXME: Wrapping must keep cursor inside window
+    //
+    xcb_motion_notify_event_t *event;
+    int north;
+    int south;
+    int east;
+    int west;
+
+    Debug(3, "%s: client %p\n", __FUNCTION__, client);
+
+    // resize allowed?
+    if (!(client->Border & BORDER_MOVE)) {
+	return 0;
+    }
+    // move pointer to upper-left corner of window
+    PointerWrap(RootWindow, client->X, client->Y);
+    event = NULL;
+    DiscardMotionEvents(&event, client->Window);
+
+    BorderGetSize(client, &north, &south, &east, &west);
+
+    return ClientMoveLoop(client, 0, client->Width + east,
+	client->Height + north);
+#else
+    int pointer_x;
+    int pointer_y;
+
+    PointerGetPosition(&pointer_x, &pointer_y);
+    return ClientMoveLoop(client, 0, pointer_x - client->X,
+	pointer_y - client->Y);
+#endif
+}
 
 /// @}

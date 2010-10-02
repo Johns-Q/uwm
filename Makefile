@@ -33,6 +33,12 @@
 #	enable/disable outline window move/resize
 #CONFIG += -DUSE_OUTLINE
 CONFIG += -DNO_OUTLINE
+#	enable/disable move/resize status window
+#CONFIG += -DUSE_STATUS
+#CONFIG += -DNO_STATUS
+#	enable/disable snap for move/resize
+#CONFIG += -DUSE_SNAP
+#CONFIG += -DNO_SNAP
 
 #	support desktop background setting(s) (depends on ICON/JPEG/PNG)
 #CONFIG	+= -DNO_BACKGROUND

@@ -302,14 +302,22 @@ extern void ClientInit(void);
     /// Cleanup the client module
 extern void ClientExit(void);
 
-/// @addtogroup move
+/// @addtogroup snap
 /// @{
-/// FIXME:
 
     /// Snap to screen and/or neighboring windows.
 extern void ClientSnap(Client * client);
 
-    /// Move a client window.
+    /// Parse snap configuration.
+extern void SnapConfig(const Config *);
+
+/// @}
+
+/// @addtogroup move
+/// @{
+/// FIXME:
+
+    /// Interactive move client window.
 extern int ClientMoveLoop(Client *, int, int, int);
 
     /// Move client window (keyboard or menu initiated).
