@@ -54,8 +54,9 @@
 #include "desktop.h"
 
 #include "panel.h"
-#include "plugin/task.h"
+#include "plugin/button.h"
 #include "plugin/pager.h"
+#include "plugin/task.h"
 
 // ------------------------------------------------------------------------ //
 

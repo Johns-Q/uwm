@@ -28,6 +28,9 @@
 //	Prototypes
 //////////////////////////////////////////////////////////////////////////////
 
+    /// Update desktop change.
+extern void PanelButtonDesktopUpdate(void);
+
     /// Intialize button panel plugin.
 extern void PanelButtonInit(void);
 
@@ -39,6 +42,8 @@ Plugin *PanelButtonConfig(const ConfigObject *);
 
 #ifndef USE_BUTTON			// {
 
+    /// Dummy for update desktop change.
+#define PanelButtonDesktopUpdate()
     /// Dummy for initialize button(s).
 #define PanelButtonInit()
     /// Dummy for cleanup button(s).

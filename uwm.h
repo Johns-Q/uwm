@@ -307,9 +307,6 @@ extern char KeepLooping;		///< keep looping
     /// Execute an external program. @ingroup commands
 extern void CommandRun(const char *);
 
-    /// Update desktop change.
-extern void PanelButtonDesktopUpdate(void);
-
     /// Parse gravity.
 extern int ParseGravity(const char *, const char *);
 

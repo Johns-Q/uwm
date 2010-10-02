@@ -65,4 +65,7 @@ extern void EventInit(void);
     /// Cleanup the event module.
 extern void EventExit(void);
 
+    /// Dummy for cleanup the event module.
+#define EventExit()
+
 /// @}

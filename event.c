@@ -622,7 +622,7 @@ static int HandleReparentNotify( __attribute__ ((unused))
     xcb_reparent_notify_event_t * event)
 {
     Debug(3, "reparent notify - window %x\n", event->event);
-    //SystrayHandleReparentNotify(event);
+    Debug(2, "FIXME: SystrayHandleReparentNotify(event);\n");
 
     return 1;
 }
