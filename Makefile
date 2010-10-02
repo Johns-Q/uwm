@@ -44,14 +44,15 @@ CONFIG += -DNO_RENDER
 #CONFIG += -DNO_SHAPE
 #	use XMU emulation (needed for rounded corners)
 CONFIG += -DNO_XMU
-#	use buildin DIA show (image viewer/slide show)
+#	enable/disable buildin DIA show plugin (image viewer/slide show)
 #CONFIG += -DUSE_DIA
-#	disable buildin DIA show (image viewer/slide show)
 #CONFIG += -DNO_DIA
+#	enable/disable buildin tower defense plugin
+#CONFIG += -DUSE_TD
+#CONFIG += -DNO_TD
 
-#	enable debug
+#	enable/disable debug
 CONFIG += -DDEBUG
-#	disable debug
 #CONFIG += -DNO_DEBUG
 
 DEFS = $(CONFIG) #### $(addprefix -D, $(CONFIG))
