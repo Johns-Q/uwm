@@ -1164,8 +1164,9 @@ void BorderConfig(const Config * config)
     BorderTitleHeight = BORDER_DEFAULT_TITLE_HEIGHT;
     if (ConfigGetInteger(ConfigDict(config), &ival, "border", "title-height",
 	    NULL)) {
-	if (ival < BORDER_MINIMAL_TITLE_HEIGHT
-	    || ival > BORDER_MAXIMAL_TITLE_HEIGHT) {
+	// 0 is valid as default: use font height
+	if (ival && (ival < BORDER_MINIMAL_TITLE_HEIGHT
+	    || ival > BORDER_MAXIMAL_TITLE_HEIGHT)) {
 	    Warning("border title height %zd out of range\n", ival);
 	} else {
 	    BorderWidth = ival;
