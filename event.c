@@ -84,10 +84,10 @@ xcb_event_handlers_t EventHandlers;	///< xcb event handlers
 static xcb_generic_event_t *PushedEvent;	///< one event look ahead
 
     /// maximal movement to detect double click
-int DoubleClickDelta = DOUBLE_CLICK_DEFAULT_DELTA;
+int DoubleClickDelta;
 
     /// time to get second click to detect double click
-int DoubleClickSpeed = DOUBLE_CLICK_DEFAULT_SPEED;
+int DoubleClickSpeed;
 
     /// last time of click
 static xcb_timestamp_t DoubleClickLastTime;
