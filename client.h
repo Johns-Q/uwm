@@ -290,6 +290,9 @@ extern void ClientDelete(Client *);
 
 /// FIXME:
 
+    /// Prepare initialize the client module
+extern void ClientPreInit(void);
+
     /// Initialize the client module
 extern void ClientInit(void);
 

@@ -1066,11 +1066,6 @@ typedef enum
     MOVE_OUTLINE			///< show an outline while moving
 } MoveMode;
 
-int ClientFinishAction;			///< finish current action
-
-// FIXME: void (*ClientController) (void);	///< callback to stop move/resize.
-// FIXME: Client * ClientControlled;		///< current client
-
     /// client window move mode
 static MoveMode ClientMoveMode = MOVE_OPAQUE;
 
