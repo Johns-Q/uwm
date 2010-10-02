@@ -290,12 +290,6 @@ extern void ClientDelete(Client *);
 
 /// FIXME:
 
-    /// Resize a client window.
-extern void ClientResizeLoop(Client *, int, int, int, int);
-
-    /// Resize client window (keyboard or menu initiated).
-extern void ClientResizeKeyboard(Client *);
-
     /// Initialize the client module
 extern void ClientInit(void);
 
@@ -315,13 +309,23 @@ extern void SnapConfig(const Config *);
 
 /// @addtogroup move
 /// @{
-/// FIXME:
 
     /// Interactive move client window.
 extern int ClientMoveLoop(Client *, int, int, int);
 
     /// Move client window (keyboard or menu initiated).
 extern int ClientMoveKeyboard(Client *);
+
+/// @}
+
+/// @addtogroup resize
+/// @{
+
+    /// Interactive resize client window.
+extern void ClientResizeLoop(Client *, int, int, int, int);
+
+    /// Resize client window (keyboard or menu initiated).
+extern void ClientResizeKeyboard(Client *);
 
 /// @}
 

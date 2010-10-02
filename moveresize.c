@@ -51,6 +51,7 @@
 
 #include "moveresize.h"
 #include "keyboard.h"
+#include "hints.h"
 
 #include "plugin/pager.h"
 
@@ -464,6 +465,7 @@ void StatusConfig(const Config * config)
 ///
 ///	This module handles outline for client window move and resize.
 ///
+///	This module is only available, if compiled with #USE_OUTLINE.
 /// @{
 
 #ifdef USE_OUTLINE			// {
@@ -551,6 +553,9 @@ void OutlineExit(void)
 ///
 ///	This module contains the client snap functions.
 ///
+///	This module is only available, if compiled with #USE_SNAP.
+///
+///	@todo FIXME: disable isn't supported yet.
 /// @{
 
 #ifdef USE_SNAP				// {
@@ -1046,9 +1051,9 @@ void SnapConfig(const Config * config)
 
 ///
 ///	@ingroup client
-///	@defgroup move The client move module.
+///	@defgroup move The client window move module.
 ///
-///	This module contains the client move functions.
+///	This module contains the client window move functions.
 ///
 /// @{
 
@@ -1428,6 +1433,526 @@ int ClientMoveKeyboard(Client * client)
     return ClientMoveLoop(client, 0, pointer_x - client->X,
 	pointer_y - client->Y);
 #endif
+}
+
+/// @}
+
+// ------------------------------------------------------------------------ //
+// Client resize
+// ------------------------------------------------------------------------ //
+
+///
+///	@ingroup client
+///	@defgroup resize The client window resize module.
+///
+///	This module contains the client window resize functions.
+///
+/// @{
+
+    /// typedef of enumeration of possible resize modes
+typedef enum
+{
+    RESIZE_OPAQUE,			///< show window contents while resizing
+    RESIZE_OUTLINE			///< show an outline while resizing
+} ResizeMode;
+
+    /// client window resize mode
+static ResizeMode ClientResizeMode = RESIZE_OPAQUE;
+
+/**
+**	Stop resize action.
+**
+**	@param client	client resized
+*/
+static void ClientStopResize(Client * client)
+{
+    int north;
+    int south;
+    int east;
+    int west;
+    uint32_t values[4];
+
+    client->Controller();
+    client->Controller = ClientDefaultController;
+
+    ClientUpdateShape(client);
+
+    BorderGetSize(client, &north, &south, &east, &west);
+
+    values[0] = client->X - west;
+    values[1] = client->Y - north;
+    values[2] = client->Width + east + west;
+    if (client->State & WM_STATE_SHADED) {
+	values[3] = north + south;
+    } else {
+	values[3] = client->Height + north + south;
+    }
+    xcb_configure_window(Connection, client->Parent,
+	XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y | XCB_CONFIG_WINDOW_WIDTH |
+	XCB_CONFIG_WINDOW_HEIGHT, values);
+
+    values[0] = west;
+    values[1] = north;
+    values[2] = client->Width;
+    values[3] = client->Height;
+    xcb_configure_window(Connection, client->Window,
+	XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y | XCB_CONFIG_WINDOW_WIDTH |
+	XCB_CONFIG_WINDOW_HEIGHT, values);
+    ClientSendConfigureEvent(client);
+}
+
+/**
+**	Callback for stopping resizes.
+*/
+static void ClientResizeController(void)
+{
+    xcb_ungrab_keyboard(Connection, XCB_CURRENT_TIME);
+    xcb_ungrab_pointer(Connection, XCB_CURRENT_TIME);
+
+    if (ClientResizeMode == RESIZE_OUTLINE) {
+	OutlineClear();
+    }
+    StatusDestroyResize();
+
+    ClientFinishAction = 1;
+}
+
+/**
+**	Fix width to match aspect ratio.
+**
+**	@param client	client to be fixed
+*/
+static void ClientFixWidth(Client * client)
+{
+    int_fast32_t ratio;
+    int_fast32_t goal;
+
+    if ((client->SizeHints.flags & XCB_SIZE_HINT_P_ASPECT)
+	&& client->Height > 0) {
+
+	ratio = (65536 * client->Width) / client->Height;
+
+	goal =
+	    (65536 * client->SizeHints.min_aspect_num) /
+	    client->SizeHints.min_aspect_den;
+	if (ratio < goal) {
+	    client->Width = (client->Height * goal) / 65536;
+	}
+
+	goal =
+	    (65536 * client->SizeHints.max_aspect_num) /
+	    client->SizeHints.max_aspect_den;
+	if (ratio > goal) {
+	    client->Width = (client->Height * goal) / 65536;
+	}
+    }
+}
+
+/**
+**	Fix height to match aspect ratio.
+**
+**	@param client	client to be fixed
+*/
+static void ClientFixHeight(Client * client)
+{
+    int_fast32_t ratio;
+    int_fast32_t goal;
+
+    if ((client->SizeHints.flags & XCB_SIZE_HINT_P_ASPECT)
+	&& client->Height > 0) {
+
+	ratio = (65536 * client->Width) / client->Height;
+
+	goal =
+	    (65536 * client->SizeHints.min_aspect_num) /
+	    client->SizeHints.min_aspect_den;
+	if (ratio < goal) {
+	    client->Height = (65536 * client->Width) / goal;
+	}
+
+	goal =
+	    (65536 * client->SizeHints.max_aspect_num) /
+	    client->SizeHints.max_aspect_den;
+	if (ratio > goal) {
+	    client->Height = (65536 * client->Width) / goal;
+	}
+    }
+}
+
+/**
+**	Interactive resize client window.
+**
+**	@param client	client to resize
+**	@param button	button initiating resize (0 keyboard/menu)
+**	@param action	what border(s) to resize
+**	@param startx	starting mouse x-coordinate (window relative)
+**	@param starty	starting mouse y-coordinate (window relative)
+*/
+void ClientResizeLoop(Client * client, int button, int action, int startx,
+    int starty)
+{
+    xcb_grab_pointer_cookie_t gp_cookie;
+    xcb_grab_keyboard_cookie_t gk_cookie;
+    int oldx;
+    int oldy;
+    int oldw;
+    int oldh;
+    int north;
+    int south;
+    int east;
+    int west;
+    int width;
+    int height;
+    int lastwidth;
+    int lastheight;
+    int delta_x;
+    int delta_y;
+
+    // resize allowed?
+    if (!(client->Border & BORDER_RESIZE)) {
+	return;
+    }
+
+    gp_cookie = PointerGrabForResizeRequest(action);
+    NO_WARNING(gk_cookie);
+    if (!button) {
+	gk_cookie = KeyboardGrabRequest(client->Window);
+    }
+
+    if (client->State & WM_STATE_SHADED) {
+	action &= ~(BORDER_ACTION_RESIZE_N | BORDER_ACTION_RESIZE_S);
+    }
+
+    ClientFinishAction = 0;
+    client->Controller = ClientResizeController;
+
+    oldx = client->X;
+    oldy = client->Y;
+    oldw = client->Width;
+    oldh = client->Height;
+
+    BorderGetSize(client, &north, &south, &east, &west);
+
+    startx += client->X - west;
+    starty += client->Y - north;
+
+    width = (client->Width - client->SizeHints.base_width)
+	/ client->SizeHints.width_inc;
+    height = (client->Height - client->SizeHints.base_height)
+	/ client->SizeHints.height_inc;
+
+    StatusCreateResize(client);
+    StatusUpdateResize(client, width, height);
+
+    PointerGrabReply(gp_cookie);
+    // FIXME: what if grab failed?
+
+    if (button) {
+	// FIXME; must convert button into mask
+	if (!(PointerGetButtonMask() & (XCB_BUTTON_MASK_1 |
+		    XCB_BUTTON_MASK_3))) {
+	    Debug(3, "only border clicked, leave early\n");
+	    ClientStopResize(client);
+	    return;
+	}
+    } else {
+	if (!KeyboardGrabReply(gk_cookie)) {
+	    ClientStopResize(client);
+	    return;
+	}
+    }
+
+    for (;;) {
+	for (;;) {
+	    xcb_generic_event_t *event;
+
+	    if (ClientFinishAction || !KeepLooping) {
+		client->Controller = ClientDefaultController;
+		// PointerSetDefaultCursor(client->Parent);
+		return;
+	    }
+	    if (!(event = PollNextEvent())) {
+		break;
+	    }
+
+	    switch (XCB_EVENT_RESPONSE_TYPE(event)) {
+
+		case XCB_KEY_RELEASE:
+		    break;
+		case XCB_KEY_PRESS:
+		    delta_x = 0;
+		    delta_y = 0;
+		    switch (KeyboardGet(((xcb_key_press_event_t *)
+				event)->detail, ((xcb_key_press_event_t *)
+				event)->state)) {
+			case XK_Left:
+			    delta_x = MIN(-client->SizeHints.width_inc, -10);
+			    break;
+			case XK_Right:
+			    delta_x = MAX(client->SizeHints.width_inc, 10);
+			    break;
+			case XK_Up:
+			    delta_y = MIN(-client->SizeHints.height_inc, -10);
+			    break;
+			case XK_Down:
+			    delta_y = MAX(client->SizeHints.height_inc, 10);
+			    break;
+			case XK_Home:
+			    delta_x = MIN(-client->SizeHints.width_inc, -10);
+			    delta_y = MIN(-client->SizeHints.height_inc, -10);
+			    break;
+			case XK_End:
+			    delta_x = MIN(-client->SizeHints.width_inc, -10);
+			    delta_y = MAX(client->SizeHints.height_inc, 10);
+			    break;
+			case XK_Page_Up:
+			    delta_x = MAX(client->SizeHints.width_inc, 10);
+			    delta_y = MIN(-client->SizeHints.height_inc, -10);
+			    break;
+			case XK_Page_Down:
+			    delta_x = MAX(client->SizeHints.width_inc, 10);
+			    delta_y = MAX(client->SizeHints.height_inc, 10);
+			    break;
+
+			case XK_Shift_L:
+			case XK_Shift_R:
+			case XK_Control_L:
+			case XK_Control_R:
+			    break;
+			case XK_Escape:
+			case XK_Return:
+			default:
+			    ClientStopResize(client);
+			    free(event);
+			    return;
+		    }
+		    if (((xcb_key_press_event_t *) event)->state &
+			XCB_MOD_MASK_CONTROL) {
+			delta_x /= 10;
+			delta_y /= 10;
+		    }
+		    if (((xcb_key_press_event_t *) event)->state &
+			XCB_MOD_MASK_SHIFT) {
+			delta_x *= 2;
+			delta_y *= 2;
+		    }
+		    Debug(3, "move %dx%d\n", delta_x, delta_y);
+		    delta_x += client->Width - oldw;
+		    delta_y += client->Height - oldh;
+		    Debug(3, "move %dx%d\n", delta_x, delta_y);
+		    goto do_resize;
+		case XCB_BUTTON_RELEASE:
+		    if (((xcb_button_press_event_t *) event)->detail ==
+			XCB_BUTTON_INDEX_1
+			|| ((xcb_button_press_event_t *) event)->detail ==
+			XCB_BUTTON_INDEX_3) {
+			ClientStopResize(client);
+			free(event);
+			return;
+		    }
+		case XCB_BUTTON_PRESS:
+		    break;
+		case XCB_MOTION_NOTIFY:
+		    DiscardMotionEvents((xcb_motion_notify_event_t **) & event,
+			client->Window);
+
+		    delta_x =
+			((xcb_motion_notify_event_t *) event)->root_x - startx;
+		    delta_y =
+			((xcb_motion_notify_event_t *) event)->root_y - starty;
+
+		  do_resize:
+		    delta_y /= client->SizeHints.height_inc;
+		    delta_y *= client->SizeHints.height_inc;
+		    if (action & BORDER_ACTION_RESIZE_N) {
+			// limits
+			if (oldh - delta_y >= client->SizeHints.min_height
+			    && (oldh - delta_y <= client->SizeHints.max_height
+				|| delta_y > 0)) {
+			    client->Height = oldh - delta_y;
+			    client->Y = oldy + delta_y;
+			}
+			if (!(action & (BORDER_ACTION_RESIZE_E |
+				    BORDER_ACTION_RESIZE_W))) {
+			    ClientFixWidth(client);
+			}
+		    } else if ((action & BORDER_ACTION_RESIZE_S)) {
+			delta_y += oldh;
+			delta_y = MAX(delta_y, client->SizeHints.min_height);
+			delta_y = MIN(delta_y, client->SizeHints.max_height);
+			client->Height = delta_y;
+			if (!(action & (BORDER_ACTION_RESIZE_E |
+				    BORDER_ACTION_RESIZE_W))) {
+			    ClientFixWidth(client);
+			}
+		    }
+
+		    delta_x /= client->SizeHints.width_inc;
+		    delta_x *= client->SizeHints.width_inc;
+		    if ((action & BORDER_ACTION_RESIZE_E)) {
+			delta_x += oldw;
+			delta_x = MAX(delta_x, client->SizeHints.min_width);
+			delta_x = MIN(delta_x, client->SizeHints.max_width);
+			client->Width = delta_x;
+			if (!(action & (BORDER_ACTION_RESIZE_N |
+				    BORDER_ACTION_RESIZE_S))) {
+			    ClientFixHeight(client);
+			}
+		    } else if (action & BORDER_ACTION_RESIZE_W) {
+			if (oldw - delta_x >= client->SizeHints.min_width
+			    && (oldw - delta_x <= client->SizeHints.max_width
+				|| delta_x > 0)) {
+			    client->Width = oldw - delta_x;
+			    client->X = oldx + delta_x;
+			}
+			if (!(action & (BORDER_ACTION_RESIZE_N |
+				    BORDER_ACTION_RESIZE_S))) {
+			    ClientFixHeight(client);
+			}
+		    }
+
+		    if ((client->SizeHints.flags & XCB_SIZE_HINT_P_ASPECT)
+			&& (action & (BORDER_ACTION_RESIZE_N |
+				BORDER_ACTION_RESIZE_S))
+			&& (action & (BORDER_ACTION_RESIZE_E |
+				BORDER_ACTION_RESIZE_W))) {
+			int_fast32_t ratio;
+			int_fast32_t goal;
+
+			ratio = (65536 * client->Width) / client->Height;
+
+			goal =
+			    (65536 * client->SizeHints.min_aspect_num) /
+			    client->SizeHints.min_aspect_den;
+			if (ratio < goal) {
+			    delta_x = client->Width;
+			    client->Width = (client->Height * goal) / 65536;
+			    if (action & BORDER_ACTION_RESIZE_W) {
+				client->X -= client->Width - delta_x;
+			    }
+			}
+
+			goal =
+			    (65536 * client->SizeHints.max_aspect_num) /
+			    client->SizeHints.max_aspect_den;
+			if (ratio > goal) {
+			    delta_y = client->Height;
+			    client->Height = (65536 * client->Width) / goal;
+			    if (action & BORDER_ACTION_RESIZE_N) {
+				client->Y -= client->Height - delta_y;
+			    }
+			}
+		    }
+
+		    lastwidth = width;
+		    lastheight = height;
+
+		    width =
+			(client->Width -
+			client->SizeHints.base_width) /
+			client->SizeHints.width_inc;
+		    height =
+			(client->Height -
+			client->SizeHints.base_height) /
+			client->SizeHints.height_inc;
+
+		    if (lastheight != height || lastwidth != width) {
+			if (client->State & (WM_STATE_MAXIMIZED_HORZ |
+				WM_STATE_MAXIMIZED_VERT)) {
+			    client->State &=
+				~(WM_STATE_MAXIMIZED_HORZ |
+				WM_STATE_MAXIMIZED_VERT);
+			    // update hints to respect the state change
+			    HintSetAllStates(client);
+			    ClientSendConfigureEvent(client);
+			}
+
+			StatusUpdateResize(client, width, height);
+
+			if (ClientResizeMode == RESIZE_OUTLINE) {
+			    OutlineClear();
+			    if (client->State & WM_STATE_SHADED) {
+				OutlineDraw(client->X - west,
+				    client->Y - north,
+				    client->Width + west + east,
+				    north + south);
+			    } else {
+				OutlineDraw(client->X - west,
+				    client->Y - north,
+				    client->Width + west + east,
+				    client->Height + north + south);
+			    }
+			} else {
+			    uint32_t values[4];
+
+			    ClientUpdateShape(client);
+
+			    values[0] = client->X - west;
+			    values[1] = client->Y - north;
+			    values[2] = client->Width + east + west;
+			    if (client->State & WM_STATE_SHADED) {
+				values[3] = north + south;
+			    } else {
+				values[3] = client->Height + north + south;
+			    }
+			    xcb_configure_window(Connection, client->Parent,
+				XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y |
+				XCB_CONFIG_WINDOW_WIDTH |
+				XCB_CONFIG_WINDOW_HEIGHT, values);
+
+			    values[0] = west;
+			    values[1] = north;
+			    values[2] = client->Width;
+			    values[3] = client->Height;
+			    xcb_configure_window(Connection, client->Window,
+				XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y |
+				XCB_CONFIG_WINDOW_WIDTH |
+				XCB_CONFIG_WINDOW_HEIGHT, values);
+			    ClientSendConfigureEvent(client);
+			}
+
+			PagerUpdate();
+		    }
+		    break;
+		default:
+		    EventHandleEvent(event);
+		    break;
+	    }
+	    free(event);
+	}
+	WaitForEvent();
+    }
+}
+
+/**
+**	Resize client window (keyboard or menu initiated).
+**	Resize client window using keyboard (mouse optional).
+**
+**	@param client	client to resize
+*/
+void ClientResizeKeyboard(Client * client)
+{
+    xcb_motion_notify_event_t *event;
+    int north;
+    int south;
+    int east;
+    int west;
+
+    // resize allowed?
+    if (!(client->Border & BORDER_RESIZE)) {
+	return;
+    }
+    // move pointer to lower-right corner of window
+    PointerWrap(RootWindow, client->X + client->Width,
+	client->Y + client->Height);
+    event = NULL;
+    DiscardMotionEvents(&event, client->Window);
+
+    BorderGetSize(client, &north, &south, &east, &west);
+
+    ClientResizeLoop(client, 0,
+	BORDER_ACTION_RESIZE | BORDER_ACTION_RESIZE_E | BORDER_ACTION_RESIZE_S,
+	client->Width + east, client->Height + north);
 }
 
 /// @}
