@@ -53,6 +53,9 @@ extern xcb_generic_event_t *PeekWindowEvent(xcb_window_t, int);
     /// Discard further motion events on same window.
 extern void DiscardMotionEvents(xcb_motion_notify_event_t **, xcb_window_t);
 
+    /// Handle a global single event.
+extern void EventHandleEvent(xcb_generic_event_t *);
+
     /// Main event loop.
 extern void EventLoop(void);
 

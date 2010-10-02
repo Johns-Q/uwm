@@ -370,9 +370,11 @@ static int HandleMotionNotify( __attribute__ ((unused))
     if (PanelHandleMotionNotify(event)) {
 	return 1;
     }
+#ifdef USE_TD
     if (TdHandleMotionNotify(event)) {
 	return 1;
     }
+#endif
 
     return 0;
 }
@@ -1057,6 +1059,16 @@ void DiscardMotionEvents(xcb_motion_notify_event_t ** event,
 }
 
 /**
+**	Handle a global single event.
+**
+**	@param event	generic event
+*/
+void EventHandleEvent(xcb_generic_event_t * event)
+{
+    xcb_event_handle(&EventHandlers, event);
+}
+
+/**
 **	Main event loop.
 */
 void EventLoop(void)
@@ -1066,7 +1078,7 @@ void EventLoop(void)
     // process all events, while not exit requested
     do {
 	while ((event = PollNextEvent())) {
-	    xcb_event_handle(&EventHandlers, event);
+	    EventHandleEvent(event);
 	    free(event);
 	}
 	WaitForEvent();

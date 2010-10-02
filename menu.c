@@ -71,8 +71,6 @@
 
 #include "readable_bitmap.h"
 
-extern xcb_event_handlers_t EventHandlers;	///< xcb event handlers
-
 #ifndef XCB_EVENT_ERROR_SUCESS
     /// Function not defined until xcb-util-0.3.4.
 extern const char *xcb_event_get_label(uint8_t);
@@ -1685,7 +1683,7 @@ static int MenuLoop(Runtime * runtime)
 	    switch (XCB_EVENT_RESPONSE_TYPE(event)) {
 		case XCB_EXPOSE:
 		    // FIXME: look here, only if not menu window?
-		    xcb_event_handle(&EventHandlers, event);
+		    EventHandleEvent(event);
 		    // ignore this until last
 		    if (!((const xcb_expose_event_t *)event)->count) {
 			MenuDrawTree(runtime);
@@ -1777,7 +1775,7 @@ static int MenuLoop(Runtime * runtime)
 		    break;
 
 		default:
-		    xcb_event_handle(&EventHandlers, event);
+		    EventHandleEvent(event);
 		    break;
 	    }
 	    free(event);
@@ -3517,7 +3515,7 @@ static void WindowMenuChoose(const MenuCommand * command)
 		    free(event);
 		    goto out;
 		default:
-		    xcb_event_handle(&EventHandlers, event);
+		    EventHandleEvent(event);
 		    break;
 	    }
 	    free(event);
