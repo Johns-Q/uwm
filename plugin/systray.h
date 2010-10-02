@@ -1,7 +1,7 @@
 ///
-///	@file systray.h @brief systray panel plugin header file.
+///	@file systray.h		@brief systray panel plugin header file.
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -38,15 +38,19 @@ extern void SystrayInit(void);
     /// Cleanup systray panel plugin.
 extern void SystrayExit(void);
 
-    /// Parse systray panel plugin config.
+    /// Parse systray panel plugin configuration.
 Plugin *SystrayConfig(const ConfigObject *);
 
 #ifndef USE_SYSTRAY			// {
 
+    /// Dummy for handle a client message sent to systray window.
+#define SystrayHandleClientMessageEvent(event)
     /// Dummy for initialize systray(s).
 #define SystrayInit()
     /// Dummy for cleanup systray(s).
 #define SystrayExit()
+    /// Dummy for parse systray panel plugin configuration.
+#define SystrayConfig(object)	NULL
 
 #endif // } USE_SYSTRAY
 

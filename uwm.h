@@ -61,7 +61,7 @@
 #define USE_SWALLOW			///< include panel swallow plugin
 #endif
 #ifndef NO_SYSTRAY
-#define USE_SYSTRAY			///< include panel systray plugin
+#define NO_SYSTRAY			///< include panel systray plugin
 #endif
 #ifndef NO_CLOCK
 #define USE_CLOCK			///< include panel clock plugin
