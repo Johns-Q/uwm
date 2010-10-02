@@ -84,14 +84,14 @@ LIBS=	`pkg-config --static --libs xcb-keysyms xcb-aux xcb-atom xcb-property \
 
 OBJS	= uwm.o command.o pointer.o keyboard.o draw.o image.o icon.o \
 	tooltip.o hints.o screen.o background.o desktop.o menu.o \
-	rule.o border.o client.o moveresize.o event.o misc.o \
+	rule.o border.o client.o moveresize.o event.o property.o misc.o \
 	panel.o plugin/button.o plugin/pager.o plugin/task.o plugin/swallow.o \
 	plugin/systray.o plugin/clock.o \
 	dia.o td.o
 SRCS	= $(OBJS:.o=.c)
 HDRS	= uwm.h command.h pointer.h keyboard.h draw.h image.h icon.h \
 	tooltip.h hints.h screen.h background.h desktop.h menu.h \
-	rule.h border.h client.h moveresize.h event.h misc.h \
+	rule.h border.h client.h moveresize.h event.h property.h misc.h \
 	panel.h plugin/button.h plugin/pager.h plugin/task.h plugin/swallow.h \
 	plugin/systray.h plugin/clock.h \
 	readable_bitmap.h dia.h td.h
