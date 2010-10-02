@@ -1169,7 +1169,7 @@ void BorderConfig(const Config * config)
 	    || ival > BORDER_MAXIMAL_TITLE_HEIGHT)) {
 	    Warning("border title height %zd out of range\n", ival);
 	} else {
-	    BorderWidth = ival;
+	    BorderTitleHeight = ival;
 	}
     }
 }
