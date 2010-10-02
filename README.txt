@@ -43,6 +43,16 @@ Requires:
 	GNU Make 3.xx
 		http://www.gnu.org/software/make/make.html
 
+	core-rc
+		core runtime configuration.
+		(included in source tarball) or
+		http://sourceforge.net/projects/core-rc/
+
+	core-array
+		core general purpose associative array.
+		(included in source tarball) or
+		http://sourceforge.net/projects/core-array/
+
 Optional:
 	media-libs/jpeg
 		Library to load, handle and manipulate images in the JPEG
