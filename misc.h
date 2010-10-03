@@ -41,4 +41,12 @@ extern uint32_t GetMsTicks(void);
     /// Expand a path.
 extern char *ExpandPath(const char *);
 
+    /// Draw rounded rectangle.
+extern void xmu_draw_rounded_rectangle(xcb_connection_t *, xcb_drawable_t,
+    xcb_gcontext_t, int, int, int, int, int, int);
+
+    //	Fill rounded rectangle.
+extern void xmu_fill_rounded_rectangle(xcb_connection_t *, xcb_drawable_t,
+    xcb_gcontext_t, int, int, int, int, int, int);
+
 /// @}

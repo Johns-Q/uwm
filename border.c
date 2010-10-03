@@ -38,10 +38,14 @@
 
 #include <xcb/xcb_icccm.h>
 #include <xcb/xcb_image.h>
+#ifdef USE_SHAPE
+#include <xcb/shape.h>
+#endif
 
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 
+#include "misc.h"
 #include "draw.h"
 #include "image.h"
 #include "pointer.h"

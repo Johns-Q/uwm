@@ -60,6 +60,15 @@ typedef enum
 //	Prototypes
 //////////////////////////////////////////////////////////////////////////////
 
+    /// Clear shape mask of a window.
+extern void ShapeRoundedRectReset(xcb_window_t);
+
+    /// Set shape mask on window to give rounded border.
+extern void ShapeRoundedRectWindow(xcb_window_t, unsigned, unsigned);
+
+    /// Subtract shape mask on window to give rounded border.
+extern void ShapeRoundedRectSubtract(xcb_window_t, unsigned, unsigned);
+
     /// Get size of borders for a client.
 extern void BorderGetSize(const Client *, int *, int *, int *, int *);
 

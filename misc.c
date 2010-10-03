@@ -194,4 +194,173 @@ char *ExpandPath(const char *path)
     return strdup(buffer);
 }
 
+// ------------------------------------------------------------------------ //
+// XMU emulation
+// ------------------------------------------------------------------------ //
+
+#ifdef USE_XMU				// {
+
+/**
+**	Draw rounded rectangle.  Where @a x, @a y, @a w, @a h are
+**	dimensions of overall rectangle, and @a ew and @a eh are sizes of
+**	bounding box that corners are drawn inside of.
+*/
+void xmu_draw_rounded_rectangle(xcb_connection_t * c, xcb_drawable_t draw,
+    xcb_gcontext_t gc, int x, int y, int w, int h, int ew, int eh)
+{
+    xcb_arc_t arcs[8];
+    int ew2;
+    int eh2;
+
+    if ((ew2 = (ew << 1)) > w) {
+	ew2 = ew = 0;
+    }
+    if ((eh2 = (eh << 1)) > h) {
+	eh2 = eh = 0;
+    }
+
+    arcs[0].x = x;
+    arcs[0].y = y;
+    arcs[0].width = ew2;
+    arcs[0].height = eh2;
+    arcs[0].angle1 = 180 * 64;
+    arcs[0].angle2 = -90 * 64;
+
+    arcs[1].x = x + ew;
+    arcs[1].y = y;
+    arcs[1].width = w - ew2;
+    arcs[1].height = 0;
+    arcs[1].angle1 = 180 * 64;
+    arcs[1].angle2 = -180 * 64;
+
+    arcs[2].x = x + w - ew2;
+    arcs[2].y = y;
+    arcs[2].width = ew2;
+    arcs[2].height = eh2;
+    arcs[2].angle1 = 90 * 64;
+    arcs[2].angle2 = -90 * 64;
+
+    arcs[3].x = x + w;
+    arcs[3].y = y + eh;
+    arcs[3].width = 0;
+    arcs[3].height = h - eh2;
+    arcs[3].angle1 = 90 * 64;
+    arcs[3].angle2 = -180 * 64;
+
+    arcs[4].x = x + w - ew2;
+    arcs[4].y = y + h - eh2;
+    arcs[4].width = ew2;
+    arcs[4].height = eh2;
+    arcs[4].angle1 = 0;
+    arcs[4].angle2 = -90 * 64;
+
+    arcs[5].x = x + ew;
+    arcs[5].y = y + h;
+    arcs[5].width = w - ew2;
+    arcs[5].height = 0;
+    arcs[5].angle1 = 0;
+    arcs[5].angle2 = -180 * 64;
+
+    arcs[6].x = x;
+    arcs[6].y = y + h - eh2;
+    arcs[6].width = ew2;
+    arcs[6].height = eh2;
+    arcs[6].angle1 = 270 * 64;
+    arcs[6].angle2 = -90 * 64;
+
+    arcs[7].x = x;
+    arcs[7].y = y + eh;
+    arcs[7].width = 0;
+    arcs[7].height = h - eh2;
+    arcs[7].angle1 = 270 * 64;
+    arcs[7].angle2 = -180 * 64;
+
+    xcb_poly_arc(c, draw, gc, 8, arcs);
+}
+
+/**
+**	Fill rounded rectangle.  Where @a x, @a y, @a w, @a h are
+**	dimensions of overall rectangle, and @a ew and @a eh are sizes of
+**	bounding box that corners are drawn inside of.
+**
+**	@todo change gc and restore it to original
+*/
+void xmu_fill_rounded_rectangle(xcb_connection_t * c, xcb_drawable_t draw,
+    xcb_gcontext_t gc, int x, int y, int w, int h, int ew, int eh)
+{
+    xcb_arc_t arcs[4];
+    xcb_rectangle_t rects[3];
+    uint32_t value[1];
+    int ew2, eh2;
+
+#if 0
+    XGetGCValues(dpy, gc, GCArcMode, &vals);
+    if (vals.arc_mode != ArcPieSlice)
+	XSetArcMode(dpy, gc, ArcPieSlice);
+#endif
+    value[0] = XCB_ARC_MODE_PIE_SLICE;
+    xcb_change_gc(Connection, gc, XCB_GC_ARC_MODE, value);
+
+    if ((ew2 = (ew << 1)) > w) {
+	ew2 = ew = 0;
+    }
+    if ((eh2 = (eh << 1)) > h) {
+	eh2 = eh = 0;
+    }
+
+    arcs[0].x = x;
+    arcs[0].y = y;
+    arcs[0].width = ew2;
+    arcs[0].height = eh2;
+    arcs[0].angle1 = 180 * 64;
+    arcs[0].angle2 = -90 * 64;
+
+    arcs[1].x = x + w - ew2 - 1;
+    arcs[1].y = y;
+    arcs[1].width = ew2;
+    arcs[1].height = eh2;
+    arcs[1].angle1 = 90 * 64;
+    arcs[1].angle2 = -90 * 64;
+
+    arcs[2].x = x + w - ew2 - 1;
+    arcs[2].y = y + h - eh2 - 1;
+    arcs[2].width = ew2;
+    arcs[2].height = eh2;
+    arcs[2].angle1 = 0;
+    arcs[2].angle2 = -90 * 64;
+
+    arcs[3].x = x;
+    arcs[3].y = y + h - eh2 - 1;
+    arcs[3].width = ew2;
+    arcs[3].height = eh2;
+    arcs[3].angle1 = 270 * 64;
+    arcs[3].angle2 = -90 * 64;
+
+    xcb_poly_fill_arc(c, draw, gc, 4, arcs);
+
+    rects[0].x = x + ew;
+    rects[0].y = y;
+    rects[0].width = w - ew2;
+    rects[0].height = h;
+
+    rects[1].x = x;
+    rects[1].y = y + eh;
+    rects[1].width = ew;
+    rects[1].height = h - eh2;
+
+    rects[2].x = x + w - ew;
+    rects[2].y = y + eh;
+    rects[2].width = ew;
+    rects[2].height = h - eh2;
+
+    xcb_poly_fill_rectangle(c, draw, gc, 3, rects);
+
+#if 0
+    if (vals.arc_mode != ArcPieSlice)
+	XSetArcMode(dpy, gc, vals.arc_mode);
+#endif
+}
+
+#endif // } USE_XMU
+
 /// @}

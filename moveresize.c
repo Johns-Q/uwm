@@ -37,6 +37,7 @@
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 
+#include "misc.h"
 #include "event.h"
 #include "pointer.h"
 #include "client.h"
