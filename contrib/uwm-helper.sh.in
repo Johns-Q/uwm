@@ -1,0 +1,5 @@
+#!/bin/sh
+#
+#	this script is executed by the uwm directory menu.
+#
+echo loading "$@"

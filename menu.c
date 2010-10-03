@@ -52,6 +52,7 @@
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 
+#include "misc.h"
 #include "event.h"
 #include "command.h"
 #include "draw.h"
@@ -3042,18 +3043,22 @@ void RootMenuHandleButtonPress(const xcb_button_press_event_t * event)
 **	@param path	directory path
 **
 **	@returns submenu for directory, NULL if failure.
+**
+**	@todo FIXME: disable directoy support / write documentation
 */
 Menu *RootMenuFromDirectory(char *path)
 {
     struct dirent **namelist;
     int n;
     Menu *submenu;
+    char *name;
 
     submenu = MenuNew();
     submenu->Label = path;		// ugly hack save path in label
     //submenu->UserHeight = WindowMenuUserHeight;
-
-    n = scandir(path, &namelist, NULL, alphasort);
+    name = ExpandPath(path);
+    n = scandir(name, &namelist, NULL, alphasort);
+    free(name);
     if (n > 0) {
 	int i;
 	int path_len;

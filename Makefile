@@ -121,7 +121,7 @@ DEFS = $(CONFIG) #### $(addprefix -D, $(CONFIG))
 
 #----------------------------------------------------------------------------
 
-VERSION	=	"0.22"
+VERSION	=	"0.23"
 GIT_REV =	$(shell git describe --always 2>/dev/null)
 
 CC=	gcc
@@ -152,7 +152,7 @@ HDRS	= uwm.h command.h pointer.h keyboard.h draw.h image.h icon.h \
 	plugin/systray.h plugin/clock.h \
 	readable_bitmap.h dia.h td.h
 
-FILES=	Makefile u.xpm \
+FILES=	Makefile u.xpm contrib/uwm-helper.sh.in \
 	contrib/uwm.doxyfile contrib/uwm16x16.xpm contrib/uwmrc.example
 
 all:	uwm #udm
@@ -189,6 +189,9 @@ udm:	udm.o image.o
 
 $(OBJS):Makefile $(HDRS)
 
+contrib/uwm-helper:	contrib/uwm-helper.sh.in
+	cp $^ $@
+
 #----------------------------------------------------------------------------
 #	Developer tools
 
@@ -221,9 +224,11 @@ dist-git:
 
 DESTDIR=/usr/local
 
-install: all
+install: all contrib/uwm-helper
 	mkdir -p $(DESTDIR)/bin
 	strip --strip-unneeded -R .comment uwm
 	install -s uwm $(DESTDIR)/bin/
+	chmod +x contrib/uwm-helper
+	install contrib/uwm-helper $(DESTDIR)/bin/
 	strip --strip-unneeded -R .comment udm
 	install -s udm $(DESTDIR)/bin/
