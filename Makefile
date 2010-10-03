@@ -39,23 +39,79 @@ CONFIG += -DNO_OUTLINE
 #	enable/disable snap for move/resize
 #CONFIG += -DUSE_SNAP
 #CONFIG += -DNO_SNAP
-
-#	support desktop background setting(s) (depends on ICON/JPEG/PNG)
+#	enable/disable menu
+#CONFIG += -DUSE_MENU
+#CONFIG += -DNO_MENU
+#	enable/disable panel
+#CONFIG += -DUSE_PANEL
+#CONFIG += -DNO_PANEL
+#
+#		enable/disable panel button plugin (needs panel)
+#CONFIG += -DUSE_BUTTON
+#CONFIG += -DNO_BUTTON
+#		enable/disable panel clock plugin (needs panel)
+#CONFIG += -DUSE_CLOCK
+#CONFIG += -DNO_CLOCK
+#		enable/disable panel pager plugin (needs panel)
+#CONFIG += -DUSE_PAGER
+#CONFIG += -DNO_PAGER
+#		enable/disable panel task plugin (needs panel)
+#CONFIG += -DUSE_TASK
+#CONFIG += -DNO_TASK
+#		enable/disable panel swallow plugin (needs panel)
+#CONFIG += -DUSE_SWALLOW
+#CONFIG += -DNO_SWALLOW
+#		enable/disable panel systray plugin (needs panel)
+#CONFIG += -DUSE_SYSTRAY
+#CONFIG += -DNO_SYSTRAY
+#
+#	enable/disable desktop background setting(s) (depends on ICON/JPEG/PNG)
+#CONFIG += -DUSE_BACKGROUND
 #CONFIG	+= -DNO_BACKGROUND
-#CONFIG  += -DUSE_BACKGROUND
+#	enable/disable icon support
+#CONFIG += -DUSE_ICON
+#CONFIG	+= -DNO_ICON
+#		enable/disable external jpeg support (needs icon)
+#CONFIG += -DUSE_JPEG
+#CONFIG += -DNO_JPEG
+#		enable/disable external png support (needs icon)
+#CONFIG += -DUSE_PNG
+#CONFIG += -DNO_PNG
+#		enable/disable external tiff support (needs icon)
+#CONFIG += -DUSE_TIFF
+#CONFIG += -DNO_TIFF
+#		enable/disable internal xpm support (needs icon)
+#CONFIG += -DUSE_XPM
+#CONFIG += -DNO_XPM
 
-#	use X Rendering Extension (disabled due BUG (64bit crash!))
-CONFIG += -DNO_RENDER
-#	use X Shape Extentsion
-#CONFIG += -DNO_SHAPE
-#	use XMU emulation (needed for rounded corners)
-CONFIG += -DNO_XMU
+#	enable/disable window rules
+#CONFIG += -DUSE_RULE
+#CONFIG += -DNO_RULE
 #	enable/disable buildin DIA show application (image viewer/slide show)
 #CONFIG += -DUSE_DIA
 #CONFIG += -DNO_DIA
 #	enable/disable buildin tower defense application
 #CONFIG += -DUSE_TD
 #CONFIG += -DNO_TD
+
+#	use X Xinerama Extension
+#CONFIG += -DUSE_XINERAMA
+#CONFIG += -DNO_XINERAMA
+#	use X Rendering Extension (disabled due BUG (64bit crash!))
+#CONFIG += -DUSE_RENDER
+CONFIG += -DNO_RENDER
+#	use X Shape Extentsion
+#CONFIG += -DUSE_SHAPE
+#CONFIG += -DNO_SHAPE
+#	use XMU emulation (needed for rounded corners)
+#CONFIG += -DUSE_XMU
+#CONFIG += -DNO_XMU
+#	enable/disable colormap support
+#CONFIG += -DUSE_COLORMAPS
+#CONFIG += -DNO_COLORMAPS
+#	enable/disable motif hints support
+#CONFIG += -DUSE_MOTIF_HINTS
+#CONFIG += -DNO_MOTIF_HINTS
 
 #	enable/disable debug
 CONFIG += -DDEBUG

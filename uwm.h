@@ -37,68 +37,68 @@
 #if !defined(NO_SNAP) && !defined(USE_SNAP)
 #define USE_SNAP			///< include snap for move/resize
 #endif
-#ifndef NO_DIALOG
+#if !defined(NO_DIALOG) && !defined(USE_DIALOG)
 #define USE_DIALOG			///< include confirm dialog
 #endif
-#ifndef NO_MENU
+#if !defined(NO_MENU) && !defined(USE_MENU)
 #define USE_MENU			///< include menu
 #endif
-#ifndef NO_PANEL
+#if !defined(NO_PANEL) && !defined(USE_PANEL)
 #define USE_PANEL			///< include panel
 #endif
 
 #ifdef USE_PANEL			// only possible if panel enabled
-#ifndef NO_BUTTON
+#if !defined(NO_BUTTON) && !defined(USE_BUTTON)
 #define USE_BUTTON			///< include panel button plugin
 #endif
-#ifndef NO_PAGER
+#if !defined(NO_CLOCK) && !defined(USE_CLOCK)
+#define USE_CLOCK			///< include panel clock plugin
+#endif
+#if !defined(NO_PAGER) && !defined(USE_PAGER)
 #define USE_PAGER			///< include panel pager plugin
 #endif
-#ifndef NO_TASK
+#if !defined(NO_TASK) && !defined(USE_TASK)
 #define USE_TASK			///< include panel task plugin
 #endif
-#ifndef NO_SWALLOW
+#if !defined(NO_SWALLOW) && !defined(USE_SWALLOW)
 #define USE_SWALLOW			///< include panel swallow plugin
 #endif
-#ifndef NO_SYSTRAY
+#if !defined(NO_SYSTRAY) && !defined(USE_SYSTRAY)
 #define NO_SYSTRAY			///< include panel systray plugin
-#endif
-#ifndef NO_CLOCK
-#define USE_CLOCK			///< include panel clock plugin
 #endif
 #endif
 
-#ifndef NO_BACKGROUND
+#if !defined(NO_BACKGROUND) && !defined(USE_BACKGROUND)
 #define USE_BACKGROUND			///< include background support
 #endif
-#ifndef NO_ICON
+#if !defined(NO_ICON) && !defined(USE_ICON)
 #define USE_ICON			///< include icon support
 #endif
 
 #ifdef USE_ICON				// loading icons are supported for:
-#ifndef NO_JPEG
+#if !defined(NO_JPEG) && !defined(USE_JPEG)
 #define USE_JPEG			///< include external jpeg support
 #endif
-#ifndef NO_PNG
+#if !defined(NO_PNG) && !defined(USE_PNG)
 #define USE_PNG				///< include external png support
 #endif
-#ifndef NO_TIFF
+#if !defined(NO_TIFF) && !defined(USE_TIFF)
 #define USE_TIFF			///< include external tiff support
 #endif
-#ifndef NO_XPM
+#if !defined(NO_XPM) && !defined(USE_XPM)
 #define USE_XPM				///< include internal xpm support
 #endif
 #endif
 
-#ifndef NO_RULE
+#if !defined(NO_RULE) && !defined(USE_RULE)
 #define USE_RULE			///< include window rules
 #endif
 
-#ifndef NO_DIA
+#if !defined(NO_DIA) && !defined(USE_DIA)
 #define NO_DIA				///< include dia-show application
 #endif
 
-#ifndef NO_TD
+#if !defined(NO_TD) && !defined(USE_TD)
 #define NO_TD				///< include tower-defense application
 #endif
 
@@ -107,28 +107,28 @@
 #endif
 
 	// x11/xcb features
-#ifndef NO_XINERAMA
+#if !defined(NO_XINERMA) && !defined(USE_XINERMA)
 #define USE_XINERMA			///< xinerama support
 #endif
-#ifndef NO_SHAPE
+#if !defined(NO_SHAPE) && !defined(USE_SHAPE)
 #define USE_SHAPE			///< shape support
 #endif
-#ifndef NO_RENDER
+#if !defined(NO_RENDER) && !defined(USE_RENDER)
 #define USE_RENDER			///< render support
 #endif
-#ifndef NO_XMU
+#if !defined(NO_XMU) && !defined(USE_XMU)
 #define USE_XMU				///< xmu emulation support
 #endif
-#ifndef NO_COLORMAPS
+#if !defined(NO_COLORMAPS) && !defined(USE_COLORMAPS)
 #define NO_COLORMAPS			///< x11 colormaps support
 #endif
 
-#ifndef NO_MOTIF_HINTS
+#if !defined(NO_MOTIF_HINTS) && !defined(USE_MOTIF_HINTS)
 #define USE_MOTIF_HINTS			///< support motif hints
 #endif
 
-#ifndef NO_DEBUG
-#define NO_USE_DEBUG			///< generate debug code
+#if !defined(NO_DEBUG) && !defined(USE_DEBUG)
+#define NO_DEBUG			///< generate debug code
 #endif
 
 //

@@ -1,7 +1,7 @@
 ;{
 	@file uwmrc	@brief µwm µ window manager resource config file
 
-	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 
 	Contributor(s):
 
@@ -23,13 +23,22 @@
 ; include "theme"
 ; include "apps"
 ; include "keys"
-include "menu"
+; include "menu"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;	Constants
 
 DEFAULT_TERM = "rxvt"
-UWM-VERSION = "0.20"
+; imported UWM-VERSION = "z.xy"
+
+LAYER_BOTTOM = 0			; layer names
+LAYER_DESKTOP = 0
+LAYER_BELOW = 2
+LAYER_NORMAL = 3
+LAYER_ABOVE = 4
+LAYER_PANEL = 5
+LAYER_FULLSCREEN = 8
+LAYER_TOP = 9
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;	Color
@@ -90,7 +99,7 @@ color = [
 ;
 ;	Set number and names of desktops (1 ... 8)
 
-desktop.count = 3			; alternative syntax
+; desktop.count = 3			; alternative syntax
 desktop = [
     count = 3,
     "One",
@@ -120,14 +129,13 @@ desktop = [
 
 background = [
     [-1] = [solid = "black"]
-;    [1] = [gradient = "#888888|#ff0000"]
-;    [2] = [gradient = "#882222|#ff2222"]
-;    [0] = [scale = "/home/johns/Downloads/background_800x480.png"]
-    [0] = [image = "/usr/share/slim/themes/johns/background.jpg"]
-;    [1] = [scale = "/usr/share/slim/themes/johns/background.jpg"]
-;    [4] = [solid = "#ffffff"]
-;    [3] = [solid = "red"]
-;    [0] = [execute = "fbsetbg -a /usr/share/slim/themes/johns/background.jpg"]
+    [0] = [gradient = "#888888|#ff0000"]
+    [1] = [gradient = "#ff2222|#882222"]
+    [2] = [solid = "red"]
+    [3] = [solid = "#ffffff"]
+;    [0] = [image = "/usr/share/slim/themes/default/background.jpg"]
+;    [0] = [scale = "/usr/share/slim/themes/default/background.jpg"]
+;    [0] = [execute = "fbsetbg -a /usr/share/slim/themes/default/background.jpg"]
 ]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -139,7 +147,6 @@ font = [
     titlebar = "-*-dejavu sans-*-r-*-*-12-*-*-*-*-*-*-15"
     menu = "-*-dejavu sans-*-*-*-*-18-*-*-*-*-*-*-15"
     task = "-*-dejavu sans-*-r-*-*-14-*-*-*-*-*-*-15"
-    ; tooltip = "-*-dejavu sans-*-*-*-*-16-*-*-*-*-*-*-15"
     tooltip = "-*-terminus-*-*-*-*-16-*-*-*-*-*-*-u"
     panel = "-*-dejavu sans-*-*-*-*-14-*-*-*-*-*-*-15"
     clock = "-*-dejavu sans-*-*-*-*-14-*-*-*-*-*-*-15"
@@ -152,51 +159,85 @@ font = [
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;	Settings
 
+;
+;	tooltip (see also font.tooltip and color.tooltip-fg , ...)
+;
 tooltip = [
-    ; 1: enabled 0:disabled
+    ; 1: enabled 0: disabled (1)
     enabled = true
-    ; ms until display
+    ; ms until display (500)
     delay = 500
 ]
 
 ; it is also possible to write it like this:
-tooltip.enabled = true
-tooltip.delay = 500
+; tooltip.enabled = true
+; tooltip.delay = 500
 
-    ; sloopy or click
+;
+;	focus model sloppy or click (sloppy)
+;
 focus-model = `sloppy
 
+;
+;	dialogs
+;
     ; show confirmation dialog on exit �wm? true | false (true)
-show-exit-confirmation = false
+show-exit-confirmation = true
     ; show confirmation dialog on kill window? true | false (true)
-show-kill-confirmation = false
+show-kill-confirmation = true
 
-; FIXME: not yet used
+;
+;	maximal movement of mouse to detect double-click (2)
+;
 double-click.delta = 4
-double-click.speed = 50
-; FIXME: not yet used
 ;
-;	snap-mode: none, client, screen, border (border)
+;	maximal delay time to dectect double-click (250)
 ;
-snap-mode = `border
+double-click.speed = 250
+
 ;
-;	snap-distance: 1 - 32 (5)
+;	snap.mode: none, client, screen, border (border)
 ;
-snap-distance = 5
+snap.mode = `border
 ;
-;	move-mode: outline, opaque (opaque)
+;	snap.distance: 1 - 32 (5)
 ;
-move-mode = `opaque
+snap.distance = 5
+
+;
+;	move.status: off, window, screen, corner, panel
+;		where to place the move status window
+;		x, y are relative to place
+;
+move.status.type = `screen
+move.status.x = 0
+move.status.y = 0
+
+;
+;	move.mode: outline, opaque (opaque)
+;
+move.mode = `opaque
+
+;
+;	resize.status: off, window, screen, corner, panel
+;		where to place the resize status window
+;		x, y are relative to place
+;
+resize.status.type = `window
+resize.status.x = 0
+resize.status.y = 0
 ;
 ;	resize-mode: outline, opaque (opaque)
 ;
-resize-mode = `opaque
+resize.mode = `opaque
 
-
+;
+;	window border configuration
+;
 border = [
-    ; Titlebar height: (20) 2 - 64, 0 to use titlebar font height
+    ; titlebar height: (20) 2 - 64, 0 to use titlebar font height
     title-height = 0
-    ; Border width: (4) 1 - 32
+    ; border width: (4) 1 - 32
     width = 3
 ]
 
@@ -204,6 +245,8 @@ border = [
 ; first path has highest priority
 icon-path = [
     "~/.uwm/icons"
+    "/usr/share/icons/uwm"
+    "/usr/share/pixmaps"
     "/usr/share/icons/gnome/32x32/apps"
     "/usr/share/icons/hicolor/32x32/apps/"
 ]
@@ -218,14 +261,14 @@ root-menu = [
   opacity = 1.0
 
   [0] = [ label = "µWM " ~ UWM-VERSION
-    [ icon = "terminal.png" text = "rxvt" execute = "rxvt" ]
+    [ icon = "terminal.png" text = DEFAULT_TERM execute = DEFAULT_TERM ]
     [ icon = "firefox-icon.xpm" text = "firefox" execute = "firefox" ]
     [ icon = "thunderbird-icon.xpm" text = "thunderbird" execute = "thunderbird" ]
 
     ;
     ;	X utilities sub-menu
     ;
-    [ text = "X-utils" menu = [ label = "X-utils"
+    [ icon = "x.xpm" text = "X-utils" menu = [ label = "X-utils"
 	[ text = "xfontsel" execute = "xfontsel" ]
 	[ text = "xman" execute = "xman" ]
 	[ text = "xload" execute = "xload" ]
@@ -260,17 +303,28 @@ root-menu = [
     ;	µWM sub-menu
     ;
     [ icon = "uwm16x16.xpm" text = "µWM menu" menu = [
-	[ text = "exit µwm" exit = true ]
-	[ text = "restart µwm" restart = true  ]
 	[ text = "lock µwm" execute = "xtrlock" ]
+	[ text = "restart µwm" restart = true  ]
+	[ text = "exit µwm" exit = true ]
 	[ text = "Window Manager" menu = [ label = "Window Manager"
-	    [ text = "µwm" exit = "/home/johns/src/uwm/uwm" ]
+	    [ text = "µwm" exit = "uwm" ]
 	    [ text = "jwm" exit = "jwm" ]
 	    [ text = "icewm" exit = "icewm" ]
 	    [ text = "fluxbox" exit = "fluxbox" ]
 	]]
+	[ separator = true ]
+	[ text = "suspend" execute = "suspend" ]
+	[ text = "halt" exit = "halt" ]
+	[ text = "reboot" exit = "reboot" ]
     ]]
 
+    [ text = "Diashow" dia-show = "~/.uwm/backgrounds" ]
+    [ text = "Show directory" menu = [
+	    [text = "root" dir = "/"]
+	    [text = "home" dir = "~/"]
+	    [text = "work" dir = "."]
+	]
+    ]
     [ text = "Run" execute =
 	{dmenu_run -b -fn "-*-dejavu sans-*-*-*-*-18-*-*-*-*-*-*-u"} ]
   ]
@@ -299,17 +353,17 @@ root = [
 window-menu = [
     [ text = "Maximize-y" maximize-vertical = true ]
     [ text = "Maximize-x" maximize-horizontal = true ]
-    [ text = "Maximize" maximize = true ]
-    [ text = "Unmaximize" unmaximize = true ]
+    [ text = "Maximize" toogle-maximize = true ]
+    [ text = "Unmaximize" toogle-maximize = true ]
 
     [ text = "Restore" restore = true ]
-    [ text = "Unshade" unshade = true ]
-    [ text = "Shade" shade = true ]
+    [ text = "Unshade" toggle-shade = true ]
+    [ text = "Shade" toggle-shade = true ]
     [ text = "Minimize" minimize = true ]
 
-    [ text = "Send to" send-to = [] ]
-    [ text = "Unstick" unstick = true ]
-    [ text = "Stick" stick = true ]
+    [ text = "Send to" sendto = [] ]
+    [ text = "Unstick" toggle-sticky = true ]
+    [ text = "Stick" toggle-sticky = true ]
 
     [ text = "Layer" layer = [] ]
     [ text = "Raise" raise = true ]
@@ -318,12 +372,11 @@ window-menu = [
     [ text = "Move" move = true ]
     [ text = "Resize" resize = true ]
 
-    [ seperator = true ]
+    [ separator = true ]
 
     [ text = "Close" close = true ]
     [ text = "Kill" kill = true ]
 ]
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;	Panel
@@ -339,12 +392,14 @@ panel = [
     [0] = [
 	    ; panel border: 0 - 32 (1)
 	border = 1
+	    ; hidden size: 1 - 256 (1)
+	hidden-size = 1
 	    ; panel gravity: static, north-west, north, north-east, west,
 	    ;	center, east, south-west, south, south-east (static)
 	gravity = "west"
 	    ; panel position: relative to gravity (0, -1)
 	x = -1 y = 0
-	    ; panel layout: vertical | horizontal (auto)
+	    ; panel layout: auto | vertical | horizontal (auto)
 	; layout = "vertical"
 	    ; panel width: >0 width in pixel, 0 auto, <0 percent (0)
 	    ;	dockapps are 64x64 + 1 pixel border + 1 pixel panel border
@@ -366,31 +421,36 @@ panel = [
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;	Button plugin
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 	[ type = `button
-	    width = 16 height = 16
+	    ;width = 22 height = 22
 
-	    icon-or-text = true
+	    ;icon-or-text = true
 	    icon = "uwm16x16.xpm" text = "µWM"
 	    tooltip = "µwm menu"
-	    root-menu = 0
+
+	    [ button = 1 root-menu = 0]
+	    [ button = 2 desktop = []]
+	    [ button = 3 root-menu = 0]
+	    [ button = 4 prev-desktop = true ]
+	    [ button = 5 next-desktop  = true ]
 	]
 	[ type = `button
 	    text = "_"
 	    tooltip = "Toggle hide windows and show desktop"
-	    ; planned:
 	    [ button = 1 toggle-show-desktop = true ]
+	    ; planned:
 	    [ button = 3 toggle-shade-desktop = true ]
-	    toggle-show-desktop = true
 	]
 	[ type = `button
-	    text = "rxvt"
+	    height = 22 width = 22
+	    icon-or-text = true
+	    icon = "terminal.png" text = DEFAULT_TERM
 	    tooltip = "Execute terminal"
-	    execute = "rxvt"
+	    [ button = 1 execute = DEFAULT_TERM]
 	]
 	[ type = `button
 	    tooltip = "Show desktop menu"
-	    desktop = []
+	    [ button = 1 desktop = []]
 	]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Swallow plugin
@@ -413,29 +473,35 @@ panel = [
 ;
 	[ type = `swallow
 	    name = "wmnet"
+	    execute = "wmnet -W eth0 --logscale --maxrate=100000000"
 	    use-old = true
-	    execute = "wmnet -W br0 --logscale --maxrate=100000000"
 	]
 	[ type = `swallow
-	    name = "wmSMPmon"
+	    name = "wmcpumon"
+	    execute = "wmcpumon -jls"
 	    use-old = true
-	    execute = "wmSMPmon -g 3"
 	]
 ;	[ type = `swallow
 ;	    name = "wmdia"
-;	    use-old = true
 ;	    execute = "wmdia"
+;	    use-old = true
 ;	]
 	[ type = `swallow
 	    name = "wmc2d"
-	    use-old = true
 	    execute = "wmc2d"
+	    use-old = true
 	]
 ;	[ type = `swallow
 ;	    name = "wmtime"
-;	    use-old = true
 ;	    execute = "wmtime -n"
+;	    use-old = true
 ;	]
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       Systray plugin
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;	There can only be one systray in one panel
+;
 	[ type = `systray
 	]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -453,8 +519,7 @@ panel = [
 	    format = "%R" tooltip = "%c"
 	    [ button = 1 execute = "xcalendar"]
 	    [ button = 2 execute = "oclock"]
-	    ;[ button = 3 execute = "xclock"]
-	    [ button = 3 root-menu = 0]
+	    [ button = 3 execute = "xclock"]
 	    [ button = 4 execute = "dclock"]
 	    [ button = 5 execute = "cairo-clock"]
 	]
@@ -465,7 +530,7 @@ panel = [
     ;
     [1] = [
 	gravity = "south-east"
-	x = 67 y = 1
+	x = 66 y = 1
 	auto-hide = false
 	height = 24
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -492,8 +557,8 @@ panel = [
 ;		maximal width of client button in task list
 ;
 	[ type = `task
-	    insert-mode = `left
-	    ; max-item-width = 100
+	    insert-mode = `right
+	    max-item-width = 0
 	]
     ]
 
@@ -511,15 +576,33 @@ panel = [
 	]
     ]
     ;}
+
+    ;
+    ;	example for static buttons
+    ;
+    [2] = [
+	gravity = "static"
+	x = 32 y = 0
+	maximize-over =  true
+	layer = 0
+	[ type = `button
+	    icon = "terminal.png" text = DEFAULT_TERM
+	    tooltip = "Execute terminal"
+	    [ button = 1 execute = DEFAULT_TERM]
+	]
+    ]
+    [3] = [
+	gravity = "static"
+	x = 32 y = 64
+	maximize-over =  true
+	layer = 0
+	[ type = `button
+	    icon = "firefox-icon.png" text = "firefox"
+	    tooltip = "Execute internet browser"
+	    [ button = 1 execute = "firefox"]
+	]
+    ]
 ]
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Systray plugin
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;
-;	There can only be one systray in one panel
-;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;	Rules
@@ -527,28 +610,46 @@ panel = [
 
 ;
 ;	rule:
-;		name = [...]
-;		class = [...]
-;		title = [...]
+;		[ pattern ... ]
+;			pattern:
+;				name = "..."
+;				class = "..."
+;				title = "..."
+;			Pattern are regular expressions
 ;		option = [...]
+;
+;	Rules are applied in order (latest have the highest priority).
 ;
 
 rule = [
-    [ name = ["Navigator"] class = ["Firefox"]
+    ; lowest priority = the default options
+    [ [name = ".*" class = ".*" title = ".*"]
 	option = [
-	    no-border = true
-	    no-title = true
-	    position = "north-east"
-	]]
-    [ name = ["myrxvt"] class = ["XTerm"]
-	option = [
-	    no-title = true
-	    x = 60
-	    y = 60
-	    width = 329
-	    height = 177
-	    fullscreen = true
-	]]
+	    ; sticky = false
+	    ; fullscreen = false
+	    ; no-list = false
+	    ; no-pager = false
+	    ; layer = 3
+	    ; desktop = 0
+	    ; icon = "x.xpm"
+	    ; border = false
+	    ; no-border = false
+	    ; title = false
+	    ; no-title = false
+	    ; pignore = false
+	    ; maximized = false
+	    ; minimized = false
+	    ; shaded = false
+		; window opacity 0.00 - 1.00
+	    ; opacity = 1.00
+	    ; maximize-horizontal = false
+	    ; maximize-vertical = false
+	    ; x = 0
+	    ; y = 0
+	    ; width = 0
+	    ; height = 0
+	]
+    ]
 ]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -573,4 +674,35 @@ command-restart = [
 command-exiting = [
     "echo exiting 1"
     "echo exiting 2"
+]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	Dia-show
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+dia = [
+    ; slideshow delay in s (30)
+    delay = 30
+
+    ; automatic start slide-show (false)
+    slide-show = true
+    ; show label on thumbnails (false)
+    label = false
+    ; show film-strip on image side (true)
+    film-strip = false
+    ; show dia-show in background (false)
+    ; back-drop = true
+
+    ; aspect of thumbnails (4:3)
+    aspect-num = 16
+    aspect-den = 10
+    ; corner command area (85x48)
+    corner-width = 96
+    corner-height = 96
+    ; film strip thumbnail size (170x96)
+    film-strip-width = 170
+    film-strip-height = 96
+    ; index page thumbnail size (170x96)
+    index-page-width = 170
+    index-page-height = 96
 ]
