@@ -558,7 +558,7 @@ panel = [
 ;
 	[ type = `task
 	    insert-mode = `right
-	    max-item-width = 0
+	    ; max-item-width = 0
 	]
     ]
 
