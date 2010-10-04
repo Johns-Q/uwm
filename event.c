@@ -62,6 +62,7 @@
 #include "draw.h"
 #include "image.h"
 #include "pointer.h"
+#include "keyboard.h"
 #include "tooltip.h"
 
 #include "icon.h"
@@ -140,7 +141,49 @@ static int HandleEvent( __attribute__ ((unused))
 #endif
 
 /**
-**	Handle button event.
+**	Handle key press event.
+**
+**	@param data	user data from xcb_event_handle
+**	@param conn	XCB x11 connection
+**	@param event	key press event
+**
+**	@returns true if event was handled, false otherwise.
+*/
+static int HandleKeyPress( __attribute__ ((unused))
+    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
+    xcb_key_press_event_t * event)
+{
+    Debug(4, "key press state=%x, detail=%d child %x event %x\n", event->state,
+	event->detail, event->child, event->event);
+
+    KeyboardHandler(1, event->detail, event->state);
+
+    return 1;
+}
+
+/**
+**	Handle key release event.
+**
+**	@param data	user data from xcb_event_handle
+**	@param conn	XCB x11 connection
+**	@param event	key release event
+**
+**	@returns true if event was handled, false otherwise.
+*/
+static int HandleKeyRelease( __attribute__ ((unused))
+    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
+    xcb_key_release_event_t * event)
+{
+    Debug(4, "key release state=%x, detail=%d child %x event %x\n",
+	event->state, event->detail, event->child, event->event);
+
+    KeyboardHandler(0, event->detail, event->state);
+
+    return 1;
+}
+
+/**
+**	Handle button press event.
 **
 **	@param data	user data from xcb_event_handle
 **	@param conn	XCB x11 connection
@@ -1124,6 +1167,10 @@ void EventInit(void)
     }
 #endif
 
+    // Key press = user pushed key on keyboard over one of our windows
+    xcb_event_set_key_press_handler(&EventHandlers, HandleKeyPress, NULL);
+    // Key release = user released key over one of our windows
+    xcb_event_set_key_release_handler(&EventHandlers, HandleKeyRelease, NULL);
     // Button press = user pushed mouse button over one of our windows
     xcb_event_set_button_press_handler(&EventHandlers, HandleButtonPress,
 	NULL);

@@ -162,6 +162,9 @@ extern struct _panel_head_ Panels;	/// list of all panels
 
 extern void PanelsDraw(void);		///< Draw all panels.
 
+    /// Hide/show/toggle panel (for commands).
+extern void PanelToggle(int, int);
+
     /// Execute pointer button command
 extern void PanelExecuteButton(const Plugin *, MenuButton *, int);
 

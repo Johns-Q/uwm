@@ -67,6 +67,9 @@
 #include "menu.h"
 #include "desktop.h"
 
+#include "panel.h"
+#include "plugin/task.h"
+
 #include "dia.h"
 #include "td.h"
 
@@ -938,7 +941,6 @@ static int MenuExecuteRuntime(Runtime *, Runtime *, int, int);
 static void MenuCommandPrepare(MenuCommand *);
 static void MenuCommandCleanup(MenuCommand *);
 static void MenuCommandCopy(MenuCommand *, const MenuCommand *);
-static void MenuCommandDel(MenuCommand *);
 
 static void RootMenuExecute(void
     __attribute__ ((unused)) *, const MenuCommand *);
@@ -2141,7 +2143,7 @@ static void MenuCommandCleanup(MenuCommand * command)
 **
 **	@todo opaque argument?
 */
-static void MenuCommandExecute(const MenuCommand * command, int x, int y)
+void MenuCommandExecute(const MenuCommand * command, int x, int y)
 {
     char *s;
     char *p;
@@ -2186,6 +2188,23 @@ static void MenuCommandExecute(const MenuCommand * command, int x, int y)
 	case MENU_ACTION_TOGGLE_SHADE_DESKTOP:
 	    DesktopToggleShade();
 	    break;
+
+	case MENU_ACTION_TASK_NEXT_WINDOW:
+	    TaskFocusNext();
+	    break;
+	case MENU_ACTION_TASK_PREV_WINDOW:
+	    TaskFocusPrevious();
+	    break;
+	case MENU_ACTION_HIDE_PANEL:
+	    PanelToggle(command->Integer, 0);
+	    break;
+	case MENU_ACTION_SHOW_PANEL:
+	    PanelToggle(command->Integer, 1);
+	    break;
+	case MENU_ACTION_TOGGLE_PANEL:
+	    PanelToggle(command->Integer, -1);
+	    break;
+
 	case MENU_ACTION_DIA_SHOW:
 	    DiaCreate(command->String);
 	    break;
@@ -2275,7 +2294,7 @@ static void MenuCommandCopy(MenuCommand * dst, const MenuCommand * src)
 **
 **	@param command	menu command action and parameter
 */
-static void MenuCommandDel(MenuCommand * command)
+void MenuCommandDel(MenuCommand * command)
 {
     switch (command->Type) {
 	case MENU_ACTION_EXECUTE:
@@ -2595,8 +2614,7 @@ void MenuSetAction(MenuItem * item, const char *action, const char *value)
 **	@param array		configuration array for menu action
 **	@param[out] command	command action parsed
 */
-static void MenuCommandConfig(const ConfigObject * array,
-    MenuCommand * command)
+void MenuCommandConfig(const ConfigObject * array, MenuCommand * command)
 {
     const char *sval;
     ssize_t ival;
@@ -2676,6 +2694,20 @@ static void MenuCommandConfig(const ConfigObject * array,
 	command->Type = MENU_ACTION_TOGGLE_SHOW_DESKTOP;
     } else if (ConfigGetObject(array, &oval, "toggle-shade-desktop", NULL)) {
 	command->Type = MENU_ACTION_TOGGLE_SHADE_DESKTOP;
+
+    } else if (ConfigGetObject(array, &oval, "task-next-window", NULL)) {
+	command->Type = MENU_ACTION_TASK_NEXT_WINDOW;
+    } else if (ConfigGetObject(array, &oval, "task-prev-window", NULL)) {
+	command->Type = MENU_ACTION_TASK_PREV_WINDOW;
+    } else if (ConfigGetInteger(array, &ival, "hide-panel", NULL)) {
+	command->Type = MENU_ACTION_HIDE_PANEL;
+	command->Integer = ival;
+    } else if (ConfigGetInteger(array, &ival, "show-panel", NULL)) {
+	command->Type = MENU_ACTION_SHOW_PANEL;
+	command->Integer = ival;
+    } else if (ConfigGetInteger(array, &ival, "toggle-panel", NULL)) {
+	command->Type = MENU_ACTION_TOGGLE_PANEL;
+	command->Integer = ival;
 
     } else if (ConfigGetObject(array, &oval, "dia-show", NULL)) {
 	command->Type = MENU_ACTION_DIA_SHOW;

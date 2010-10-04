@@ -47,6 +47,9 @@ extern xcb_keysym_t KeyboardGet(xcb_keycode_t, unsigned);
     /// Grab our key bindings on client window.
 extern void KeyboardGrabBindings(Client *);
 
+    /// Key pressed or released.
+extern void KeyboardHandler(int, unsigned, unsigned);
+
     /// Initialize the keyboard module.
 extern void KeyboardInit(void);
 

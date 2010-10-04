@@ -225,6 +225,13 @@ typedef enum
     MENU_ACTION_TOGGLE_SHOW_DESKTOP,	///< toggle show desktop
     MENU_ACTION_TOGGLE_SHADE_DESKTOP,	///< toggle shade desktop
 
+    // keyboard actions
+    MENU_ACTION_TASK_NEXT_WINDOW,	///< next window, in task order
+    MENU_ACTION_TASK_PREV_WINDOW,	///< previous window, in task order
+    MENU_ACTION_HIDE_PANEL,		///< hide panel #
+    MENU_ACTION_SHOW_PANEL,		///< show panel #
+    MENU_ACTION_TOGGLE_PANEL,		///< toggle panel #
+
     MENU_ACTION_DIA_SHOW,		///< start dia-show plugin
     MENU_ACTION_PLAY_TD,		///< play td plugin
 
@@ -301,11 +308,17 @@ extern Menu *MenuNew(void);
     /// Delete menu.
 extern void MenuDel(Menu *);
 
+    /// Execute a menu command.
+extern void MenuCommandExecute(const MenuCommand *, int, int);
+
+    /// Free memory of menu command.
+extern void MenuCommandDel(MenuCommand *);
+
     /// Execute commands of menu button.
-void MenuButtonExecute(MenuButton *, int, int, int, void *);
+extern void MenuButtonExecute(MenuButton *, int, int, int, void *);
 
     /// Free memory of menu button
-void MenuButtonDel(MenuButton *);
+extern void MenuButtonDel(MenuButton *);
 
     /// Create a new menu item.
 extern MenuItem *MenuNewItem(const char *, const char *);
@@ -315,6 +328,9 @@ extern void MenuDelItem(MenuItem *);
 
     /// Append a menu item to menu.
 extern void MenuAppendItem(Menu *, MenuItem *);
+
+    /// Parse menu command configuration.
+extern void MenuCommandConfig(const ConfigObject *, MenuCommand *);
 
     /// Parse menu pointer buttons configuration.
 extern void MenuButtonsConfig(const ConfigObject *, MenuButton **);

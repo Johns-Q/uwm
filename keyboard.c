@@ -36,6 +36,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <xcb/xcb_icccm.h>
 #include <xcb/xcb_keysyms.h>
@@ -44,15 +45,45 @@
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 
+#include "draw.h"
+#include "image.h"
+#include "pointer.h"
 #include "client.h"
+#include "keyboard.h"
+#include "icon.h"
+#include "menu.h"
 
 //////////////////////////////////////////////////////////////////////////////
+
+/**
+**	Keyboard key.
+*/
+typedef struct _keyboard_key_
+{
+    uint16_t Modifier;			///< modifier
+    xcb_keysym_t KeySym;		///< keyboard symbol
+} KeyboardKey;
+
+/**
+**	Keyboard binding.
+*/
+typedef struct _keyboard_binding_
+{
+    KeyboardKey Key;			///< key sequence for command
+    MenuCommand Command;		///< command to execute
+} KeyboardBinding;
 
 static xcb_key_symbols_t *XcbKeySymbols;	///< Keyboard symbols
 static uint16_t NumLockMask;		///< mod mask for num-lock
 static uint16_t ShiftLockMask;		///< mod mask for shift-lock
 static uint16_t CapsLockMask;		///< mod mask for caps-lock
 static uint16_t ModeSwitchMask;		///< mod mask for mode-switch
+
+    /// table of keyboard bindings
+static KeyboardBinding *KeyboardBindings;
+
+    /// number of keyboard bindings in table
+static int KeyboardBindingN;
 
 /**
 **	Grab keyboard, send request.
@@ -134,14 +165,166 @@ xcb_keysym_t KeyboardGet(xcb_keycode_t keycode, unsigned modifier)
 }
 
 /**
+**	Grab a key on client window.
+**
+**	@param client		window client
+**	@param modifiers	X11 modifiers
+**	@param keysym		X11 keycode
+*/
+static void KeyboardGrabKey(Client * client, unsigned modifiers,
+    unsigned keysym)
+{
+    xcb_keycode_t *keycodes;
+
+    //
+    //	FIXME: grab key with all lock modifiers
+    //
+
+    keycodes = xcb_key_symbols_get_keycode(XcbKeySymbols, keysym);
+    if (keycodes) {
+	xcb_keycode_t *key_code;
+	xcb_keycode_t last;
+
+	last = 0;
+	for (key_code = keycodes; *key_code; key_code++) {
+	    Debug(3, "grab keycode %x %x\n", modifiers, *key_code);
+	    if (*key_code == last) {	// ignore simple duplicates
+		Debug(3, "double keycodes\n");
+		continue;
+	    }
+	    last = *key_code;
+	    xcb_grab_key(Connection, 1, client->Window, modifiers, *key_code,
+		XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC);
+	}
+	free(keycodes);
+    }
+}
+
+/**
 **	Grab our key bindings on client window.
 **
 **	@param client	window client
 */
 void KeyboardGrabBindings(Client * client)
 {
-    Debug(2, "%s: FIXME: %p\n", __FUNCTION__, client);
+    int i;
+
+    //
+    //	go through all bindings
+    //
+    for (i = 0; i < KeyboardBindingN; ++i) {
+	Debug(3, "grab-bindings: %x %x\n", KeyboardBindings[i].Key.Modifier,
+	    KeyboardBindings[i].Key.KeySym);
+	KeyboardGrabKey(client, KeyboardBindings[i].Key.Modifier,
+	    KeyboardBindings[i].Key.KeySym);
+    }
 }
+
+// ------------------------------------------------------------------------ //
+
+#ifdef DEBUG
+
+/**
+**	Make string from modifier mask.
+**
+**	@param mask	keyboard modifier mask of keyboard event
+**
+**	@returns readable string for mask.
+*/
+static const char *KeyboardMask2String(uint16_t mask)
+{
+    switch (mask) {
+	case XCB_KEY_BUT_MASK_SHIFT:
+	    return "Shift";
+	case XCB_KEY_BUT_MASK_LOCK:
+	    return "Lock";
+	case XCB_KEY_BUT_MASK_CONTROL:
+	    return "Control";
+	case XCB_KEY_BUT_MASK_MOD_1:
+	    return "Mod1";
+	case XCB_KEY_BUT_MASK_MOD_2:
+	    return "Mod2";
+	case XCB_KEY_BUT_MASK_MOD_3:
+	    return "Mod3";
+	case XCB_KEY_BUT_MASK_MOD_4:
+	    return "Mod4";
+	case XCB_KEY_BUT_MASK_MOD_5:
+	    return "Mod5";
+	case XCB_KEY_BUT_MASK_BUTTON_1:
+	    return "Button1";
+	case XCB_KEY_BUT_MASK_BUTTON_2:
+	    return "Button2";
+	case XCB_KEY_BUT_MASK_BUTTON_3:
+	    return "Button3";
+	case XCB_KEY_BUT_MASK_BUTTON_4:
+	    return "Button4";
+	case XCB_KEY_BUT_MASK_BUTTON_5:
+	    return "Button5";
+	default:
+	    return "Unknown";
+    }
+}
+
+#endif
+
+/**
+**	Key pressed or released.
+**
+**	@param pressed	true, key was pressed; false, key was released.
+**	@param key	key
+**	@param state	state
+**
+**	@todo pressing keysym simultaneous for a command, isn't supported.
+**	@todo pressing keysym in sequence for a command, isn't supported.
+**	@todo check shift-lock num-lock
+*/
+void KeyboardHandler(int pressed, unsigned key, unsigned state)
+{
+    int i;
+    xcb_keysym_t keysym;
+
+#ifdef DEBUG
+    Debug(4, "%s: %d, %d, %d ", __FUNCTION__, pressed, key, state);
+    if (state) {
+	Debug(5, "modifier: ");
+	for (i = 0; i < 16; ++i) {
+	    if (state & (1 << i)) {
+		Debug(5, "%s ", KeyboardMask2String(state & (1 << i)));
+	    }
+	}
+    }
+#endif
+
+    if (!pressed) {			// for now ignore any release
+	return;
+    }
+    // convert keycode into keysym
+    keysym = KeyboardGet(key, state);
+    Debug(3, "keysym %#010x\n", keysym);
+
+    //
+    //	search mapping for the key
+    //
+    for (i = 0; i < KeyboardBindingN; ++i) {
+	if (KeyboardBindings[i].Key.Modifier == state
+	    && KeyboardBindings[i].Key.KeySym == keysym) {
+	    int x;
+	    int y;
+
+	    Debug(4, "found key with command %d\n",
+		KeyboardBindings[i].Command.Type);
+
+	    PointerGetPosition(&x, &y);
+	    MenuCommandExecute(&KeyboardBindings[i].Command, x, y);
+	    break;
+	}
+    }
+
+    // alert
+    //xcb_bell(Connection, 100);
+}
+
+// ------------------------------------------------------------------------ //
 
 /**
 **	Initialize the keyboard module.
@@ -249,8 +432,121 @@ void KeyboardInit(void)
 */
 void KeyboardExit(void)
 {
+    int i;
+
     xcb_key_symbols_free(XcbKeySymbols);
     XcbKeySymbols = NULL;
+
+    //
+    //	free memory used by keyboard bindings
+    //
+    for (i = 0; i < KeyboardBindingN; ++i) {
+	MenuCommandDel(&KeyboardBindings[i].Command);
+    }
+}
+
+/**
+**	Parse keyboard key-list configuration.
+**
+**	@param keylist	list of keysym and modifier
+**	@param[out] key	key sequence
+*/
+static void KeyboardKeylistConfig(const ConfigObject * keylist,
+    KeyboardKey * key)
+{
+    const ConfigObject *index;
+    const ConfigObject *value;
+    uint16_t modifier;
+    xcb_keysym_t keysym;
+
+    modifier = 0;
+    keysym = 0;
+
+    //
+    //	array of keys
+    //
+    index = NULL;
+    value = ConfigArrayFirstFixedKey(keylist, &index);
+    while (value) {
+	ssize_t ival;
+
+	if (ConfigCheckInteger(value, &ival)) {
+	    Debug(4, "\t\tkey %#010zx\n", ival);
+	    if (ival & 0x20000000) {	// modifier
+		if (modifier & ival) {
+		    Warning("double modifier in keylist ignored\n");
+		}
+		modifier |= ival;
+	    } else {			// keyboard symbol
+		if (keysym) {
+		    Warning("double keysym in keylist ignored\n");
+		}
+		keysym = ival;
+	    }
+	} else {
+	    Warning("value in key list ignored\n");
+	}
+	value = ConfigArrayNextFixedKey(keylist, &index);
+    }
+
+    if (!modifier && !keysym) {
+	Warning("no key list defined\n");
+    }
+    Debug(4, "\t\t modifier %#04x %#010x\n", modifier, keysym);
+
+    key->Modifier = modifier;
+    key->KeySym = keysym;
+}
+
+/**
+**	Parse keyboard binding configuration.
+*/
+static void KeyboardBindingConfig(const ConfigObject * binding)
+{
+    const ConfigObject *index;
+    const ConfigObject *value;
+    int keyn;
+    KeyboardKey key;
+    MenuCommand command;
+
+    NO_WARNING(key);
+    keyn = 0;
+
+    //
+    //	array of keys
+    //
+    index = NULL;
+    value = ConfigArrayFirstFixedKey(binding, &index);
+    while (value) {
+	const ConfigObject *aval;
+
+	if (ConfigCheckArray(value, &aval)) {
+	    KeyboardKeylistConfig(aval, &key);
+	    ++keyn;
+	} else {
+	    Warning("value in key-binding ignored\n");
+	}
+	value = ConfigArrayNextFixedKey(binding, &index);
+    }
+    if (!keyn) {
+	Warning("no key list given\n");
+    } else if (keyn != 1) {
+	Warning("only single key list support\n");
+    }
+    //
+    //	parse command of key list
+    //
+    MenuCommandConfig(binding, &command);
+
+    //
+    //	insert binding into table
+    //
+    KeyboardBindings =
+	realloc(KeyboardBindings,
+	(KeyboardBindingN + 1) * sizeof(*KeyboardBindings));
+    KeyboardBindings[KeyboardBindingN].Key = key;
+    KeyboardBindings[KeyboardBindingN].Command = command;
+    ++KeyboardBindingN;
 }
 
 /**
@@ -262,9 +558,26 @@ void KeyboardConfig(const Config * config)
 {
     const ConfigObject *array;
 
-    if (ConfigGetArray(ConfigDict(config), &array, "key-bindings", NULL)) {
+    if (ConfigGetArray(ConfigDict(config), &array, "key-binding", NULL)) {
+	const ConfigObject *index;
+	const ConfigObject *value;
+
 	//MenuButtonsConfig(array, &RootButtons);
-	Debug(2, "FIXME: parse key bindings\n");
+	//
+	//	array of key bindings
+	//
+	index = NULL;
+	value = ConfigArrayFirstFixedKey(array, &index);
+	while (value) {
+	    const ConfigObject *aval;
+
+	    if (ConfigCheckArray(value, &aval)) {
+		KeyboardBindingConfig(aval);
+	    } else {
+		Warning("value in key-binding ignored\n");
+	    }
+	    value = ConfigArrayNextFixedKey(array, &index);
+	}
     }
 }
 

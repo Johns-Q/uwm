@@ -28,6 +28,12 @@
 //	Prototypes
 //////////////////////////////////////////////////////////////////////////////
 
+    /// Focus next client in task.
+extern void TaskFocusNext(void);
+
+    /// Focus previous client in task.
+extern void TaskFocusPrevious(void);
+
     /// Add a client to task(s).
 extern void TaskAddClient(Client *);
 

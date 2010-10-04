@@ -244,7 +244,7 @@ void PanelsDraw(void)
 **
 **	@todo should be swallows and docked apps be unmapped?
 */
-void PanelHide(Panel * panel)
+static void PanelHide(Panel * panel)
 {
     int x;
     int y;
@@ -258,6 +258,7 @@ void PanelHide(Panel * panel)
     switch (panel->Gravity) {
 	case PANEL_GRAVITY_STATIC:
 	    // FIXME: should also hide, need to resize window size
+	    Debug(2, "FIXME: should hide static panel\n");
 	    break;
 	case PANEL_GRAVITY_NORTH_WEST:
 	    if (panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
@@ -338,7 +339,7 @@ void PanelHide(Panel * panel)
 **
 **	@param panel	panel to show
 */
-void PanelShow(Panel * panel)
+static void PanelShow(Panel * panel)
 {
     if (panel->Hidden) {
 	uint32_t values[2];
@@ -354,6 +355,43 @@ void PanelShow(Panel * panel)
 	    // FIXME: why query pointer? (can generate enter window events?)
 	    PointerQuery();
 	}
+    }
+}
+
+/**
+**	Hide/show/toggle panel (for commands).
+**
+**	@param panel_nr	panel number (should be in configuration order!)
+**	@param toggle	0: hide, 1: show, -1: toggle.
+*/
+void PanelToggle(int panel_nr, int toggle)
+{
+    Panel *panel;
+
+    SLIST_FOREACH(panel, &Panels, Next) {
+	if (panel_nr <= 0) {
+	    break;
+	}
+    }
+    Debug(4, "switch panel %p %+d%+d %d\n", panel, panel->X, panel->Y, toggle);
+    switch (toggle) {
+	case 0:
+	    if (!panel->Hidden) {
+		PanelHide(panel);
+	    }
+	    break;
+	case 1:
+	    if (panel->Hidden) {
+		PanelShow(panel);
+	    }
+	    break;
+	case -1:
+	    if (panel->Hidden) {
+		PanelShow(panel);
+	    } else {
+		PanelHide(panel);
+	    }
+	    break;
     }
 }
 
@@ -1157,7 +1195,7 @@ void PanelExit(void)
     Panel *panel;
     Plugin *plugin;
 
-    while (!SLIST_EMPTY(&Panels)) {	// list deletion
+    while (!SLIST_EMPTY(&Panels)) {	// singly-linked list deletion
 	panel = SLIST_FIRST(&Panels);
 
 	// all plugins of the panel
@@ -1271,6 +1309,7 @@ Plugin *PanelPluginNew(void)
 Panel *PanelNew(void)
 {
     Panel *panel;
+    Panel *temp;
 
     panel = calloc(1, sizeof(*panel));
     panel->Y = -1;
@@ -1278,7 +1317,19 @@ Panel *PanelNew(void)
     panel->HiddenSize = PANEL_DEFAULT_HIDE_SIZE;
     panel->OnLayer = LAYER_PANEL_DEFAULT;
 
-    SLIST_INSERT_HEAD(&Panels, panel, Next);
+    temp = SLIST_FIRST(&Panels);
+    if (temp) {				// insert at tail, but keep simple list
+	Panel *next;
+
+	while ((next = SLIST_NEXT(temp, Next))) {
+	    temp = next;
+	}
+	Debug(0, "temp %p\n", temp);
+	SLIST_INSERT_AFTER(temp, panel, Next);
+    } else {
+	SLIST_INSERT_HEAD(&Panels, panel, Next);
+    }
+
     STAILQ_INIT(&panel->Plugins);
 
     return panel;
