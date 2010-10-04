@@ -25,9 +25,6 @@ To compile you must have the 'requires' installed.
 Quickstart:
 -----------
 
-Note: Files from the submodules are missing, if you like to play
-contact the author.
-
 Just type make and use.
 
 To configure which modules to include, see Makefile and uwm.h
@@ -40,6 +37,7 @@ Install:
 
 	git clone git://uwm.git.sourceforge.net/gitroot/uwm/uwm
 	cd uwm
+	# make should automatic pull the submodules from git.
 	make
 	./xephyr.sh ./uwm -c contrib/uwmrc.example
 
@@ -50,6 +48,7 @@ Install:
 
 	tar vxf uwm-2010-*.tar.bz2
 	cd uwm
+	# the tarball contains the submodules
 	make
 	./xephyr.sh ./uwm -c contrib/uwmrc.example
 
