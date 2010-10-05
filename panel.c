@@ -1324,7 +1324,6 @@ Panel *PanelNew(void)
 	while ((next = SLIST_NEXT(temp, Next))) {
 	    temp = next;
 	}
-	Debug(0, "temp %p\n", temp);
 	SLIST_INSERT_AFTER(temp, panel, Next);
     } else {
 	SLIST_INSERT_HEAD(&Panels, panel, Next);
