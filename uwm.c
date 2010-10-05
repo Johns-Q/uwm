@@ -449,7 +449,7 @@ static void ConnectionOpen(void)
 
     RootVisualType = xcb_aux_find_visual_by_id(screen, screen->root_visual);
 
-#if 0
+#ifdef USE_COLORMAP
     colormapCount =
 	MaxCmapsOfScreen(ScreenOfConnection(Connection, rootScreen));
 #endif
@@ -1002,9 +1002,10 @@ static void ParseConfig(const char *filename)
 	    Error("error parsing system config file '%s'\n", SYSTEM_CONFIG);
 	    return;
 	}
+	Debug(2, "Config '%s' loaded\n", SYSTEM_CONFIG);
+    } else {
+	Debug(2, "Config '%s' loaded\n", filename);
     }
-
-    Debug(2, "Config '%s' loaded\n", filename);
 
     GlobalConfig(config);
     CommandConfig(config);
