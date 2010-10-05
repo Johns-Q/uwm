@@ -243,7 +243,7 @@ void StatusUpdateWindow(const Client * client, StatusType type, int x, int y)
 {
     StatusGetCoordinates(client, type, &x, &y);
     // update position, if needed
-    if (x != Status->X || y != Status->X) {
+    if (x != Status->X || y != Status->Y) {
 	uint32_t values[2];
 
 	Status->X = x;
