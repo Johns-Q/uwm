@@ -316,7 +316,7 @@ static Image *ImageLoadPNG(const char *name)
     unsigned u;
     png_uint_32 width;
     png_uint_32 height;
-    int hasa;
+    int has_alpha;
 
     // open the file
     if (!(fd = fopen(name, "rb"))) {
@@ -370,15 +370,11 @@ static Image *ImageLoadPNG(const char *name)
 	NULL, NULL, NULL);
 
     // check alpha
-    hasa = 0;
+    has_alpha = 0;
     if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)
 	|| color_type == PNG_COLOR_TYPE_RGB_ALPHA
 	|| color_type == PNG_COLOR_TYPE_GRAY_ALPHA) {
-	hasa = 1;
-    }
-    // expand transparency entry -> alpha channel if present
-    if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) {
-	png_set_tRNS_to_alpha(png_ptr);
+	has_alpha = 1;
     }
     // expand palette -> RGB if necessary
     if (color_type == PNG_COLOR_TYPE_PALETTE) {
@@ -391,22 +387,26 @@ static Image *ImageLoadPNG(const char *name)
 	    png_set_expand_gray_1_2_4_to_8(png_ptr);
 	}
     }
-    png_set_expand(png_ptr);
+    // expand transparency entry -> alpha channel if present
+    if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) {
+	png_set_tRNS_to_alpha(png_ptr);
+    }
+    // png_set_expand(png_ptr);
 
-    if (bit_depth == 16) {
+    if (bit_depth > 8) {		// reduce 16bit to 8bit
 	png_set_strip_16(png_ptr);
-    } else if (bit_depth < 8) {
+    } else if (bit_depth < 8) {		// pack all pixels at byte boundaries
 	png_set_packing(png_ptr);
     }
     // we want ARGB
 #if __BYTE_ORDER == __LITTLE_ENDIAN
     png_set_swap_alpha(png_ptr);
-    if (!hasa) {
+    if (!has_alpha) {
 	png_set_filler(png_ptr, 0xFF, PNG_FILLER_BEFORE);
     }
 #else
     png_set_bgr(png_ptr);
-    if (!hasa) {
+    if (!has_alpha) {
 	png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
     }
 #endif
@@ -437,6 +437,16 @@ static Image *ImageLoadPNG(const char *name)
     }
 
     png_read_image(png_ptr, rows);
+
+    // alpha premultiply
+    for (u = 0; u < width * height * 4; u += 4) {
+	image->Data[u + 1] =
+	    (image->Data[u + 1] * (image->Data[u + 0] + 1)) >> 8;
+	image->Data[u + 2] =
+	    (image->Data[u + 2] * (image->Data[u + 0] + 1)) >> 8;
+	image->Data[u + 3] =
+	    (image->Data[u + 3] * (image->Data[u + 0] + 1)) >> 8;
+    }
 
     png_read_end(png_ptr, info_ptr);
     png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);

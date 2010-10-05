@@ -402,8 +402,10 @@ static void BackgroundLoadImage(Background * background)
 	Warning("background image not found: \"%s\"", background->Value);
 	return;
     }
+#if 0
     // we can't use render on these
     icon->UseRender = 0;
+#endif
 
     // determine size of background pixmap
     if (background->Type == BACKGROUND_IMAGE) {

@@ -23,7 +23,7 @@
 /// @addtogroup icon
 /// @{
 
-#ifdef USE_ICON
+#ifdef USE_ICON				// {
 
 //////////////////////////////////////////////////////////////////////////////
 //	Defines
@@ -55,8 +55,10 @@ struct _icon_
     char *Name;				///< name of icon
     Image *Image;			///< image data
 
-    unsigned UseRender:1;		///< if render can be used
-    int RefCnt:31;			///< reference counter
+#ifdef USE_RENDER
+    uint32_t UseRender;			///< if render can be used
+#endif
+    int RefCnt;				///< reference counter
 
     /// scaled icon cache
      SLIST_HEAD(_scaled_head_, _scaled_icon_) Scaled;
