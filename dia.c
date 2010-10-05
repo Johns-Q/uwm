@@ -983,6 +983,8 @@ static void DiaNextPage(void)
     DiaIndexScrollDown(n);
 }
 
+#if 0
+
 /**
 **	Dia withdrawn.
 */
@@ -1004,6 +1006,7 @@ static void DiaWithdrawn(void)
     xcb_configure_window(Connection, DiaVars->Window,
 	XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, values);
 }
+#endif
 
 /**
 **	Dia pointer button press/release command.
