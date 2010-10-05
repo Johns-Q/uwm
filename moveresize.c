@@ -483,7 +483,7 @@ static xcb_gcontext_t OutlineGC;	///< outline graphic context
 **	@param width	width of outline
 **	@param height	height of outline
 */
-void OutlineDraw(int x, int y, unsigned width, unsigned height)
+static void OutlineDraw(int x, int y, unsigned width, unsigned height)
 {
     if (!OutlineDrawn) {
 	xcb_aux_sync(Connection);
@@ -502,7 +502,7 @@ void OutlineDraw(int x, int y, unsigned width, unsigned height)
 /**
 **	Clear last outline.
 */
-void OutlineClear(void)
+static void OutlineClear(void)
 {
     if (OutlineDrawn) {
 	xcb_poly_rectangle(Connection, RootWindow, OutlineGC, 1, &OutlineLast);
@@ -540,7 +540,15 @@ void OutlineExit(void)
     xcb_free_gc(Connection, OutlineGC);
 }
 
-#endif // } USE_OUTLINE
+#else // { !USE_OUTLINE
+
+    /// Dummy for Clear last outline.
+#define OutlineClear()
+
+    /// Dummy for Draw an outline.
+#define OutlineDraw(x, y, width, height)
+
+#endif // } !USE_OUTLINE
 
 /// @}
 

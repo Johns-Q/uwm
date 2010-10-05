@@ -58,14 +58,6 @@ extern void StatusConfig(const Config *);
 //	Prototypes
 //////////////////////////////////////////////////////////////////////////////
 
-    /// Draw an outline.
-extern void OutlineDraw(int, int, unsigned, unsigned);
-
-    /// Clear last outline.
-extern void OutlineClear(void);
-
-#ifdef USE_OUTLINE
-
     /// Initialize the outline module
 extern void OutlineInit(void);
 
@@ -75,7 +67,7 @@ extern void OutlineExit(void);
     /// Parse outline configuration.
 extern void OutlineConfig(const Config *);
 
-#else
+#ifndef USE_OUTLINE
 
     /// Dummy for Initialize outline module.
 #define OutlineInit()
