@@ -51,6 +51,7 @@
 #include <string.h>
 #include <sys/queue.h>
 
+#include <xcb/xcb_atom.h>
 #include <xcb/xcb_icccm.h>
 
 #include "core-array/core-array.h"
@@ -369,9 +370,13 @@ void PanelToggle(int panel_nr, int toggle)
     Panel *panel;
 
     SLIST_FOREACH(panel, &Panels, Next) {
-	if (panel_nr <= 0) {
+	if (panel_nr-- <= 0) {
 	    break;
 	}
+    }
+    if (!panel) {
+	Warning("wrong panel number configured\n");
+	return;
     }
     Debug(4, "switch panel %p %+d%+d %d\n", panel, panel->X, panel->Y, toggle);
     switch (toggle) {
@@ -1183,8 +1188,6 @@ void PanelInit(void)
     TaskUpdate();
     PagerUpdate();
 #endif
-
-    HintSetNetWorkarea();
 }
 
 /**

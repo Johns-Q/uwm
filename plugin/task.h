@@ -34,12 +34,6 @@ extern void TaskFocusNext(void);
     /// Focus previous client in task.
 extern void TaskFocusPrevious(void);
 
-    /// Add a client to task(s).
-extern void TaskAddClient(Client *);
-
-    /// Remove a client from task(s).
-extern void TaskDelClient(Client *);
-
     /// Update all task plugin(s).
 extern void TaskUpdate(void);
 
@@ -49,15 +43,21 @@ extern void TaskInit(void);
     /// Cleanup task panel plugin.
 extern void TaskExit(void);
 
-    /// Parse task panel plugin config.
+    /// Parse task panel plugin configuration.
 Plugin *TaskConfig(const ConfigObject *);
 
 #ifndef USE_TASK			// {
+
+    /// Dummy for Update all task plugin(s).
+#define TaskUpdate()
 
     /// Dummy for initialize task(s).
 #define TaskInit()
     /// Dummy for cleanup task(s).
 #define TaskExit()
+
+    /// Dummy for Parse task panel plugin configuration.
+#define TaskConfig(config)	NULL
 
 #endif // } USE_TASK
 

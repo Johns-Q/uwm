@@ -122,10 +122,11 @@ typedef struct _client_ Client;
 */
 struct _client_
 {
+    SLIST_ENTRY(_client_) NetClient;	///< singly-linked list for net-client
+
     LIST_ENTRY(_client_) ChildList;	///< in list of childs
     LIST_ENTRY(_client_) FrameList;	///< in list of frames
     TAILQ_ENTRY(_client_) LayerQueue;	///< in list queue of layers
-    TAILQ_ENTRY(_client_) TaskQueue;	///< in list queue of tasks
 
     xcb_window_t Window;		///< client window
     xcb_window_t Parent;		///< frame window
@@ -168,16 +169,23 @@ struct _client_
     void (*Controller) (void);		///< callback to stop move/resize.
 };
 
+// *INDENT-OFF*
+/**
+**	typedef for clients in a net client list
+*/
+typedef SLIST_HEAD(_client_netlist_, _client_) ClientNetListHead;
 /**
 **	typedef for clients in a layer tail queue
 */
-// *INDENT-OFF*
 typedef TAILQ_HEAD(_client_layer_, _client_) ClientLayerHead;
 // *INDENT-ON*
 
 //////////////////////////////////////////////////////////////////////////////
 //	Variables
 //////////////////////////////////////////////////////////////////////////////
+
+    /// singly-linked List of all clients for _NET_CLIENT_LIST and task list
+extern ClientNetListHead ClientNetList;
 
     /// table of double linkted tail queues of all clients in a layer
 extern ClientLayerHead ClientLayers[LAYER_MAX];

@@ -31,6 +31,8 @@
 ///			Fully customisable dock-like window navigator
 ///			http://launchpad.net/awn
 ///
+///	@todo insert-mode = right and insert-mode = left are currently
+///		not supported.
 /// @{
 
 #include <xcb/xcb.h>
@@ -94,13 +96,6 @@ SLIST_HEAD(_task_head_, _task_plugin_);
 
     /// Linked list of all task plugins
 static struct _task_head_ Tasks = SLIST_HEAD_INITIALIZER(Tasks);
-
-    /// Client double linked tail queue head structure
-TAILQ_HEAD(_client_task_, _client_);
-
-    /// Double linked tail queue of all clients in tasks
-static struct _client_task_ TaskClientList =
-TAILQ_HEAD_INITIALIZER(TaskClientList);
 
 /**
 **	Minimized arrow, 5x5 pixels
@@ -185,24 +180,24 @@ void TaskFocusNext(void)
     Client *client;
 
     // find active window in task
-    TAILQ_FOREACH(client, &TaskClientList, TaskQueue) {
+    SLIST_FOREACH(client, &ClientNetList, NetClient) {
 	if (ClientShouldFocus(client) && client->State & WM_STATE_ACTIVE) {
-	    client = TAILQ_NEXT(client, TaskQueue);
+	    client = SLIST_NEXT(client, NetClient);
 	    break;
 	}
     }
-    if (!client) {
-	client = TAILQ_FIRST(&TaskClientList);
+    if (!client) {			// no active client in list
+	client = SLIST_FIRST(&ClientNetList);
     }
     // skip all non-focus clients
     while (client && !ClientShouldFocus(client)) {
-	client = TAILQ_NEXT(client, TaskQueue);
+	client = SLIST_NEXT(client, NetClient);
     }
     // round about
     if (!client) {
-	client = TAILQ_FIRST(&TaskClientList);
+	client = SLIST_FIRST(&ClientNetList);
 	while (client && !ClientShouldFocus(client)) {
-	    client = TAILQ_NEXT(client, TaskQueue);
+	    client = SLIST_NEXT(client, NetClient);
 	}
     }
 
@@ -218,32 +213,36 @@ void TaskFocusNext(void)
 void TaskFocusPrevious(void)
 {
     Client *client;
+    Client *prev;
+
+    prev = NULL;
 
     // find active window in task
-    TAILQ_FOREACH_REVERSE(client, &TaskClientList, _client_task_, TaskQueue) {
-	if (ClientShouldFocus(client) && client->State & WM_STATE_ACTIVE) {
-	    client = TAILQ_PREV(client, _client_task_, TaskQueue);
-	    break;
+    SLIST_FOREACH(client, &ClientNetList, NetClient) {
+	if (ClientShouldFocus(client)) {
+	    if (client->State & WM_STATE_ACTIVE) {
+		client = SLIST_NEXT(client, NetClient);
+		break;
+	    }
+	    prev = client;
 	}
     }
-    if (!client) {
-	client = TAILQ_LAST(&TaskClientList, _client_task_);
-    }
-    // skip all non-focus clients
-    while (client && !ClientShouldFocus(client)) {
-	client = TAILQ_PREV(client, _client_task_, TaskQueue);
+    if (!client) {			// no active client in list
+	client = SLIST_FIRST(&ClientNetList);
     }
     // round about
-    if (!client) {
-	client = TAILQ_LAST(&TaskClientList, _client_task_);
-	while (client && !ClientShouldFocus(client)) {
-	    client = TAILQ_PREV(client, _client_task_, TaskQueue);
+    if (!prev) {
+	// find last client in list
+	while (client) {
+	    if (ClientShouldFocus(client)) {
+		prev = client;
+	    }
+	    client = SLIST_NEXT(client, NetClient);
 	}
     }
-
-    if (client) {
-	ClientRestore(client, 1);
-	ClientFocus(client);
+    if (prev) {
+	ClientRestore(prev, 1);
+	ClientFocus(prev);
     }
 }
 
@@ -287,7 +286,7 @@ static int TaskGetTaskCount(void)
     const Client *client;
 
     n = 0;
-    TAILQ_FOREACH(client, &TaskClientList, TaskQueue) {
+    SLIST_FOREACH(client, &ClientNetList, NetClient) {
 	if (TaskShouldShowItem(client)) {
 	    ++n;
 	}
@@ -354,7 +353,7 @@ static Client *TaskGetClient(TaskPlugin * task_plugin, int xy)
 	item_width = TaskGetItemWidth(task_plugin, n);
 	remainder = width - item_width * n;
 
-	TAILQ_FOREACH(client, &TaskClientList, TaskQueue) {
+	SLIST_FOREACH(client, &ClientNetList, NetClient) {
 	    if (TaskShouldShowItem(client)) {
 		if (remainder) {
 		    stop = index + item_width + 1;
@@ -370,7 +369,7 @@ static Client *TaskGetClient(TaskPlugin * task_plugin, int xy)
 	}
 
     } else {
-	TAILQ_FOREACH(client, &TaskClientList, TaskQueue) {
+	SLIST_FOREACH(client, &ClientNetList, NetClient) {
 	    if (TaskShouldShowItem(client)) {
 		stop = index + task_plugin->ItemHeight;
 		if (xy >= index && xy < stop) {
@@ -439,7 +438,7 @@ static void TaskDraw(TaskPlugin * task_plugin)
     LabelReset(&label, plugin->Pixmap, RootGC);
     label.Font = &Fonts.Task;
 
-    TAILQ_FOREACH(client, &TaskClientList, TaskQueue) {
+    SLIST_FOREACH(client, &ClientNetList, NetClient) {
 	if (TaskShouldShowItem(client)) {
 	    if (client->State & WM_STATE_ACTIVE) {
 		label.Type = LABEL_TASK_ACTIVE;
@@ -557,36 +556,6 @@ void TaskUpdate(void)
 	}
 	TaskDraw(task_plugin);
     }
-}
-
-/**
-**	Add a client to task(s).
-**
-**	@param client	client to add
-*/
-void TaskAddClient(Client * client)
-{
-    if (TaskInsertMode == TASK_INSERT_RIGHT) {
-	TAILQ_INSERT_TAIL(&TaskClientList, client, TaskQueue);
-    } else {
-	TAILQ_INSERT_HEAD(&TaskClientList, client, TaskQueue);
-    }
-
-    TaskUpdate();
-    HintSetNetClientList();
-}
-
-/**
-**	Remove a client from task(s).
-**
-**	@param client	client to remove
-*/
-void TaskDelClient(Client * client)
-{
-    TAILQ_REMOVE(&TaskClientList, client, TaskQueue);
-
-    TaskUpdate();
-    HintSetNetClientList();
 }
 
 // ------------------------------------------------------------------------ //
@@ -762,52 +731,6 @@ void TaskExit(void)
 
     xcb_free_pixmap(Connection, MinimizedPixmap);
     MinimizedPixmap = XCB_NONE;
-}
-
-/**
-**	@ingroup hints
-**
-**	Maintain _NET_CLIENT_LIST[_STACKING] properties of root window.
-**
-**	@todo FIXME: belongs into hints
-*/
-void HintSetNetClientList(void)
-{
-    xcb_window_t *window;
-    int count;
-    Client *client;
-    int layer;
-
-    window = alloca(ClientN * sizeof(*window));
-
-    // set _NET_CLIENT_LIST
-    // has initial mapping order, starting with oldest window
-    count = 0;
-    if (TaskInsertMode == TASK_INSERT_RIGHT) {
-	TAILQ_FOREACH(client, &TaskClientList, TaskQueue) {
-	    window[count++] = client->Window;
-	}
-    } else {
-	TAILQ_FOREACH_REVERSE(client, &TaskClientList, _client_task_,
-	    TaskQueue) {
-	    window[count++] = client->Window;
-	}
-    }
-
-    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, RootWindow,
-	Atoms.NET_CLIENT_LIST.Atom, WINDOW, 32, count, window);
-
-    // set _NET_CLIENT_LIST_STACKING
-    // has bottom-to-top stacking order
-    count = 0;
-    for (layer = LAYER_TOP; layer >= LAYER_BOTTOM; --layer) {
-	TAILQ_FOREACH(client, &ClientLayers[layer], LayerQueue) {
-	    window[count++] = client->Window;
-	}
-    }
-
-    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, RootWindow,
-	Atoms.NET_CLIENT_LIST_STACKING.Atom, WINDOW, 32, count, window);
 }
 
 // ------------------------------------------------------------------------ //

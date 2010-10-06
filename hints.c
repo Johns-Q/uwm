@@ -1085,7 +1085,44 @@ void HintSetNetWorkarea(void)
 	Atoms.NET_WORKAREA.Atom, CARDINAL, 32, DesktopN * 4, values);
 }
 
-extern void HintSetNetClientList(void);	/// FIXME: must move it to here
+/**
+**	Maintain _NET_CLIENT_LIST[_STACKING] properties of root window.
+*/
+void HintSetNetClientList(void)
+{
+    xcb_window_t *window;
+    int count;
+    Client *client;
+    int layer;
+
+    window = alloca(ClientN * sizeof(*window));
+
+    // set _NET_CLIENT_LIST
+    // has initial mapping order, starting with oldest window
+    count = 0;
+    SLIST_FOREACH(client, &ClientNetList, NetClient) {
+	window[count++] = client->Window;
+    }
+    IfDebug(if (count != ClientN) {
+	Debug(0, "lost windows\n");}
+    ) ;
+    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, RootWindow,
+	Atoms.NET_CLIENT_LIST.Atom, WINDOW, 32, count, window);
+
+    // set _NET_CLIENT_LIST_STACKING
+    // has bottom-to-top stacking order
+    count = 0;
+    for (layer = LAYER_TOP; layer >= LAYER_BOTTOM; --layer) {
+	TAILQ_FOREACH(client, &ClientLayers[layer], LayerQueue) {
+	    window[count++] = client->Window;
+	}
+    }
+    IfDebug(if (count != ClientN) {
+	Debug(0, "lost windows\n");}
+    ) ;
+    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, RootWindow,
+	Atoms.NET_CLIENT_LIST_STACKING.Atom, WINDOW, 32, count, window);
+}
 
 /**
 **	Set WM_STATE icccm hint for client.

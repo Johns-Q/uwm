@@ -856,12 +856,12 @@ void PlacementExit(void)
 FocusModel FocusModus;			///< current focus model
 
 // *INDENT-OFF*	queue macros break indent
+    /// singly-linked List of all clients for _NET_CLIENT_LIST and task list
+ClientNetListHead ClientNetList;
     /// double linked list to find client by child = window
-static LIST_HEAD(_client_child_, _client_) ClientByChild =
-	LIST_HEAD_INITIALIZER(ClientByChild);
+static LIST_HEAD(_client_child_, _client_) ClientByChild;
     /// double linked list to find client by frame = parent
-static LIST_HEAD(_client_frame_, _client_) ClientByFrame =
-	LIST_HEAD_INITIALIZER(ClientByFrame);
+static LIST_HEAD(_client_frame_, _client_) ClientByFrame;
 // *INDENT-ON*
 
     /// table of double linked tail queues of all clients in layer
@@ -1072,6 +1072,7 @@ void ClientRestack(void)
 	}
     }
 
+    // FIXME: only need to update _NET_CLIENT_LIST_STACKING
     HintSetNetClientList();
 }
 
@@ -2110,6 +2111,9 @@ Client *ClientAddWindow(xcb_window_t window,
 
     ClientPlace(client, already_mapped);
 
+    // insert client into net-client list
+    SLIST_INSERT_HEAD(&ClientNetList, client, NetClient);
+
     // insert client into search queue's
     LIST_INSERT_HEAD(&ClientByChild, client, ChildList);
     LIST_INSERT_HEAD(&ClientByFrame, client, FrameList);
@@ -2122,7 +2126,9 @@ Client *ClientAddWindow(xcb_window_t window,
     }
     BorderDraw(client, NULL);
 
-    TaskAddClient(client);
+    // FIXME: not needed during startup
+    TaskUpdate();
+    HintSetNetClientList();
 
     if (!already_mapped) {
 	ClientRaise(client);
@@ -2190,6 +2196,9 @@ void ClientDelWindow(Client * client)
     LIST_REMOVE(client, ChildList);
     LIST_REMOVE(client, FrameList);
 
+    // remove client from net client list
+    SLIST_REMOVE(&ClientNetList, client, _client_, NetClient);
+
     // make sure this client isn't active
     if (ClientActive == client && KeepLooping) {
 	ClientFocusNextStacked(client);
@@ -2242,7 +2251,8 @@ void ClientDelWindow(Client * client)
     free(client->InstanceName);
     free(client->ClassName);
 
-    TaskDelClient(client);
+    TaskUpdate();
+    HintSetNetClientList();
     ClientDelStrut(client);
     PagerUpdate();
 
@@ -2386,6 +2396,7 @@ void ClientInit(void)
     int len;
 
     // clear out client lists
+    SLIST_INIT(&ClientNetList);
     LIST_INIT(&ClientByFrame);
     LIST_INIT(&ClientByChild);
     for (u = LAYER_BOTTOM; u < LAYER_MAX; u++) {
