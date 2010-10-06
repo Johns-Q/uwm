@@ -95,6 +95,7 @@
 #include <xcb/xcb_renderutil.h>
 #include <xcb/render.h>
 #endif
+#include <xcb/bigreq.h>
 
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
@@ -496,6 +497,7 @@ static void ConnectionInit(void)
 #ifdef USE_RENDER
     xcb_prefetch_extension_data(Connection, &xcb_render_id);
 #endif
+    xcb_prefetch_extension_data(Connection, &xcb_big_requests_id);
 
     // Set events we want for root window.
     // Note that asking for SUBSTRUCTURE_REDIRECT will fail
@@ -546,6 +548,8 @@ static void ConnectionInit(void)
 
     //	Setup property handlers
     PropertyInit();
+
+    xcb_prefetch_maximum_request_length(Connection);
 }
 
 /**

@@ -100,6 +100,8 @@ static struct _icon_head_ *IconHashTable;
     /// list of icon paths, empty string terminated
 static char *IconPath;
 
+static uint32_t MaximumRequestLength;	///< xcb maximum request length
+
 #if 0
 
 /**
@@ -154,6 +156,12 @@ static ScaledIcon *IconCreateRenderScaled(Icon * icon, int width, int height)
 	icon->UseRender = 0;
 	return NULL;
     }
+    // can't upload image > maximum request size
+    if (icon->Image->Width * icon->Image->Height * 4U > MaximumRequestLength) {
+	icon->UseRender = 0;
+	return NULL;
+    }
+
     scaled = malloc(sizeof(*scaled));
     SLIST_INSERT_HEAD(&icon->Scaled, scaled, Next);
     scaled->Width = width;
@@ -210,8 +218,9 @@ static ScaledIcon *IconCreateRenderScaled(Icon * icon, int width, int height)
 	    xcb_render_util_find_standard_format(xcb_render_util_query_formats
 	    (Connection), XCB_PICT_STANDARD_ARGB_32);
     }
-
     // pictforminfo is xcb cached data
+
+    // use global picture for all icons of any size
     icon->UseRender = xcb_generate_id(Connection);
     xcb_render_create_picture(Connection, icon->UseRender, pixmap,
 	pictforminfo->id, 0, NULL);
@@ -1081,6 +1090,8 @@ void IconInit(void)
     value[0] = 0;
     xcb_create_gc(Connection, IconGC, RootWindow, XCB_GC_GRAPHICS_EXPOSURES,
 	value);
+
+    MaximumRequestLength = xcb_get_maximum_request_length(Connection);
 }
 
 /**
