@@ -568,6 +568,8 @@ void DialogExit(void)
 
 /// @}
 
+#if defined(USE_MENU) || defined(USE_BUTTON) || defined(USE_TASK)	// {
+
 // ------------------------------------------------------------------------ //
 // Label
 // ------------------------------------------------------------------------ //
@@ -577,6 +579,8 @@ void DialogExit(void)
 ///	@defgroup label The generic label module.
 ///
 ///	This module contains the label display and handling functions.
+///
+///	Labels are used to draw task item, menu items and button items.
 ///
 /// @{
 
@@ -635,6 +639,7 @@ void LabelDraw(const Label * label)
     int text_offset;
     unsigned text_width;
     unsigned text_height;
+    unsigned clipped_text_width;
     int xoffset;
     int yoffset;
     xcb_query_text_extents_cookie_t cookie_text;
@@ -735,20 +740,21 @@ void LabelDraw(const Label * label)
 	    }
 	default:
 	    // draw the label background
-	    xcb_change_gc(Connection, gc, XCB_GC_FOREGROUND, &bg1_pixel);
-	    if (bg1_pixel == bg2_pixel) {	// single color
-		rectangle.x = x + LABEL_BORDER;
-		rectangle.y = y + LABEL_BORDER;
-		rectangle.width = width - LABEL_BORDER;
-		rectangle.height = height - LABEL_BORDER;
-		xcb_poly_fill_rectangle(Connection, drawable, gc, 1,
-		    &rectangle);
-	    } else {			// gradient
-		GradientDrawHorizontal(drawable, gc, bg1_pixel, bg2_pixel,
-		    x + LABEL_BORDER, y + LABEL_BORDER, width - LABEL_BORDER,
-		    height - LABEL_BORDER);
+	    if (!label->NoBackground) {
+		xcb_change_gc(Connection, gc, XCB_GC_FOREGROUND, &bg1_pixel);
+		if (bg1_pixel == bg2_pixel) {	// single color
+		    rectangle.x = x + LABEL_BORDER;
+		    rectangle.y = y + LABEL_BORDER;
+		    rectangle.width = width - LABEL_BORDER;
+		    rectangle.height = height - LABEL_BORDER;
+		    xcb_poly_fill_rectangle(Connection, drawable, gc, 1,
+			&rectangle);
+		} else {		// gradient
+		    GradientDrawHorizontal(drawable, gc, bg1_pixel, bg2_pixel,
+			x + LABEL_BORDER, y + LABEL_BORDER,
+			width - LABEL_BORDER, height - LABEL_BORDER);
+		}
 	    }
-
 	    // draw the outline
 	    xcb_change_gc(Connection, gc, XCB_GC_FOREGROUND, &outline_pixel);
 	    rectangle.x = x;
@@ -777,7 +783,7 @@ void LabelDraw(const Label * label)
 #endif
 
     // determine how much room is left for text
-    text_width = 0;
+    clipped_text_width = 0;
     text_height = 0;
     if (label->Text) {
 	if (label->TextOffset) {
@@ -791,14 +797,16 @@ void LabelDraw(const Label * label)
 
 	text_height = label->Font->Height;
 	text_width = FontTextWidthReply(cookie_text);
+	clipped_text_width = text_width;
 
-	if (text_width + text_offset + 2 * LABEL_INNER_SPACE +
+	// clipp text to label sizw
+	if (clipped_text_width + text_offset + 2 * LABEL_INNER_SPACE +
 	    2 * LABEL_BORDER > width) {
 	    if (width <
 		text_offset + 2U * LABEL_INNER_SPACE + 2 * LABEL_BORDER) {
-		text_width = 0;
+		clipped_text_width = 0;
 	    } else {
-		text_width =
+		clipped_text_width =
 		    width - text_offset - 2 * LABEL_INNER_SPACE +
 		    2 * LABEL_BORDER;
 	    }
@@ -807,7 +815,7 @@ void LabelDraw(const Label * label)
     // determine the offset of the icon and/or text in the label
     switch (label->Alignment) {
 	case LABEL_ALIGN_CENTER:
-	    xoffset = width / 2 - (icon_width + text_width) / 2;
+	    xoffset = width / 2 - (icon_width + clipped_text_width) / 2;
 	    if (xoffset < 0) {
 		xoffset = 0;
 	    }
@@ -827,12 +835,13 @@ void LabelDraw(const Label * label)
     }
 #endif
     // display the label
-    if (label->Text && text_width) {
+    if (label->Text && clipped_text_width) {
 	xoffset += text_offset;
-	yoffset = height / 2 - icon_height / 2;
 	yoffset = height / 2 - text_height / 2;
+
 	FontDrawString(drawable, label->Font, fg_pixel, x + xoffset,
-	    y + yoffset, text_width, NULL, label->Text);
+	    y + yoffset, clipped_text_width, NULL, label->Text);
+
     }
 }
 
@@ -846,8 +855,9 @@ void LabelDraw(const Label * label)
 void LabelReset(Label * label, xcb_drawable_t drawable, xcb_gcontext_t gc)
 {
     memset(label, 0, sizeof(*label));
+    // LABEL_MENU
+    // LABEL_ALIGN_LEFT
 
-    label->Type = LABEL_MENU;
     label->Width = LABEL_BORDER;
     label->Height = LABEL_BORDER;
     label->Drawable = drawable;
@@ -856,6 +866,8 @@ void LabelReset(Label * label, xcb_drawable_t drawable, xcb_gcontext_t gc)
 }
 
 /// @}
+
+#endif // } USE_MENU || USE_BUTTON || USE_TASK
 
 // ------------------------------------------------------------------------ //
 // Menu
@@ -1845,19 +1857,18 @@ static Runtime *MenuPrepareRuntime(Menu * menu)
 	}
 	// icon loaded
 	if (item->Icon) {
-	    if (!menu->UserHeight) {
-		if (runtime->ItemHeight < item->Icon->Image->Height) {
-		    runtime->ItemHeight = item->Icon->Image->Height;
-		}
-		if (runtime->TextOffset <
-		    item->Icon->Image->Width + LABEL_INNER_SPACE * 2) {
-		    runtime->TextOffset =
-			item->Icon->Image->Width + LABEL_INNER_SPACE * 2;
-		}
+	    // use for auto height by biggest icon
+	    if (runtime->ItemHeight < item->Icon->Image->Height) {
+		runtime->ItemHeight = item->Icon->Image->Height;
+	    }
+	    if (runtime->TextOffset <
+		item->Icon->Image->Width + LABEL_INNER_SPACE * 2) {
+		runtime->TextOffset =
+		    item->Icon->Image->Width + LABEL_INNER_SPACE * 2;
 	    }
 	}
 #endif
-	// FIXME: or-text
+	// FIXME: or-text: only need to send request, when text is drawn
 	if (item->Text) {
 	    cookies[i] =
 		FontQueryExtentsRequest(&Fonts.Menu, strlen(item->Text),
@@ -1869,9 +1880,9 @@ static Runtime *MenuPrepareRuntime(Menu * menu)
     //	Item height
     //
     if (menu->UserHeight) {
-	// FIXME: above item-height not set if user-height
 	if (runtime->ItemHeight) {	// align if any icon
-	    runtime->TextOffset = runtime->ItemHeight + LABEL_INNER_SPACE * 2;
+	    // not 100% correct, icons are now scaled
+	    runtime->TextOffset = menu->UserHeight + LABEL_INNER_SPACE * 2;
 	}
 	runtime->ItemHeight = menu->UserHeight;
     } else {

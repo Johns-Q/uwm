@@ -103,10 +103,9 @@ extern void DialogExit(void);
 */
 typedef enum
 {
-    LABEL_MENU_LABEL,			///< just menu label
-
-    LABEL_MENU,				///< menu item
+    LABEL_MENU,				///< menu item (default: must be 0)
     LABEL_MENU_ACTIVE,			///< active menu item
+    LABEL_MENU_LABEL,			///< just menu label
     LABEL_TASK,				///< item in the task list
     LABEL_TASK_ACTIVE,			///< active item in the task list
     LABEL_PANEL,			///< item in the panel
@@ -118,7 +117,7 @@ typedef enum
 */
 typedef enum
 {
-    LABEL_ALIGN_LEFT,			///< left align label
+    LABEL_ALIGN_LEFT,			///< left align label (default)
     LABEL_ALIGN_CENTER			///< center align label
 } LabelAlign;
 
@@ -129,6 +128,7 @@ typedef struct
 {
     LabelType Type:8;			///< type of label to draw
     LabelAlign Alignment:1;		///< alignment of label content
+    unsigned NoBackground:1;		///< don't draw background
 
     int16_t TextOffset;			///< offset of text to align labels
 
