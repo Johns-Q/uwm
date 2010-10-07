@@ -261,6 +261,8 @@ root-menu = [
   opacity = 1.0
 
   [0] = [ label = "µWM " ~ UWM-VERSION
+    ; height of menu entries (0 = auto max(icon,text))
+    height = 0
     [ icon = "terminal.png" text = DEFAULT_TERM execute = DEFAULT_TERM ]
     [ icon = "firefox-icon.xpm" text = "firefox" execute = "firefox" ]
     [ icon = "thunderbird-icon.xpm" text = "thunderbird" execute = "thunderbird" ]
@@ -450,6 +452,8 @@ panel = [
 	]
 	[ type = `button
 	    tooltip = "Show desktop menu"
+	    ; show desktop name
+	    desktop = true
 	    [ button = 1 desktop = []]
 	]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -758,17 +762,20 @@ key-binding = [
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 dia = [
+    ; show dia-show in background (false)
+    back-drop = false
+    ; show dia-show fullscreen (true)
+    fullscreen = true
+
     ; slideshow delay in s (30)
     delay = 30
-
     ; automatic start slide-show (false)
     slide-show = true
+
     ; show label on thumbnails (false)
     label = false
     ; show film-strip on image side (true)
     film-strip = false
-    ; show dia-show in background (false)
-    ; back-drop = true
 
     ; aspect of thumbnails (4:3)
     aspect-num = 16
