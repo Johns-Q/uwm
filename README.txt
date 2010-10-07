@@ -58,6 +58,10 @@ Requires:
 		X C-language Bindings library
 		http://xcb.freedesktop.org/
 
+	x11-libs/libX11 (for header files missing in xcb)
+		X.Org X11 library
+		http://xorg.freedesktop.org/
+
 	POSIX regex functions
 		included in the GNU libc6 (also called glibc2) C library
 		http://www.gnu.org/software/libc/libc.html

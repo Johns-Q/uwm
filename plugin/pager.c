@@ -30,6 +30,8 @@
 ///
 /// @{
 
+#define _GNU_SOURCE	1		///< fix stpcpy strchrnul
+
 #include <xcb/xcb.h>
 #include "uwm.h"
 
@@ -586,7 +588,7 @@ void PagerUpdate(void)
     }
 #ifdef DEBUG
     if (SLIST_EMPTY(&Pagers)) {
-	Debug(2, "FIXME: pagers missing init %s\n", __FUNCTION__);
+	Debug(2, "FIXME: pagers missing init %s or no pager\n", __FUNCTION__);
     }
 #endif
     if (!ClientLayers[0].tqh_first && !ClientLayers[0].tqh_last) {

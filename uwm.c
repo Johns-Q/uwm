@@ -61,6 +61,7 @@
 **	- multiple screen (xinerama)
 **	- 64-bit and 32-bit clean
 **	- little-endian and big-endian clean
+**	- compatible with uclibc
 **	- many features can be compile time enabled / disabled
 **
 **	see <a href="modules.html">µwm list of modules</a>.
@@ -72,6 +73,8 @@
 ///	This module contains main, init, config and exit functions.
 ///
 /// @{
+
+#define _GNU_SOURCE	1		///< fix stpcpy strchrnul
 
 #include <xcb/xcb.h>
 #include "uwm.h"
@@ -1004,7 +1007,7 @@ static void ParseConfig(const char *filename)
 	config = ConfigReadFile(1, import, SYSTEM_CONFIG);
 	if (!config) {
 	    Error("error parsing system config file '%s'\n", SYSTEM_CONFIG);
-	    return;
+	    // return;
 	}
 	Debug(2, "Config '%s' loaded\n", SYSTEM_CONFIG);
     } else {

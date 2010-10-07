@@ -20,7 +20,10 @@
 ///	$Id$
 //////////////////////////////////////////////////////////////////////////////
 
-#define _GNU_SOURCE
+#define _GNU_SOURCE	1		///< fix stpcpy strchrnul
+
+#include <xcb/xcb.h>
+#include "uwm.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -32,10 +35,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
-
-#include "uwm.h"
 
 #ifdef USE_ICON				// {
 

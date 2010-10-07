@@ -28,6 +28,8 @@
 ///
 /// @{
 
+#define _GNU_SOURCE	1		///< fix stpcpy strchrnul
+
 #include <xcb/xcb.h>
 #include "uwm.h"
 
