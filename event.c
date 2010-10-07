@@ -417,6 +417,9 @@ static int HandleMotionNotify( __attribute__ ((unused))
     if (PanelHandleMotionNotify(event)) {
 	return 1;
     }
+    if (DiaHandleMotionNotify(event)) {
+	return 1;
+    }
 #ifdef USE_TD
     if (TdHandleMotionNotify(event)) {
 	return 1;
@@ -858,7 +861,7 @@ static int HandleClientMessage( __attribute__ ((unused))
 	    int n;
 
 	    xcb_atom_get_name(Connection, event->type, &name, &n);
-	    Debug(3, "unsupported client messsage atom '%.*s'\n", n, name);
+	    Debug(2, "unsupported client messsage atom '%.*s'\n", n, name);
 #endif
 	}
 	return 1;
@@ -906,7 +909,7 @@ static int HandleClientMessage( __attribute__ ((unused))
 	    int n;
 
 	    xcb_atom_get_name(Connection, event->type, &name, &n);
-	    Debug(3, "unsupported client messsage atom '%.*s'\n", n, name);
+	    Debug(2, "unsupported client messsage atom '%.*s'\n", n, name);
 #endif
 	}
 	return 1;

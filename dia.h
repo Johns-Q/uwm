@@ -39,6 +39,9 @@ extern int DiaHandleButtonPress(const xcb_button_press_event_t *);
     /// Handle a button release event.
 extern int DiaHandleButtonRelease(const xcb_button_release_event_t *);
 
+    /// Handle a motion notify event over dia window.
+extern int DiaHandleMotionNotify(const xcb_motion_notify_event_t *);
+
     /// Timeout for dia-show.
 extern void DiaTimeout(uint32_t, int, int);
 
@@ -61,6 +64,8 @@ extern void DiaConfig(const Config *);
 #define DiaHandleButtonPress(x)	0
     /// Dummy for handle a button release event.
 #define DiaHandleButtonRelease(x)	0
+    /// Dummy for a motion notify event over dia window.
+#define DiaHandleMotionNotify(x)	0
 
     /// Dummy for timeout for dia-show.
 #define DiaTimeout(x, y, z);

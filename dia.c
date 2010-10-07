@@ -31,8 +31,31 @@
 ///	@todo recursive mode
 ///	@todo setting slide-show delay
 ///	@todo fullscreen zoom mode
+///	@todo show commands in the areas
+///
+///	<tt>
+///	.----------------v---------------------------------------v------.
+///	|  film   |      |         |                   |         |      |
+///	|  roll   | NWC  |         |                   |         | NEC  |
+///	|         |      |         |                   |         |      |
+///	|         }------'         |                   |         `------{
+///	|         |                |                   |                |
+///	|         |                |                   |                |
+///	|         |                |                   |                |
+///	|         |       WS       |       FOTO        |      ES        |
+///	|         |                |                   |                |
+///	|         |                |                   |                |
+///	|         |                |                   |                |
+///	|         |------.         |                   |         ,------|
+///	|         |      |         |                   |         |      |
+///	|         |  NEC |         |                   |         | SEC  |
+///	|         |      |         |                   |         |      |
+///	`---------'------'---------------------------------------'------'
+///	</tt>
 ///
 /// @{
+
+#define _GNU_SOURCE	1		///< fix stpcpy strchrnul
 
 #include <xcb/xcb.h>
 #include "uwm.h"
@@ -62,6 +85,7 @@
 
 #include "draw.h"
 #include "image.h"
+#include "hints.h"
 #include "icon.h"
 
 #include "dia.h"
@@ -145,11 +169,17 @@ struct _dia_
     DiaLayout Layout:1;			///< dia window layout
     int FilmStrip:1;			///< flag show film strip
     int Backdrop:1;			///< flag become desktop background
+    int Fullscreen:1;			///< flag become full-screen
 
-    uint32_t LastTick;			///< last handled tick
+    uint32_t SlideShowTick;		///< last slide-show tick
+
+    uint32_t LastTime;			///< last handled event time
     int16_t LastX;			///< last x-coordinate
     int16_t LastY;			///< last y-coordinate
     int State;				///< state for pointer buttons handle
+
+    int16_t OffsetX;			///< offset for slide effect
+    int16_t OffsetY;			///< offset for slide effect
 
     char *Path;				///< current path
     Array *FilesInDir;			///< files in directory
@@ -157,7 +187,7 @@ struct _dia_
     size_t FirstIndex;			///< first index of film-strip/index
     // Array *DirTree;			///< directory tree
 
-    // DiacAche Cache[DIA_CACHE_SIZE];	///< image cache
+    // DiaCache Cache[DIA_CACHE_SIZE];	///< image cache
 };
 
 static Dia DiaVars[1];			///< dia-show globals
@@ -299,16 +329,14 @@ static void DiaDrawImage(const Image * image, int x, int y, unsigned width,
     argb = image->Data;
     src_y = 0;
 
-    //
     //	fast 32bit versions
     if (xcb_image->bpp == 32) {
 	if (xcb_image->byte_order == XCB_IMAGE_ORDER_LSB_FIRST) {
 	    for (dst_y = 0; dst_y < height; dst_y++) {
 		int n;
 
-		src_x = 0;
 		n = (src_y / 65536) * image->Width;
-
+		src_x = 0;
 		for (dst_x = 0; dst_x < width; dst_x++) {
 		    int i;
 		    xcb_coloritem_t color;
@@ -332,9 +360,8 @@ static void DiaDrawImage(const Image * image, int x, int y, unsigned width,
 	    for (dst_y = 0; dst_y < height; dst_y++) {
 		int n;
 
-		src_x = 0;
 		n = (src_y / 65536) * image->Width;
-
+		src_x = 0;
 		for (dst_x = 0; dst_x < width; dst_x++) {
 		    int i;
 		    xcb_coloritem_t color;
@@ -355,13 +382,50 @@ static void DiaDrawImage(const Image * image, int x, int y, unsigned width,
 		src_y += scale_y;
 	    }
 	}
+	//  fast 24bit versions
+    } else if (xcb_image->bpp == 24) {
+	for (dst_y = 0; dst_y < height; dst_y++) {
+	    int n;
+
+	    n = (src_y / 65536) * image->Width;
+	    src_x = 0;
+	    for (dst_x = 0; dst_x < width; dst_x++) {
+		int i;
+		xcb_coloritem_t color;
+		uint8_t *row;
+
+		i = 4 * (n + (src_x / 65536));
+
+		color.red = (65535 * (argb[i + 1]) / 255);
+		color.green = (65535 * (argb[i + 2]) / 255);
+		color.blue = (65535 * (argb[i + 3]) / 255);
+		ColorGetPixel(&color);
+
+		row = xcb_image->data + (dst_y * xcb_image->stride);
+		switch (xcb_image->byte_order) {
+		    case XCB_IMAGE_ORDER_LSB_FIRST:
+			row[dst_x * 3] = color.pixel;
+			row[dst_x * 3 + 1] = color.pixel >> 8;
+			row[dst_x * 3 + 2] = color.pixel >> 16;
+			break;
+		    case XCB_IMAGE_ORDER_MSB_FIRST:
+			row[dst_x * 3] = color.pixel >> 16;
+			row[dst_x * 3 + 1] = color.pixel >> 8;
+			row[dst_x * 3 + 2] = color.pixel;
+			break;
+		}
+
+		src_x += scale_x;
+	    }
+
+	    src_y += scale_y;
+	}
     } else {
 	for (dst_y = 0; dst_y < height; dst_y++) {
 	    int n;
 
-	    src_x = 0;
 	    n = (src_y / 65536) * image->Width;
-
+	    src_x = 0;
 	    for (dst_x = 0; dst_x < width; dst_x++) {
 		int i;
 		xcb_coloritem_t color;
@@ -399,8 +463,6 @@ static void DiaDrawImage(const Image * image, int x, int y, unsigned width,
 */
 void DiaDrawIcon(Icon * icon, int x, int y, unsigned width, unsigned height)
 {
-    // we can't use render on these
-    icon->UseRender = 0;
     // draw icon on window
     IconDraw(icon, DiaVars->Working, x, y, width, height);
 }
@@ -544,13 +606,24 @@ static void DiaDrawSingle(void)
     x = 0;
     y = 0;
     if (DiaVars->FilmStrip) {
+	// FIXME: no need to redraw film-strip, if already in backstore
 	DiaDrawVerticalFilmStrip();
 	x = DiaVars->FilmStripWidth;
     }
 
     file = (const char *)ArrayGet(DiaVars->FilesInDir, DiaVars->CurrentIndex);
     if (file) {
-	DiaShowImage(file, x, y, DiaVars->Width - x, DiaVars->Height - y);
+	int ox;
+	int oy;
+	int w;
+	int h;
+
+	// FIXME: set clipping
+	w = DiaVars->Width - x;
+	h = DiaVars->Height - y;
+	ox = DiaVars->OffsetX;
+	oy = DiaVars->OffsetY;
+	DiaShowImage(file, x + ox, y + oy, w, h);
     }
 }
 
@@ -615,12 +688,12 @@ static void DiaDrawIndex(void)
 **
 **	Modes:
 **		- 1 picture
-**		- film role + 1 picture
+**		- film roll + 1 picture
 **		- n x m pictures
 **
 **	@param expose	true called from expose event.
 */
-static void DiaDraw(int expose)
+static void DiaDrawWindow(int expose)
 {
     uint32_t values[1];
     xcb_rectangle_t rectangle;
@@ -656,6 +729,7 @@ static void DiaDraw(int expose)
     values[0] = DiaVars->Working;
     xcb_change_window_attributes(Connection, DiaVars->Window,
 	XCB_CW_BACK_PIXMAP, values);
+    // FIXME: wait v-sync
     xcb_aux_clear_window(Connection, DiaVars->Window);
     DiaVars->Working = DiaVars->Pixmap;
     DiaVars->Pixmap = values[0];
@@ -666,6 +740,13 @@ static void DiaDraw(int expose)
 */
 static void DiaDestroy(void)
 {
+    Client *client;
+
+    // remove frame
+    if ((client = ClientFindByChild(DiaVars->Window))) {
+	ClientDelWindow(client);
+    }
+
     free(DiaVars->Path);
     DiaVars->Path = NULL;
 
@@ -695,6 +776,7 @@ void DiaCreate(const char *name)
     int y;
     int width;
     int height;
+    Client *self;
 
     if (DiaVars->Window) {		// already running
 	DiaDestroy();
@@ -707,15 +789,22 @@ void DiaCreate(const char *name)
     DiaVars->NeedRedraw = 0;
     DiaVars->State = 0;
 
-    x = 0;
-    y = 0;
-    width = RootWidth;
-    height = RootHeight;
+    if (DiaVars->Fullscreen) {		// fullscreen mode
+	x = 0;
+	y = 0;
+	width = RootWidth;
+	height = RootHeight;
+    } else {				// window mode
+	x = RootWidth / 8;
+	y = RootHeight / 8;
+	width = (RootWidth * 3) / 4;
+	height = (RootHeight * 3) / 4;
+    }
 
     window = xcb_generate_id(Connection);
     values[0] =
 	XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE |
-	XCB_EVENT_MASK_EXPOSURE;
+	XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_EXPOSURE;
     xcb_create_window(Connection, XCB_COPY_FROM_PARENT, window, RootWindow, x,
 	y, width, height, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
 	XCB_COPY_FROM_PARENT, XCB_CW_EVENT_MASK, values);
@@ -735,15 +824,34 @@ void DiaCreate(const char *name)
     xcb_set_wm_name(Connection, window, STRING, sizeof("Diashow") - 1,
 	"Diashow");
 
-#if 0
-    // This approach fails due freeze on first button click
-    self =
-	ClientAddWindow(window, xcb_get_window_attributes_unchecked(Connection,
-	    window), 0, 0);
+    if (DiaVars->Fullscreen) {		// fullscreen mode
+	values[0] = Atoms.NET_WM_STATE_FULLSCREEN.Atom;
+	xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, window,
+	    Atoms.NET_WM_STATE.Atom, ATOM, 32, 1, &values);
+    }
+#if 1
+    if (1) {
 
-    self->State |= WM_STATE_WMDIALOG;
-    ClientFocus(self);
+	self =
+	    ClientAddWindow(window,
+	    xcb_get_window_attributes_unchecked(Connection, window), 0, 0);
+
+	// resize not supported yet
+	self->State |= WM_STATE_WMDIALOG;
+
+	ClientFocus(self);
+
+	// need to grab button, but i don't know why
+	// otherwise its freeze on first button click
+	xcb_grab_button(Connection, 1, window,
+	    XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE,
+	    XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC, XCB_NONE, XCB_NONE,
+	    XCB_GRAB_ANY, XCB_BUTTON_MASK_ANY);
+    }
 #endif
+
+    DiaVars->OffsetX = 0;
+    DiaVars->OffsetY = 0;
 
     DiaVars->Height = height;
     DiaVars->Width = width;
@@ -756,14 +864,14 @@ void DiaCreate(const char *name)
 	    XCB_CONFIG_WINDOW_STACK_MODE, values);
     }
     xcb_map_window(Connection, window);
-    DiaDraw(0);
+    DiaDrawWindow(0);			// release button event, cancels this
 
-    DiaVars->LastTick = GetMsTicks();
+    DiaVars->SlideShowTick = GetMsTicks() + DiaVars->SlideShowDelay * 1000;
 }
 
-/**
-**	First dia image.
-*/
+    /**
+    **	First dia image.
+    */
 static void DiaFirst(void)
 {
     size_t index;
@@ -774,13 +882,13 @@ static void DiaFirst(void)
     if (value) {
 	DiaVars->CurrentIndex = index;
 	DiaVars->FirstIndex = index;
-	DiaDraw(0);
+	DiaDrawWindow(0);
     }
 }
 
-/**
-**	Previous dia image.
-*/
+    /**
+    **	Previous dia image.
+    */
 static void DiaPrev(void)
 {
     size_t index;
@@ -804,7 +912,7 @@ static void DiaPrev(void)
 	    }
 	    DiaVars->FirstIndex = index;
 	}
-	DiaDraw(0);
+	DiaDrawWindow(0);
     }
 }
 
@@ -844,7 +952,7 @@ static void DiaNext(void)
 	    }
 	    DiaVars->FirstIndex = index;
 	}
-	DiaDraw(0);
+	DiaDrawWindow(0);
     }
 }
 
@@ -911,7 +1019,7 @@ static void DiaIndexScrollUp(int n)
     }
     DiaVars->CurrentIndex = index;
 
-    DiaDraw(0);
+    DiaDrawWindow(0);
 }
 
 /**
@@ -954,7 +1062,7 @@ static void DiaIndexScrollDown(int n)
     }
     DiaVars->CurrentIndex = index;
 
-    DiaDraw(0);
+    DiaDrawWindow(0);
 }
 
 /**
@@ -1053,7 +1161,7 @@ static void DiaClickCommand(int mask, int x, int y)
 		value = ArrayLast(DiaVars->FilesInDir, &index);
 		if (value) {
 		    DiaVars->CurrentIndex = index;
-		    DiaDraw(0);
+		    DiaDrawWindow(0);
 		}
 		return;
 	    }
@@ -1073,7 +1181,7 @@ static void DiaClickCommand(int mask, int x, int y)
 	// north-west corner
 	if (x < start_x + DiaVars->CornerWidth && y < DiaVars->CornerHeight) {
 	    DiaVars->Layout = DIA_LAYOUT_INDEX;
-	    DiaDraw(0);
+	    DiaDrawWindow(0);
 	    return;
 	}
 	// south-west corner
@@ -1084,30 +1192,33 @@ static void DiaClickCommand(int mask, int x, int y)
 	    if (DiaVars->FirstIndex > DiaVars->CurrentIndex) {
 		DiaVars->FirstIndex = DiaVars->CurrentIndex;
 	    }
-	    DiaDraw(0);
+	    DiaDrawWindow(0);
 	    return;
 	}
 	// south-east corner
 	if (x > DiaVars->Width - DiaVars->CornerWidth
 	    && y > DiaVars->Height - DiaVars->CornerHeight) {
+	    Debug(3, "south-east corner: %s\n", "start-slide-show");
 	    DiaVars->SlideShow = 1;
-	    DiaVars->LastTick = GetMsTicks();
+	    DiaVars->SlideShowTick = GetMsTicks();
 	    return;
 	}
 	// west side
 	if (x < start_x + (DiaVars->Width - start_x) / 4) {
+	    Debug(3, "west-side : %s\n", "prev-dia");
 	    DiaPrev();
 	    if (DiaVars->SlideShow) {
-		DiaVars->LastTick =
+		DiaVars->SlideShowTick =
 		    GetMsTicks() + DiaVars->SlideShowDelay * 1000;
 	    }
 	    return;
 	}
 	// east side
 	if (x >= DiaVars->Width - (DiaVars->Width - start_x) / 4) {
+	    Debug(3, "east-side : %s\n", "next-dia");
 	    DiaNext();
 	    if (DiaVars->SlideShow) {
-		DiaVars->LastTick =
+		DiaVars->SlideShowTick =
 		    GetMsTicks() + DiaVars->SlideShowDelay * 1000;
 	    }
 	    return;
@@ -1163,7 +1274,7 @@ static void DiaClickCommand(int mask, int x, int y)
 		    DiaVars->CurrentIndex = index;
 		    DiaVars->Layout = DIA_LAYOUT_SINGLE;
 		    DiaVars->FilmStrip = 0;
-		    DiaDraw(0);
+		    DiaDrawWindow(0);
 		    return;
 		}
 	    }
@@ -1205,7 +1316,7 @@ static void DiaMoveCommand(int x, int
 		DiaVars->FilmStripHeight =
 		    (DiaVars->FilmStripWidth * DiaVars->AspectDen) /
 		    DiaVars->AspectNum;
-		DiaDraw(0);
+		DiaDrawWindow(0);
 		return;
 	    }
 	    if (move_y > 0) {
@@ -1227,7 +1338,7 @@ static void DiaMoveCommand(int x, int
 	    DiaVars->SlideShow = 1;
 	} else {
 	    DiaVars->Layout = DIA_LAYOUT_INDEX;
-	    DiaDraw(0);
+	    DiaDrawWindow(0);
 	}
 	return;
     }
@@ -1243,7 +1354,7 @@ static void DiaMoveCommand(int x, int
 	}
 	DiaVars->IndexHeight =
 	    (DiaVars->IndexWidth * DiaVars->AspectDen) / DiaVars->AspectNum;
-	DiaDraw(0);
+	DiaDrawWindow(0);
 	return;
     }
     if (move_y > 0) {
@@ -1264,7 +1375,7 @@ static void DiaMoveCommand(int x, int
 int DiaHandleExpose(const xcb_expose_event_t * event)
 {
     if ( /* DiaVars && */ event->window == DiaVars->Window) {
-	DiaDraw(1);
+	DiaDrawWindow(1);
 	return 1;
     }
     return 0;
@@ -1280,12 +1391,13 @@ int DiaHandleExpose(const xcb_expose_event_t * event)
 int DiaHandleButtonPress(const xcb_button_press_event_t * event)
 {
     if ( /* DiaVars && */ event->event == DiaVars->Window) {
+	Debug(3, "dia: button-press %d,%d\n", event->root_x, event->root_y);
 	//
 	//	first pointer button press reaction is delayed for
 	//	gestures
 	//
 	if (event->detail == XCB_BUTTON_INDEX_1) {
-	    DiaVars->LastTick = event->time;
+	    DiaVars->LastTime = event->time;
 	    DiaVars->LastX = event->root_x;
 	    DiaVars->LastY = event->root_y;
 	    DiaVars->State = 1;
@@ -1310,6 +1422,8 @@ int DiaHandleButtonRelease(const xcb_button_release_event_t * event)
     if ( /* !DiaVars || */ event->event != DiaVars->Window) {
 	return 0;
     }
+    Debug(3, "dia: button-release %d,%d\n", event->root_x, event->root_y);
+
     //
     //	Check delayed button press
     //
@@ -1330,23 +1444,42 @@ int DiaHandleButtonRelease(const xcb_button_release_event_t * event)
 }
 
 /**
+**	Handle a motion notify event over dia window.
+**
+**	@param event	X11 motion notify event
+**
+**	@returns true if event is handled by dia window, false otherwise.
+*/
+int DiaHandleMotionNotify(const xcb_motion_notify_event_t * event)
+{
+    if ( /* !DiaVars || */ event->event != DiaVars->Window) {
+	return 0;
+    }
+    Debug(3, "dia: motion-notify %d,%d\n", event->root_x, event->root_y);
+
+    return 1;
+}
+
+/**
 **	Timeout for dia-show.  Max resolution is * 50ms.
 **
 **	@param tick	current tick in ms
 **	@param x	current mouse x-coordinate
 **	@param y	current mouse y-coordinate
 */
-void DiaTimeout(uint32_t __attribute__ ((unused)) tick, int x, int y)
+void DiaTimeout(uint32_t tick, int __attribute__ ((unused)) x, int
+    __attribute__ ((unused)) y)
 {
     if (!DiaVars->Window) {
 	return;
     }
     if (DiaVars->SlideShow) {		// slide show running
-	if (tick > DiaVars->LastTick) {
+	if (tick > DiaVars->SlideShowTick) {
 	    size_t index;
 	    size_t *value;
 
-	    DiaVars->LastTick += DiaVars->SlideShowDelay * 1000;
+	    DiaVars->SlideShowTick += DiaVars->SlideShowDelay * 1000;
+	    Debug(3, "dia: slide-show timeout\n");
 
 	    index = DiaVars->CurrentIndex;
 	    value = ArrayNext(DiaVars->FilesInDir, &index);
@@ -1357,11 +1490,10 @@ void DiaTimeout(uint32_t __attribute__ ((unused)) tick, int x, int y)
 	    }
 	}
     }
+
     if (DiaVars->NeedRedraw) {		// missing update
-	DiaDraw(0);
+	DiaDrawWindow(0);
     }
-    x = x;
-    y = y;
 }
 
 /**
@@ -1397,6 +1529,7 @@ void DiaConfig(const Config * config)
 
     // FIXME: get dia table first
     // FIXME: should write a config -> c
+    // FXIME: Use GetBoolean
     if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "label", NULL)) {
 	DiaVars->IndexLabel = ival != 0;
     }
@@ -1408,6 +1541,9 @@ void DiaConfig(const Config * config)
     }
     if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "back-drop", NULL)) {
 	DiaVars->Backdrop = ival != 0;
+    }
+    if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "fullscreen", NULL)) {
+	DiaVars->Fullscreen = ival != 0;
     }
     if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "delay", NULL)) {
 	DiaVars->SlideShowDelay = ival;
