@@ -1,7 +1,7 @@
 ///
 ///	@file clock.h	@brief clock panel plugin header file.
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -34,13 +34,8 @@ extern void ClockInit(void);
     /// Cleanup clock panel plugin.
 extern void ClockExit(void);
 
-#ifdef USE_LUA
-    /// Create a new clock panel plugin.
-Plugin *ClockNew(const char *, const char *, const char *, unsigned, unsigned);
-#else
-    /// Parse clock panel plugin config
+    /// Parse clock panel plugin configuration
 Plugin *ClockConfig(const ConfigObject *);
-#endif
 
 #ifndef USE_CLOCK			// {
 

@@ -736,78 +736,6 @@ void TaskExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
-#ifdef USE_LUA
-
-/**
-**	Set insertion mode for tasks.
-**
-**	@param mode	insertion mode (either right or left)
-*/
-void TaskSetInsertMode(const char *mode)
-{
-    if (!mode) {
-	TaskInsertMode = TASK_INSERT_RIGHT;
-	return;
-    }
-
-    if (!strcasecmp(mode, "right")) {
-	TaskInsertMode = TASK_INSERT_RIGHT;
-    } else if (!strcasecmp(mode, "left")) {
-	TaskInsertMode = TASK_INSERT_LEFT;
-    } else {
-	Warning("invalid insert mode: \"%s\"", mode);
-	TaskInsertMode = TASK_INSERT_RIGHT;
-    }
-
-}
-
-/**
-**	Create a new task panel plugin.
-**
-**	@returns common panel plugin data of task list
-*/
-Plugin *TaskNew(void)
-{
-    Plugin *plugin;
-    TaskPlugin *task_plugin;
-
-    task_plugin = calloc(1, sizeof(*task_plugin));
-    SLIST_INSERT_HEAD(&Tasks, task_plugin, Next);
-
-    task_plugin->Layout = PANEL_LAYOUT_HORIZONTAL;
-    task_plugin->MaxItemWidth = UINT16_MAX;
-
-    plugin = PanelPluginNew();
-    plugin->Object = task_plugin;
-    task_plugin->Plugin = plugin;
-
-    plugin->Create = TaskCreate;
-    plugin->Delete = PanelPluginDeletePixmap;
-    plugin->SetSize = TaskSetSize;
-    plugin->Resize = TaskResize;
-    plugin->Tooltip = TaskTooltip;
-    plugin->HandleButtonPress = TaskHandleButtonPress;
-
-    return plugin;
-}
-
-/**
-**	Set maximum width of an item in task.
-**
-**	@param plugin	common panel plugin data of task list
-**	@param value	maximum width
-*/
-void TaskSetMaxItemWidth(Plugin * plugin, int value)
-{
-    if (value < 0) {
-	Warning("invalid maxwidth for task item: %d\n", value);
-	return;
-    }
-    ((TaskPlugin *) plugin->Object)->MaxItemWidth = value;
-}
-
-#else
-
 /**
 **	Create a new task panel plugin from config data.
 **
@@ -855,8 +783,6 @@ Plugin *TaskConfig(const ConfigObject * array)
 
     return plugin;
 }
-
-#endif
 
 #endif // } USE_TASK
 

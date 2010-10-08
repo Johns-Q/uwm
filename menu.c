@@ -2495,130 +2495,6 @@ void MenuDel(Menu * menu)
 // ------------------------------------------------------------------------ //
 // Config
 
-#ifdef USE_LUA
-
-/**
-**	Set label of menu.
-**
-**	@param menu	menu to change label
-**	@param label	label of menu
-*/
-void MenuSetLabel(Menu * menu, const char *label)
-{
-    free(menu->Label);
-    menu->Label = label ? strdup(label) : NULL;
-}
-
-/**
-**	Set user height of menu items.
-**
-**	@param menu	menu to change label
-**	@param height	user height of menu items
-*/
-void MenuSetUserHeight(Menu * menu, int height)
-{
-    menu->UserHeight = height;
-}
-
-/**
-**	Set sub-menu of menu item.
-**
-**	@param item	change type of this menu item to sub-menu
-**	@param menu	make this menu the new sub-menu
-*/
-void MenuSetSubmenu(MenuItem * item, Menu * menu)
-{
-    if (!menu) {
-	Warning("null sub menu added\n");
-    }
-    if (item->Type) {
-	Warning("menu has already action defined\n");
-    }
-    if (item->Command.Submenu) {
-	Warning("can loose memory, item has already a sub menu\n");
-	// FIXME: MenuDel(Submenu); if it was menu
-    }
-    item->Type = MENU_ACTION_SUBMENU;
-    item->Command.Submenu = menu;
-}
-
-/**
-**	Set action of the menu.
-*/
-void MenuSetAction(MenuItem * item, const char *action, const char *value)
-{
-    if (!strcasecmp("none", action)) {
-	item->Type = MENU_ACTION_NONE;
-    } else if (!strcasecmp("desktop", action)) {
-	item->Type = MENU_ACTION_DESKTOP;
-    } else if (!strcasecmp("window", action)) {
-	item->Type = MENU_ACTION_WINDOW;
-    } else if (!strcasecmp("set-desktop", action)) {
-	item->Type = MENU_ACTION_SET_DESKTOP;
-	item->Command.Integer = value ? atoi(value) : 0;
-    } else if (!strcasecmp("next-desktop", action)) {
-	item->Type = MENU_ACTION_NEXT_DESKTOP;
-    } else if (!strcasecmp("prev-desktop", action)) {
-	item->Type = MENU_ACTION_PREV_DESKTOP;
-    } else if (!strcasecmp("sendto", action)) {
-	item->Type = MENU_ACTION_SENDTO;
-    } else if (!strcasecmp("sendto-desktop", action)) {
-	item->Type = MENU_ACTION_SENDTO_DESKTOP;
-	item->Command.Integer = value ? atoi(value) : 0;
-    } else if (!strcasecmp("layer", action)) {
-	item->Type = MENU_ACTION_LAYER;
-    } else if (!strcasecmp("set-layer", action)) {
-	item->Type = MENU_ACTION_SET_LAYER;
-	item->Command.Integer = value ? atoi(value) : 0;
-    } else if (!strcasecmp("stick", action)) {
-	item->Type = MENU_ACTION_TOGGLE_STICKY;
-    } else if (!strcasecmp("toggle-maximize", action)) {
-	item->Type = MENU_ACTION_TOGGLE_MAXIMIZE;
-    } else if (!strcasecmp("maximize-horizontal", action)) {
-	item->Type = MENU_ACTION_MAXIMIZE_HORZ;
-    } else if (!strcasecmp("maximize-vertical", action)) {
-	item->Type = MENU_ACTION_MAXIMIZE_VERT;
-    } else if (!strcasecmp("minimize", action)) {
-	item->Type = MENU_ACTION_MINIMIZE;
-    } else if (!strcasecmp("restore", action)) {
-	item->Type = MENU_ACTION_RESTORE;
-    } else if (!strcasecmp("shade", action)) {
-	item->Type = MENU_ACTION_TOGGLE_SHADE;
-    } else if (!strcasecmp("move", action)) {
-	item->Type = MENU_ACTION_MOVE;
-    } else if (!strcasecmp("resize", action)) {
-	item->Type = MENU_ACTION_RESIZE;
-    } else if (!strcasecmp("raise", action)) {
-	item->Type = MENU_ACTION_RAISE;
-    } else if (!strcasecmp("lower", action)) {
-	item->Type = MENU_ACTION_LOWER;
-    } else if (!strcasecmp("close", action)) {
-	item->Type = MENU_ACTION_CLOSE;
-    } else if (!strcasecmp("kill", action)) {
-	item->Type = MENU_ACTION_KILL;
-    } else if (!strcasecmp("execute", action)) {
-	item->Type = MENU_ACTION_EXECUTE;
-	item->Command.String = value ? strdup(value) : NULL;
-    } else if (!strcasecmp("exit", action)) {
-	item->Type = MENU_ACTION_EXIT;
-	item->Command.String = value ? strdup(value) : NULL;
-    } else if (!strcasecmp("restart", action)) {
-	item->Type = MENU_ACTION_RESTART;
-    } else if (!strcasecmp("root-menu", action)) {
-	item->Type = MENU_ACTION_ROOT_MENU;
-	item->Command.Integer = value ? atoi(value) : 0;
-    } else if (!strcasecmp("toggle-show-desktop", action)) {
-	item->Type = MENU_ACTION_TOGGLE_SHOW_DESKTOP;
-    } else if (!strcasecmp("dir", action)) {
-	item->Type = MENU_ACTION_DIR;
-	item->Command.String = value ? strdup(value) : NULL;
-    } else {
-	Warning("unsupported action '%s'(%s)\n", action, value);
-    }
-}
-
-#else
-
 /**
 **	Parse menu command configuration.
 **
@@ -2999,8 +2875,6 @@ void MenuConfig(const Config * config)
     }
 }
 
-#endif
-
 // ------------------------------------------------------------------------ //
 // Root menu
 // ------------------------------------------------------------------------ //
@@ -3178,45 +3052,6 @@ void RootMenuExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
-#ifdef USE_LUA
-
-/**
-**	Set a root menu.
-**
-**	@param index	change the root menu at index
-**	@param menu	new menu value for root menu with number index
-*/
-void RootSetMenu(int index, Menu * menu)
-{
-    if (index < 0 || (unsigned)index > sizeof(RootMenu) / sizeof(*RootMenu)) {
-	Warning("invalid root menu %d\n", index);
-	return;
-    }
-    // b
-    // check if overwriting existing value
-    if (RootMenu[index] && RootMenu[index] != menu) {
-	unsigned u;
-
-	Debug(2, "FIXME: free overwritten root menu\n");
-
-	// check if overwriting this value will cause an orphan
-	for (u = 0; u < sizeof(RootMenu) / sizeof(*RootMenu); u++) {
-	    if ((unsigned)index != u && RootMenu[index] == RootMenu[u]) {
-		break;
-	    }
-	}
-
-	if (u == sizeof(RootMenu) / sizeof(*RootMenu)) {
-	    // we have an orphan, delete it
-	    MenuDel(RootMenu[index]);
-	}
-
-    }
-    RootMenu[index] = menu;
-}
-
-#else
-
 /**
 **	Parse root menu/command configuration.
 **
@@ -3230,8 +3065,6 @@ void RootMenuConfig(const Config * config)
 	MenuButtonsConfig(array, &RootButtons);
     }
 }
-
-#endif
 
 /// @}
 

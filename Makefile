@@ -32,7 +32,7 @@
 
 #	enable/disable outline window move/resize
 #CONFIG += -DUSE_OUTLINE
-CONFIG += -DNO_OUTLINE
+#CONFIG += -DNO_OUTLINE
 #	enable/disable move/resize status window
 #CONFIG += -DUSE_STATUS
 #CONFIG += -DNO_STATUS
@@ -97,9 +97,9 @@ CONFIG += -DNO_OUTLINE
 #	use X Xinerama Extension
 #CONFIG += -DUSE_XINERAMA
 #CONFIG += -DNO_XINERAMA
-#	use X Rendering Extension (disabled due BUG (64bit crash!))
+#	use X Rendering Extension
 #CONFIG += -DUSE_RENDER
-CONFIG += -DNO_RENDER
+#CONFIG += -DNO_RENDER
 #	use X Shape Extentsion
 #CONFIG += -DUSE_SHAPE
 #CONFIG += -DNO_SHAPE
@@ -114,14 +114,14 @@ CONFIG += -DNO_RENDER
 #CONFIG += -DNO_MOTIF_HINTS
 
 #	enable/disable debug
-CONFIG += -DDEBUG
+#CONFIG += -DDEBUG
 #CONFIG += -DNO_DEBUG
 
 DEFS = $(CONFIG) #### $(addprefix -D, $(CONFIG))
 
 #----------------------------------------------------------------------------
 
-VERSION	=	"0.23"
+VERSION	=	"0.24"
 GIT_REV =	$(shell git describe --always 2>/dev/null)
 
 CC=	gcc

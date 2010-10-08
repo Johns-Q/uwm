@@ -819,43 +819,6 @@ void PagerExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
-#ifdef USE_LUA
-
-/**
-**	Create a pager panel plugin.
-**
-**	@param labeled	true show label on pager
-**	@param sticky	true show sticky windows on all desktops
-**
-**	@returns new pager panel plugin.
-*/
-Plugin *PagerNew(int labeled, int sticky)
-{
-    PagerPlugin *pager_plugin;
-    Plugin *plugin;
-
-    pager_plugin = calloc(1, sizeof(*pager_plugin));
-    SLIST_INSERT_HEAD(&Pagers, pager_plugin, Next);
-
-    pager_plugin->Labeled = labeled;
-    pager_plugin->Sticky = sticky;
-
-    plugin = PanelPluginNew();
-    plugin->Object = pager_plugin;
-    pager_plugin->Plugin = plugin;
-
-    plugin->Create = PanelPluginCreatePixmap;
-    plugin->Delete = PanelPluginDeletePixmap;
-    plugin->Resize = PagerResize;
-    plugin->SetSize = PagerSetSize;
-    plugin->Tooltip = PagerTooltip;
-    plugin->HandleButtonPress = PagerHandleButtonPress;
-
-    return plugin;
-}
-
-#else
-
 /**
 **	Create a new pager panel plugin from config data.
 **
@@ -892,8 +855,6 @@ Plugin *PagerConfig(const ConfigObject * array)
 
     return plugin;
 }
-
-#endif
 
 #endif // } USE_PAGER
 

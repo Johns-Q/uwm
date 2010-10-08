@@ -339,51 +339,6 @@ void DesktopExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
-#ifdef USE_LUA
-
-/**
-**	Set the number of desktops to use.
-*/
-void DesktopSetCount(int count)
-{
-    if (!count) {
-	Warning("invalid desktop count\n");
-	return;
-    }
-    DesktopN = count;
-
-    if (DesktopN < DESKTOP_MINIMAL_COUNT || DesktopN > DESKTOP_MAXIMAL_COUNT) {
-	Warning("invalid desktop count: \"%d\"", count);
-	DesktopN = DESKTOP_DEFAULT_COUNT;
-    }
-}
-
-/**
-**	Set the name for a desktop.
-*/
-void DesktopSetName(int desktop, const char *str)
-{
-    if (!str) {
-	Warning("empty desktop name tag\n");
-	return;
-    }
-    if (desktop >= DesktopN) {
-	Warning("invalid desktop count: \"%d\"", desktop);
-	return;
-    }
-    if (!Desktops) {
-	Desktops = calloc(DesktopN, sizeof(*Desktops));
-    }
-    if (Desktops[desktop].Name) {
-	Warning("desktop name already set\n");
-	free(Desktops[desktop].Name);
-    }
-
-    Desktops[desktop].Name = str ? strdup(str) : NULL;
-}
-
-#else
-
 /**
 **	Parse configuration for desktop module.
 **
@@ -431,7 +386,5 @@ void DesktopConfig(const Config * config)
 	}
     }
 }
-
-#endif
 
 /// @}

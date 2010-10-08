@@ -308,74 +308,14 @@ void ClockExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
-#ifdef USE_LUA
-
-/**
-**	Create a new clock panel plugin.
-**
-**	@param short_format	format string to be displayed in clock panel
-**				#CLOCK_DEFAULT_FORMAT if format is NULL
-**	@param long_format	format string to be displayed in tooltip
-**				#CLOCK_DEFAULT_LONG_FORMAT if format is NULL
-**	@param command		command to be executed on click of clock
-**	@param width		!=0 fixed width of clock panel
-**	@param height		!=0 fixed height of clock panel
-**
-**	@returns created clock plugin.
-**
-**	@todo support multiple commands.
-*/
-Plugin *ClockNew(const char *short_format, const char *long_format,
-    const char *command, unsigned width, unsigned height)
-{
-    Plugin *plugin;
-    ClockPlugin *clock_plugin;
-
-    clock_plugin = calloc(1, sizeof(*clock_plugin));
-    SLIST_INSERT_HEAD(&Clocks, clock_plugin, Next);
-
-    if (!short_format) {
-	short_format = CLOCK_DEFAULT_FORMAT;
-    }
-    clock_plugin->ShortFormat = strdup(short_format);
-
-    if (!long_format) {
-	long_format = CLOCK_DEFAULT_LONG_FORMAT;
-    }
-    clock_plugin->LongFormat = strdup(long_format);
-
-    if (command) {
-	clock_plugin->Command = strdup(command);
-    }
-
-    plugin = PanelPluginNew();
-    plugin->Object = clock_plugin;
-    clock_plugin->Plugin = plugin;
-
-    if (width > 0) {
-	plugin->RequestedWidth = width;
-	clock_plugin->UserWidth = 1;
-    }
-    plugin->RequestedHeight = height;
-
-    plugin->Create = ClockCreate;
-    plugin->Delete = PanelPluginDeletePixmap;
-    plugin->Resize = ClockResize;
-    plugin->Tooltip = ClockTooltip;
-    plugin->HandleButtonPress = ClockHandleButtonPress;
-    plugin->Timeout = ClockTimeout;
-
-    return plugin;
-}
-
-#else
-
 /**
 **	Create a new clock panel plugin from config data.
 **
 **	@param array	configuration array for clock panel plugin
 **
 **	@returns created clock panel plugin.
+**
+**	@todo use general panel height/width parse function
 */
 Plugin *ClockConfig(const ConfigObject * array)
 {
@@ -423,8 +363,6 @@ Plugin *ClockConfig(const ConfigObject * array)
 
     return plugin;
 }
-
-#endif
 
 #endif // } USE_CLOCK
 

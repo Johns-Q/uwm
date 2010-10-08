@@ -294,116 +294,6 @@ static void ModulesExit(void)
 }
 
 // ------------------------------------------------------------------------ //
-// Config
-
-#ifdef USE_LUA
-
-/**
-**	Set focus model.
-**
-**	@param model	focus model keyword
-*/
-void SetFocusModel(const char *model)
-{
-    FocusModus = FOCUS_SLOPPY;
-    if (!model || !strcasecmp(model, "sloppy")) {
-    } else if (!strcasecmp(model, "click")) {
-	FocusModus = FOCUS_CLICK;
-    } else {
-	Warning("invalid focus model: '%s'\n", model);
-    }
-}
-
-#else
-
-/**
-**	Parse gravity.
-**
-**	@param keyword	gravity type (static, north, ...)
-**	@param error	error info for failure message
-**
-**	@returns PanelGravity for given keyword.
-**
-**	@todo can move into rule module.
-**	@todo PANEL_GRAVITY_... can become GRAVITY_...
-*/
-int ParseGravity(const char *keyword, const char *error)
-{
-    if (!strcasecmp(keyword, "static")) {
-	return PANEL_GRAVITY_STATIC;
-    } else if (!strcasecmp(keyword, "north")) {
-	return PANEL_GRAVITY_NORTH;
-    } else if (!strcasecmp(keyword, "south")) {
-	return PANEL_GRAVITY_SOUTH;
-    } else if (!strcasecmp(keyword, "west")) {
-	return PANEL_GRAVITY_WEST;
-    } else if (!strcasecmp(keyword, "east")) {
-	return PANEL_GRAVITY_EAST;
-    } else if (!strcasecmp(keyword, "center")) {
-	return PANEL_GRAVITY_CENTER;
-    } else if (!strcasecmp(keyword, "north-west")) {
-	return PANEL_GRAVITY_NORTH_WEST;
-    } else if (!strcasecmp(keyword, "north-east")) {
-	return PANEL_GRAVITY_NORTH_EAST;
-    } else if (!strcasecmp(keyword, "south-west")) {
-	return PANEL_GRAVITY_SOUTH_WEST;
-    } else if (!strcasecmp(keyword, "south-east")) {
-	return PANEL_GRAVITY_SOUTH_EAST;
-    } else {
-	Warning("invalid %s gravity: \"%s\"\n", error, keyword);
-	return -1;
-    }
-}
-
-/**
-**	Get global configuration.
-**
-**	@param config	global config dictionary
-*/
-void GlobalConfig(const Config * config)
-{
-    const char *sval;
-    ssize_t ival;
-
-    Debug(2, "%s: FIXME:\n", __FUNCTION__);
-    // FIXME: global configs Placement Snap DoubleClick ...
-
-    if (ConfigGetString(ConfigDict(config), &sval, "focus-model", NULL)) {
-	if (!strcasecmp(sval, "sloppy")) {
-	    FocusModus = FOCUS_SLOPPY;
-	} else if (!strcasecmp(sval, "click")) {
-	    FocusModus = FOCUS_CLICK;
-	} else {
-	    FocusModus = FOCUS_SLOPPY;
-	    Warning("invalid focus model: '%s'\n", sval);
-	}
-    }
-    // DoubleClick
-    if (ConfigGetInteger(ConfigDict(config), &ival, "double-click", "delta",
-	    NULL)) {
-	if (DOUBLE_CLICK_MINIMAL_DELTA <= ival
-	    && ival <= DOUBLE_CLICK_MAXIMAL_DELTA) {
-	    DoubleClickDelta = ival;
-	} else {
-	    DoubleClickDelta = DOUBLE_CLICK_DEFAULT_DELTA;
-	    Warning("double-click delta %zd out of range\n", ival);
-	}
-    }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "double-click", "speed",
-	    NULL)) {
-	if (DOUBLE_CLICK_MINIMAL_SPEED <= ival
-	    && ival <= DOUBLE_CLICK_MAXIMAL_SPEED) {
-	    DoubleClickSpeed = ival;
-	} else {
-	    DoubleClickSpeed = DOUBLE_CLICK_DEFAULT_SPEED;
-	    Warning("double-click speed %zd out of range\n", ival);
-	}
-    }
-}
-
-#endif
-
-// ------------------------------------------------------------------------ //
 
 /**
 **	Open connection to X server.
@@ -570,416 +460,93 @@ static void ConnectionExit(void)
 }
 
 // ------------------------------------------------------------------------ //
-// LUA
+// Configuration
 // ------------------------------------------------------------------------ //
 
-///
-///	@defgroup lua The lua module.
-///
-///	This module handles loading the configuration.
-///
-///	This module is only available, if compiled with #USE_LUA.
-///
-/// @{
-
-#ifdef USE_LUA				// {
-
-#include "lua.h"
-#include "lualib.h"
-#include "lauxlib.h"
-
 /**
-**	Version of us.
+**	Parse gravity.
+**
+**	@param keyword	gravity type (static, north, ...)
+**	@param error	error info for failure message
+**
+**	@returns PanelGravity for given keyword.
+**
+**	@todo can move into rule module.
+**	@todo PANEL_GRAVITY_... can become GRAVITY_...
 */
-const char *Version(void)
+int ParseGravity(const char *keyword, const char *error)
 {
-    return VERSION;
-}
-
-//
-//	FUN with cpp, to make LUA->C api quick&dirty
-//
-
-    /// LUA->C: integer argument
-#define LUA_ARG_I(idx) \
-    luaL_checkint(L, idx)
-    /// LUA->C: long argument
-#define LUA_ARG_L(idx) \
-    luaL_checknumber(L, idx)
-    /// LUA->C: string argument
-#define LUA_ARG_S(idx) \
-    luaL_checkstring(L, idx)
-    /// LUA->C: opt string argument
-#define LUA_ARG_OS(idx) \
-    luaL_optstring(L, idx, NULL)
-    /// LUA->C: userdata argument
-#define LUA_ARG_U(idx) \
-    lua_touserdata(L, idx)
-
-    /// LUA->C: void return
-#define LUA_RET( x ) \
-    x; return 0
-    /// LUA->C: string return
-#define LUA_RET_S( x ) \
-    lua_pushstring(L, x); return 1
-    /// LUA->C: userdata return
-#define LUA_RET_U( x ) \
-    lua_pushlightuserdata(L, x); return 1
-    /// LUA->C: opt userdata return (FIXME: not working!)
-#define LUA_RET_OU( x ) \
-    lua_pushlightuserdata(L, x); return 1
-
-    /// LUA->C: build glue function
-#define LUA_TO_C_X(name, narg, args, ret) \
-    static int Lua##name(lua_State *L) \
-    { \
-	Debug(4, "%s(%d)\n", #name, lua_gettop(L)); \
-	if (lua_gettop(L) != narg) { \
-	    return luaL_error(L, "Wrong number of arguments"); \
-	} \
-	ret( name args ); \
- \
+    if (!strcasecmp(keyword, "static")) {
+	return PANEL_GRAVITY_STATIC;
+    } else if (!strcasecmp(keyword, "north")) {
+	return PANEL_GRAVITY_NORTH;
+    } else if (!strcasecmp(keyword, "south")) {
+	return PANEL_GRAVITY_SOUTH;
+    } else if (!strcasecmp(keyword, "west")) {
+	return PANEL_GRAVITY_WEST;
+    } else if (!strcasecmp(keyword, "east")) {
+	return PANEL_GRAVITY_EAST;
+    } else if (!strcasecmp(keyword, "center")) {
+	return PANEL_GRAVITY_CENTER;
+    } else if (!strcasecmp(keyword, "north-west")) {
+	return PANEL_GRAVITY_NORTH_WEST;
+    } else if (!strcasecmp(keyword, "north-east")) {
+	return PANEL_GRAVITY_NORTH_EAST;
+    } else if (!strcasecmp(keyword, "south-west")) {
+	return PANEL_GRAVITY_SOUTH_WEST;
+    } else if (!strcasecmp(keyword, "south-east")) {
+	return PANEL_GRAVITY_SOUTH_EAST;
+    } else {
+	Warning("invalid %s gravity: \"%s\"\n", error, keyword);
+	return -1;
     }
-
-/// defines lua bindings 1 .. n arguments
-//@{
-#define LUA_TO_C_0(name, ret) \
-    LUA_TO_C_X(name, 0, (), ret)
-#define LUA_TO_C_1(name, a1, ret) \
-    LUA_TO_C_X(name, 1, (a1(1)), ret)
-#define LUA_TO_C_2(name, a1, a2, ret) \
-    LUA_TO_C_X(name, 2, (a1(1), a2(2)), ret)
-#define LUA_TO_C_3(name, a1, a2, a3, ret) \
-    LUA_TO_C_X(name, 3, (a1(1), a2(2), a3(3)), ret)
-#define LUA_TO_C_4(name, a1, a2, a3, a4, ret) \
-    LUA_TO_C_X(name, 4, (a1(1), a2(2), a3(3), a4(4)), ret)
-#define LUA_TO_C_5(name, a1, a2, a3, a4, a5, ret) \
-    LUA_TO_C_X(name, 5, (a1(1), a2(2), a3(3), a4(4), a5(5)), ret)
-#define LUA_TO_C_6(name, a1, a2, a3, a4, a5, a6, ret) \
-    LUA_TO_C_X(name, 6, (a1(1), a2(2), a3(3), a4(4), a5(5), a6(6)), ret)
-//@}
-
-/*
-**	General
-*/
-    /// lua -> C: Version.
-LUA_TO_C_0(Version, LUA_RET_S);
-
-/*
-**	Command
-*/
-    /// lua -> C: CommandAddStartup.
-LUA_TO_C_1(CommandAddStartup, LUA_ARG_S, LUA_RET);
-
-    /// lua -> C: CommandAddRestart.
-LUA_TO_C_1(CommandAddRestart, LUA_ARG_S, LUA_RET);
-    /// lua -> C: CommandAddExiting.
-LUA_TO_C_1(CommandAddExiting, LUA_ARG_S, LUA_RET);
-
-/*
-**	Color
-*/
-    /// lua -> C: ColorSet.
-LUA_TO_C_2(ColorSet, LUA_ARG_S, LUA_ARG_S, LUA_RET);
-
-#ifdef USE_BACKGROUND
-
-/*
-**	Background
-*/
-    /// lua -> C: BackgroundSet.
-LUA_TO_C_3(BackgroundSet, LUA_ARG_I, LUA_ARG_S, LUA_ARG_S, LUA_RET);
-#endif
-
-/*
-**	Font
-*/
-    /// lua -> C: FontSet.
-LUA_TO_C_2(FontSet, LUA_ARG_S, LUA_ARG_S, LUA_RET);
-
-#ifdef USE_ICON
-
-/*
-**	Icon
-*/
-    /// lua -> C: IconAddPath.
-LUA_TO_C_1(IconAddPath, LUA_ARG_S, LUA_RET);
-#endif
-
-/*
-**	Border
-*/
-    /// lua -> C: BorderSetTitleHeight
-LUA_TO_C_1(BorderSetTitleHeight, LUA_ARG_I, LUA_RET);
-    /// lua -> C: BorderSetWidth
-LUA_TO_C_1(BorderSetWidth, LUA_ARG_I, LUA_RET);
-
-/*
-**	Tooltip
-*/
-    /// lua -> C: TooltipSetEnabled.
-LUA_TO_C_1(TooltipSetEnabled, LUA_ARG_I, LUA_RET);
-    /// lua -> C: TooltipSetDelay.
-LUA_TO_C_1(TooltipSetDelay, LUA_ARG_I, LUA_RET);
-
-/*
-**	Menu
-*/
-    /// lua -> C: MenuNewItem.
-LUA_TO_C_2(MenuNewItem, LUA_ARG_OS, LUA_ARG_OS, LUA_RET_U);
-    /// lua -> C: MenuSetSubmenu.
-LUA_TO_C_2(MenuSetSubmenu, LUA_ARG_U, LUA_ARG_U, LUA_RET);
-    /// lua -> C: MenuSetAction.
-LUA_TO_C_3(MenuSetAction, LUA_ARG_U, LUA_ARG_S, LUA_ARG_OS, LUA_RET);
-
-    /// lua -> C: MenuInsertItem.
-LUA_TO_C_2(MenuInsertItem, LUA_ARG_U, LUA_ARG_U, LUA_RET);
-    /// lua -> C: MenuAppendItem.
-LUA_TO_C_2(MenuAppendItem, LUA_ARG_U, LUA_ARG_U, LUA_RET);
-    /// lua -> C: MenuNew.
-LUA_TO_C_0(MenuNew, LUA_RET_U);
-    /// lua -> C: MenuSetLabel.
-LUA_TO_C_2(MenuSetLabel, LUA_ARG_U, LUA_ARG_S, LUA_RET);
-    /// lua -> C: MenuSetUserHeight.
-LUA_TO_C_2(MenuSetUserHeight, LUA_ARG_U, LUA_ARG_I, LUA_RET);
-
-    /// lua -> C: RootSetMenu.
-LUA_TO_C_2(RootSetMenu, LUA_ARG_I, LUA_ARG_U, LUA_RET);
-
-    /// lua -> C: DesktopSetCount.
-LUA_TO_C_1(DesktopSetCount, LUA_ARG_I, LUA_RET);
-    /// lua -> C: DesktopSetName.
-LUA_TO_C_2(DesktopSetName, LUA_ARG_I, LUA_ARG_OS, LUA_RET);
-
-/*
-**	Panel
-*/
-    /// lua -> C: PanelSetOpacity.
-LUA_TO_C_1(PanelSetOpacity, LUA_ARG_L, LUA_RET);
-    /// lua -> C: PanelNew.
-LUA_TO_C_0(PanelNew, LUA_RET_U);
-    /// lua -> C: PanelSetAutoHide.
-LUA_TO_C_2(PanelSetAutoHide, LUA_ARG_U, LUA_ARG_I, LUA_RET);
-    /// lua -> C: PanelSetMaximizeOver.
-LUA_TO_C_2(PanelSetMaximizeOver, LUA_ARG_U, LUA_ARG_I, LUA_RET);
-    /// lua -> C: PanelSetPosition.
-LUA_TO_C_3(PanelSetPosition, LUA_ARG_U, LUA_ARG_I, LUA_ARG_I, LUA_RET);
-    /// lua -> C: PanelSetWidth.
-LUA_TO_C_2(PanelSetWidth, LUA_ARG_U, LUA_ARG_I, LUA_RET);
-    /// lua -> C: PanelSetHeight.
-LUA_TO_C_2(PanelSetHeight, LUA_ARG_U, LUA_ARG_I, LUA_RET);
-    /// lua -> C: PanelSetBorder.
-LUA_TO_C_2(PanelSetBorder, LUA_ARG_U, LUA_ARG_I, LUA_RET);
-    /// lua -> C: PanelSetLayout.
-LUA_TO_C_2(PanelSetLayout, LUA_ARG_U, LUA_ARG_OS, LUA_RET);
-    /// lua -> C: PanelSetLayer.
-LUA_TO_C_2(PanelSetLayer, LUA_ARG_U, LUA_ARG_I, LUA_RET);
-    /// lua -> C: PanelSetGravity.
-LUA_TO_C_2(PanelSetGravity, LUA_ARG_U, LUA_ARG_OS, LUA_RET);
-    /// lua -> C: PanelAddPlugin.
-LUA_TO_C_2(PanelAddPlugin, LUA_ARG_U, LUA_ARG_U, LUA_RET);
-
-#ifdef USE_CLOCK
-
-/*
-**	Clock panel plugin
-*/
-    /// lua -> C: ClockNew.
-LUA_TO_C_5(ClockNew, LUA_ARG_OS, LUA_ARG_OS, LUA_ARG_OS, LUA_ARG_I, LUA_ARG_I,
-    LUA_RET_U);
-#endif
-
-    /// lua -> C: PanelButtonNew.
-LUA_TO_C_4(PanelButtonNew, LUA_ARG_U, LUA_ARG_OS, LUA_ARG_I, LUA_ARG_I,
-    LUA_RET_OU);
-
-#ifdef USE_PAGER
-
-/*
-**	Pager panel plugin
-*/
-    /// lua -> C: PagerNew.
-LUA_TO_C_2(PagerNew, LUA_ARG_I, LUA_ARG_I, LUA_RET_U);
-#endif
-
-/*
-**	Task panel plugin
-*/
-    /// lua -> C: TaskSetInsertMode.
-LUA_TO_C_1(TaskSetInsertMode, LUA_ARG_OS, LUA_RET);
-    /// lua -> C: TaskNew.
-LUA_TO_C_0(TaskNew, LUA_RET_U);
-    /// lua -> C: TaskSetMaxItemWidth.
-LUA_TO_C_2(TaskSetMaxItemWidth, LUA_ARG_U, LUA_ARG_I, LUA_RET);
-
-    /// lua -> C: SwallowNew.
-LUA_TO_C_4(SwallowNew, LUA_ARG_OS, LUA_ARG_OS, LUA_ARG_I, LUA_ARG_I,
-    LUA_RET_U);
-
-#ifdef USE_SYSTRAY
-
-/*
-**	Systray panel plugin
-*/
-    /// lua -> C: SystrayNew.
-LUA_TO_C_0(SystrayNew, LUA_RET_U);
-#endif
-
-/*
-**	rule
-*/
-    /// lua -> C: RuleNew.
-LUA_TO_C_0(RuleNew, LUA_RET_U);
-    /// lua -> C: RuleAddName.
-LUA_TO_C_2(RuleAddName, LUA_ARG_U, LUA_ARG_S, LUA_RET);
-    /// lua -> C: RuleAddClass.
-LUA_TO_C_2(RuleAddClass, LUA_ARG_U, LUA_ARG_S, LUA_RET);
-    /// lua -> C: RuleAddTitle.
-LUA_TO_C_2(RuleAddTitle, LUA_ARG_U, LUA_ARG_S, LUA_RET);
-    /// lua -> C: RuleAddOption.
-LUA_TO_C_3(RuleAddOption, LUA_ARG_U, LUA_ARG_S, LUA_ARG_OS, LUA_RET);
-
-/*
-**	global config
-*/
-    /// lua -> C: SetFocusModel.
-LUA_TO_C_1(SetFocusModel, LUA_ARG_S, LUA_RET);
+}
 
 /**
-**	lua -> C: functions
+**	Get global configuration.
+**
+**	@param config	global config dictionary
 */
-static const struct luaL_reg LuaUwm[] = {
-    {
-	"Version", LuaVersion}, {
-
-	"CommandAddStartup", LuaCommandAddStartup}, {
-	"CommandAddRestart", LuaCommandAddRestart}, {
-	"CommandAddExiting", LuaCommandAddExiting}, {
-
-	"ColorSet", LuaColorSet}, {
-
-#ifdef USE_BACKGROUND
-	"BackgroundSet", LuaBackgroundSet}, {
-#endif
-
-	"FontSet", LuaFontSet}, {
-
-#ifdef USE_ICON
-	"IconAddPath", LuaIconAddPath}, {
-#endif
-	"BorderSetTitleHeight", LuaBorderSetTitleHeight}, {
-	"BorderSetWidth", LuaBorderSetWidth}, {
-
-	"TooltipSetEnabled", LuaTooltipSetEnabled}, {
-	"TooltipSetDelay", LuaTooltipSetDelay}, {
-
-	"MenuNewItem", LuaMenuNewItem}, {
-	"MenuSetSubmenu", LuaMenuSetSubmenu}, {
-	"MenuSetAction", LuaMenuSetAction}, {
-
-	"MenuNew", LuaMenuNew}, {
-	"MenuSetLabel", LuaMenuSetLabel}, {
-	"MenuSetUserHeight", LuaMenuSetUserHeight}, {
-
-	"MenuInsertItem", LuaMenuInsertItem}, {
-	"MenuAppendItem", LuaMenuAppendItem}, {
-	"RootSetMenu", LuaRootSetMenu}, {
-
-	"DesktopSetCount", LuaDesktopSetCount}, {
-	"DesktopSetName", LuaDesktopSetName}, {
-
-	"PanelSetOpacity", LuaPanelSetOpacity}, {
-	"PanelNew", LuaPanelNew}, {
-	"PanelSetAutoHide", LuaPanelSetAutoHide}, {
-	"PanelSetMaximizeOver", LuaPanelSetMaximizeOver}, {
-	"PanelSetPosition", LuaPanelSetPosition}, {
-	"PanelSetWidth", LuaPanelSetWidth}, {
-	"PanelSetHeight", LuaPanelSetHeight}, {
-	"PanelSetBorder", LuaPanelSetBorder}, {
-	"PanelSetLayout", LuaPanelSetLayout}, {
-	"PanelSetLayer", LuaPanelSetLayer}, {
-	"PanelSetGravity", LuaPanelSetGravity}, {
-	"PanelAddPlugin", LuaPanelAddPlugin}, {
-#ifdef USE_CLOCK
-	"ClockNew", LuaClockNew}, {
-#endif
-#ifdef USE_BUTTON
-	"PanelButtonNew", LuaPanelButtonNew}, {
-#endif
-#ifdef USE_PAGER
-	"PagerNew", LuaPagerNew}, {
-#endif
-#ifdef USE_TASK
-	"TaskSetInsertMode", LuaTaskSetInsertMode}, {
-	"TaskNew", LuaTaskNew}, {
-	"TaskSetMaxItemWidth", LuaTaskSetMaxItemWidth}, {
-#endif
-#ifdef USE_SWALLOW
-	"SwallowNew", LuaSwallowNew}, {
-#endif
-#ifdef USE_SYSTRAY
-	"SystrayNew", LuaSystrayNew}, {
-#endif
-
-#ifdef USE_RULE
-	"RuleNew", LuaRuleNew}, {
-	"RuleAddName", LuaRuleAddName}, {
-	"RuleAddClass", LuaRuleAddClass}, {
-	"RuleAddTitle", LuaRuleAddTitle}, {
-	"RuleAddOption", LuaRuleAddOption}, {
-#endif
-
-	"SetFocusModel", LuaSetFocusModel}, {
-
-	NULL, NULL}
-};
-
-/**
-**	Initialize lua
-*/
-static void LuaInit(const char *filename)
+void GlobalConfig(const Config * config)
 {
-    lua_State *L;			// Lua interpreter
-    int err;
-    char *name;
+    const char *sval;
+    ssize_t ival;
 
-    // initialize Lua
-    L = lua_open();
+    Debug(2, "%s: FIXME:\n", __FUNCTION__);
+    // FIXME: global configs Placement Snap DoubleClick ...
 
-    // load Lua base libraries
-    luaL_openlibs(L);
-
-    // register our functions
-    luaL_register(L, "uwm", LuaUwm);
-
-    // run script
-    name = ExpandPath(filename);
-    if ((err = luaL_dofile(L, name))) {
-	Error("error parsing config file (%d) %s\n", err, lua_tostring(L, -1));
-	Debug(2, "FIXME: %s not written load system config\n", __FUNCTION__);
-	exit(-1);
+    if (ConfigGetString(ConfigDict(config), &sval, "focus-model", NULL)) {
+	if (!strcasecmp(sval, "sloppy")) {
+	    FocusModus = FOCUS_SLOPPY;
+	} else if (!strcasecmp(sval, "click")) {
+	    FocusModus = FOCUS_CLICK;
+	} else {
+	    FocusModus = FOCUS_SLOPPY;
+	    Warning("invalid focus model: '%s'\n", sval);
+	}
     }
-    free(name);
-    // cleanup Lua
-    lua_close(L);
+    // DoubleClick
+    if (ConfigGetInteger(ConfigDict(config), &ival, "double-click", "delta",
+	    NULL)) {
+	if (DOUBLE_CLICK_MINIMAL_DELTA <= ival
+	    && ival <= DOUBLE_CLICK_MAXIMAL_DELTA) {
+	    DoubleClickDelta = ival;
+	} else {
+	    DoubleClickDelta = DOUBLE_CLICK_DEFAULT_DELTA;
+	    Warning("double-click delta %zd out of range\n", ival);
+	}
+    }
+    if (ConfigGetInteger(ConfigDict(config), &ival, "double-click", "speed",
+	    NULL)) {
+	if (DOUBLE_CLICK_MINIMAL_SPEED <= ival
+	    && ival <= DOUBLE_CLICK_MAXIMAL_SPEED) {
+	    DoubleClickSpeed = ival;
+	} else {
+	    DoubleClickSpeed = DOUBLE_CLICK_DEFAULT_SPEED;
+	    Warning("double-click speed %zd out of range\n", ival);
+	}
+    }
 }
-
-/**
-**	Parse configuration file.
-*/
-void ParseConfig(const char *file)
-{
-    LuaInit(file);
-}
-
-#else // }{ USE_LUA
-
-    /// Dummy for parse configuration file.
-#define NoParseConfig(file)
-
-#endif // } !USE_LUA
-
-/// @}
 
 /**
 **	Parse configuration file.
@@ -1141,7 +708,7 @@ int main(int argc, char *const argv[])
 	    case 'r':			// send restart
 		SendRestart();
 		return 0;
-	    case 'p':			// parse config
+	    case 'p':			// parse configuration only
 		ParseConfig(config_filename);
 		return 0;
 

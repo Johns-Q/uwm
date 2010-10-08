@@ -440,71 +440,6 @@ void PanelButtonExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
-#ifdef USE_LUA
-
-/**
-**	Create a new panel button plugin.
-**
-**	@param item	menu item for icon, text and action
-**	@param tooltip	extra tooltip to display, NULL shows text
-**	@param width	button width, 0 auto sized
-**	@param height	button height, 0 auto sized
-**
-**	@returns created button panel plugin.
-*/
-Plugin *PanelButtonNew(MenuItem * item, const char *tooltip, unsigned width,
-    unsigned height)
-{
-    ButtonPlugin *button_plugin;
-    Plugin *plugin;
-
-    // validate arguments
-    if (!item) {
-	Warning("no menu item for button\n");
-	return NULL;
-    }
-    if (width > RootWidth / 2) {
-	Warning("invalid panel button width: %d\n", width);
-	width = 0;
-    }
-    if (height > RootHeight / 2) {
-	Warning("invalid panel button height: %d\n", height);
-	height = 0;
-    }
-
-    button_plugin = calloc(1, sizeof(ButtonPlugin));
-    SLIST_INSERT_HEAD(&Buttons, button_plugin, Next);
-
-    button_plugin->Item = item;
-    if (tooltip) {
-	button_plugin->Tooltip = strdup(tooltip);
-    }
-
-    plugin = PanelPluginNew();
-    plugin->Object = button_plugin;
-    button_plugin->Plugin = plugin;
-
-    plugin->RequestedWidth = width;
-    plugin->RequestedHeight = height;
-
-    plugin->Create = PanelButtonCreate;
-    plugin->Delete = PanelPluginDeletePixmap;
-#ifdef USE_ICON
-    plugin->SetSize = PanelButtonSetSize;
-#endif
-    plugin->Resize = PanelButtonResize;
-    if (tooltip || item->Text) {
-	plugin->Tooltip = PanelButtonTooltip;
-    }
-
-    plugin->HandleButtonPress = PanelButtonHandleButtonPress;
-    plugin->HandleButtonRelease = PanelButtonHandleButtonRelease;
-
-    return plugin;
-}
-
-#else
-
 /**
 **	Create a new button panel plugin from config data.
 **
@@ -569,8 +504,6 @@ Plugin *PanelButtonConfig(const ConfigObject * array)
 
     return plugin;
 }
-
-#endif
 
 #endif // } USE_BUTTON
 

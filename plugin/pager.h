@@ -37,15 +37,19 @@ extern void PagerInit(void);
     /// Cleanup pager panel plugin.
 extern void PagerExit(void);
 
-    /// Parse pager panel plugin config.
+    /// Parse pager panel plugin configuration.
 Plugin *PagerConfig(const ConfigObject *);
 
     /// Dummy for initialize pager(s).
 #define PagerInit()
 
 #ifndef USE_PAGER			// {
+    /// Dummy for update all pager plugin(s).
+#define PagerUpdate()
     /// Dummy for cleanup pager(s).
 #define PagerExit()
+    /// Dummy parse pager panel plugin configuration.
+#define PagerConfig(config)	NULL
 
 #endif // } !USE_PAGER
 

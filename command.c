@@ -183,50 +183,6 @@ void CommandExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
-#ifdef USE_LUA
-
-/**
-**	Add a command to a command list.
-*/
-static void CommandAdd(CommandHead * head, const char *command)
-{
-    Command *entry;
-
-    if (!command) {
-	return;
-    }
-
-    entry = malloc(sizeof(*entry));
-    entry->Command = strdup(command);
-    SLIST_INSERT_HEAD(head, entry, Next);
-}
-
-/**
-**	Add a startup command.
-*/
-void CommandAddStartup(const char *command)
-{
-    CommandAdd(&CommandsStartup, command);
-}
-
-/**
-**	Add a stoping command.
-*/
-void CommandAddExiting(const char *command)
-{
-    CommandAdd(&CommandsExiting, command);
-}
-
-/**
-**	Add a restart command.
-*/
-void CommandAddRestart(const char *command)
-{
-    CommandAdd(&CommandsRestart, command);
-}
-
-#else
-
 /**
 **	Parse configuration of a command list.
 **
@@ -234,7 +190,7 @@ void CommandAddRestart(const char *command)
 **	@param head	command list head
 **	@param index	config index key
 */
-void CommandAdd(const Config * config, Commands * head, const char *index)
+static void CommandAdd(const Config * config, Commands * head, const char *index)
 {
     const ConfigObject *array;
 
@@ -294,7 +250,5 @@ void CommandConfig(const Config * config)
     CommandAdd(config, &CommandsRestart, "command-restart");
     CommandAdd(config, &CommandsExiting, "command-exiting");
 }
-
-#endif
 
 /// @}

@@ -1102,41 +1102,6 @@ void BorderExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
-#ifdef USE_LUA
-
-/**
-**	Set height of window title bar.
-**
-**	@param height	height in pixel (0 is default based on font height)
-*/
-void BorderSetTitleHeight(int height)
-{
-    if (height && (height < BORDER_MINIMAL_TITLE_HEIGHT
-	    || height > BORDER_MAXIMAL_TITLE_HEIGHT)) {
-	BorderTitleHeight = BORDER_DEFAULT_TITLE_HEIGHT;
-	Warning("invalid title height specified: %d\n", height);
-    } else {
-	BorderTitleHeight = height;
-    }
-}
-
-/**
-**	Set size of window borders.
-**
-**	@param width	width in pixel
-*/
-void BorderSetWidth(int width)
-{
-    if (width < BORDER_MINIMAL_WIDTH || width > BORDER_MAXIMAL_WIDTH) {
-	BorderWidth = BORDER_DEFAULT_WIDTH;
-	Warning("invalid border width specified: %d\n", width);
-    } else {
-	BorderWidth = width;
-    }
-}
-
-#else
-
 /**
 **	Parse window border configuration.
 **
@@ -1177,7 +1142,5 @@ void BorderConfig(const Config * config)
 	}
     }
 }
-
-#endif
 
 /// @}

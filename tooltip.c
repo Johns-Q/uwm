@@ -289,34 +289,6 @@ void TooltipExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
-#ifdef USE_LUA
-
-/**
-**	Set whether or not tooltips are enabled.
-**
-**	@param enable	true to enable tooltips, false to disable tooltips
-*/
-void TooltipSetEnabled(int enable)
-{
-    TooltipEnabled = enable;
-}
-
-/**
-**	Set the delay before showing tooltips.
-**
-**	@param delay	delay in milliseconds
-*/
-void TooltipSetDelay(int delay)
-{
-    if (delay < 0) {
-	Warning("invalid tooltip delay specified: %d\n", delay);
-    } else {
-	TooltipDelay = delay;
-    }
-}
-
-#else
-
 /**
 **	Get tooltip configuration.
 **
@@ -338,7 +310,5 @@ void TooltipConfig(const Config * config)
 	TooltipEnabled = ival != 0;
     }
 }
-
-#endif
 
 /// @}

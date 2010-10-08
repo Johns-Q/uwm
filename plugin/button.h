@@ -1,7 +1,7 @@
 ///
 ///	@file button.h	@brief button panel plugin header file.
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -37,7 +37,7 @@ extern void PanelButtonInit(void);
     /// Cleanup button panel plugin.
 extern void PanelButtonExit(void);
 
-    /// Parse button panel plugin config.
+    /// Parse button panel plugin configuration.
 Plugin *PanelButtonConfig(const ConfigObject *);
 
 #ifndef USE_BUTTON			// {
@@ -48,7 +48,7 @@ Plugin *PanelButtonConfig(const ConfigObject *);
 #define PanelButtonInit()
     /// Dummy for cleanup button(s).
 #define PanelButtonExit()
-    /// Dummy for parse button panel plugin config
+    /// Dummy for parse button panel plugin configuration.
 #define PanelButtonConfig(o)	NULL
 
 #endif // } USE_BUTTON

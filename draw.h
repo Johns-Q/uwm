@@ -154,13 +154,8 @@ extern void ColorInit(void);
     /// Cleanup color module.
 extern void ColorExit(void);
 
-#ifdef USE_LUA
-    /// Set the color to use for a modul.
-extern void ColorSet(const char *, const char *);
-#else
     /// Parse the color configuration.
 extern void ColorConfig(const Config *);
-#endif
 
 /// @}
 /// @addtogroup font
@@ -242,13 +237,8 @@ extern void FontInit(void);
     /// Cleanup font support.
 extern void FontExit(void);
 
-#ifdef USE_LUA
-    /// Set the font to use for a component.
-extern void FontSet(const char *, const char *);
-#else
     /// Parse the font configuration.
 extern void FontConfig(const Config *);
-#endif
 
 /// @}
 

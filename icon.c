@@ -1126,46 +1126,6 @@ void IconExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
-#ifdef USE_LUA
-
-/**
-**	Add an icon search path.
-**
-**	This adds a path to list of icon search paths.
-**
-**	@param path	icon path to add
-*/
-void IconAddPath(const char *path)
-{
-#if 0
-    size_t len;
-    char *str;
-
-    if (!path || !(len = strlen(path))) {	// empty path
-	return;
-    }
-
-    if (path[len - 1] == '/') {		// remove trailing '/'
-	--len;
-    }
-
-    str = malloc(len + 1);
-    memcpy(str, path, len);
-    str[len] = '\0';
-
-    ExpandPath(&str);
-#endif
-    if (!path || !*path) {		// empty path
-	return;
-    }
-
-    ++IconPathN;
-    IconPaths = realloc(IconPaths, IconPathN * sizeof(*IconPaths));
-    IconPaths[IconPathN - 1] = ExpandPath(path);
-}
-
-#else
-
 /**
 **	Parse icon config
 **
@@ -1211,8 +1171,6 @@ void IconConfig(const Config * config)
 	}
     }
 }
-
-#endif
 
 #endif // } !USE_ICON
 

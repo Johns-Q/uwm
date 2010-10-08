@@ -413,63 +413,6 @@ void SwallowExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
-#ifdef USE_LUA
-
-/**
-**	Create a swallowed application panel plugin.
-**
-**	@param name	name of application to swallow
-**	@param command	command used to start swallowed application
-**	@param width	width to use (0 for default)
-**	@param height	height to use (0 for default)
-*/
-Plugin *SwallowNew(const char *name, const char *command, unsigned width,
-    unsigned height)
-{
-    Plugin *plugin;
-    SwallowPlugin *swallow_plugin;
-
-    if (!name) {
-	Warning("cannot swallow a client with no name\n");
-	return NULL;
-    }
-    // make sure this name isn't already used.
-    SLIST_FOREACH(swallow_plugin, &Swallows, Next) {
-	if (!strcmp(swallow_plugin->Name, name)) {
-	    Warning("cannot swallow the same client multiple times\n");
-	    return NULL;
-	}
-    }
-
-    swallow_plugin = calloc(1, sizeof(SwallowPlugin));
-    SLIST_INSERT_HEAD(&Swallows, swallow_plugin, Next);
-
-    swallow_plugin->Name = strdup(name);
-    swallow_plugin->Command = command ? strdup(command) : NULL;
-
-    plugin = PanelPluginNew();
-    plugin->Object = swallow_plugin;
-    swallow_plugin->Plugin = plugin;
-
-    plugin->Delete = SwallowDelete;
-    plugin->Resize = SwallowResize;
-
-    plugin->RequestedWidth = 1;
-    if (width) {
-	plugin->RequestedWidth = width;
-	swallow_plugin->UserWidth = 1;
-    }
-    plugin->RequestedHeight = 1;
-    if (height) {
-	plugin->RequestedHeight = height;
-	swallow_plugin->UserHeight = 1;
-    }
-
-    return plugin;
-}
-
-#else
-
 /**
 **	Create a new swallow panel plugin from config data.
 **
@@ -544,8 +487,6 @@ Plugin *SwallowConfig(const ConfigObject * array)
 
     return plugin;
 }
-
-#endif
 
 #endif // } USE_SWALLOW
 

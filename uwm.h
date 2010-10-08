@@ -102,10 +102,6 @@
 #define NO_TD				///< include tower-defense application
 #endif
 
-#ifndef NO_LUA				// FIXME: will be removed
-#define NO_LUA				///< include lua config support
-#endif
-
 	// x11/xcb features
 #if !defined(NO_XINERMA) && !defined(USE_XINERMA)
 #define USE_XINERMA			///< xinerama support

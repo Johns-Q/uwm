@@ -1,7 +1,7 @@
 ///
 ///	@file swallow.h @brief swallow panel plugin header file.
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -49,7 +49,7 @@ extern void SwallowInit(void);
     /// Cleanup swallow panel plugin.
 extern void SwallowExit(void);
 
-    /// Parse swallow panel plugin config.
+    /// Parse swallow panel plugin configuration.
 Plugin *SwallowConfig(const ConfigObject *);
 
 #ifndef USE_SWALLOW			// {

@@ -35,7 +35,7 @@
 ///
 ///	@todo support tile / zoom / centered images
 ///
-///	@todo remove list use table
+///	@todo remove list, use table
 /// @{
 
 #include <xcb/xcb.h>
@@ -164,55 +164,6 @@ void BackgroundLoad(int desktop)
 // ------------------------------------------------------------------------ //
 // Config
 
-#ifdef USE_LUA
-
-/**
-**	Set background to use for specified desktops.
-**
-**	@param desktop	desktop number for this background
-**	@param type	background type (solid, ....)
-**	@param value	argument for background type (color, ....)
-**
-**	@todo background for desktop can be set twice, wasting memory
-*/
-void BackgroundSet(int desktop, const char *type, const char *value)
-{
-    BackgroundType type_id;
-    Background *background;
-
-    // make sure we have value
-    if (!value) {
-	Warning("no value specified for background\n");
-	return;
-    }
-    // parse background type
-    if (!type || !strcasecmp(type, "solid")) {
-	type_id = BACKGROUND_SOLID;
-    } else if (!strcasecmp(type, "gradient")) {
-	type_id = BACKGROUND_GRADIENT;
-    } else if (!strcasecmp(type, "execute")) {
-	type_id = BACKGROUND_COMMAND;
-    } else if (!strcasecmp(type, "scale")) {
-	type_id = BACKGROUND_SCALE;
-    } else if (!strcasecmp(type, "image")) {
-	type_id = BACKGROUND_IMAGE;
-    } else {
-	Warning("invalid background type: \"%s\"\n", type);
-	return;
-    }
-
-    // create background node
-    background = calloc(1, sizeof(*background));
-    background->Desktop = desktop;
-    background->Type = type_id;
-    background->Value = strdup(value);
-
-    // insert node into list
-    SLIST_INSERT_HEAD(&Backgrounds, background, Next);
-}
-
-#else
-
 /**
 **	Add background.
 **
@@ -241,6 +192,8 @@ static void BackgroundSet(int desktop, BackgroundType type, const char *value)
 
 /**
 **	Parse configuration for background module.
+**
+**	@param config	global config dictionary
 */
 void BackgroundConfig(const Config * config)
 {
@@ -297,8 +250,6 @@ void BackgroundConfig(const Config * config)
 	}
     }
 }
-
-#endif
 
 // ------------------------------------------------------------------------ //
 
