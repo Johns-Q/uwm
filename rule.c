@@ -551,26 +551,17 @@ static void RuleConfigRule(const ConfigObject * array)
 	rule->Options->Actions = RULE_ACTION_INVALID;
 	if (ConfigGetObject(aval, &oval, "none", NULL)) {
 	} else {
-	    // FIXME: write ConfigGetBoolean
-	    if (ConfigGetInteger(aval, &ival, "sticky", NULL)) {
-		if (ival) {
-		    rule->Options->Actions |= RULE_ACTION_STICKY;
-		}
+	    if (ConfigGetBoolean(aval, "sticky", NULL)>0) {
+		rule->Options->Actions |= RULE_ACTION_STICKY;
 	    }
-	    if (ConfigGetInteger(aval, &ival, "fullscreen", NULL)) {
-		if (ival) {
-		    rule->Options->Actions |= RULE_ACTION_FULLSCREEN;
-		}
+	    if (ConfigGetBoolean(aval, "fullscreen", NULL)>0) {
+		rule->Options->Actions |= RULE_ACTION_FULLSCREEN;
 	    }
-	    if (ConfigGetInteger(aval, &ival, "no-list", NULL)) {
-		if (ival) {
-		    rule->Options->Actions |= RULE_ACTION_NOLIST;
-		}
+	    if (ConfigGetBoolean(aval, "no-list", NULL)>0) {
+		rule->Options->Actions |= RULE_ACTION_NOLIST;
 	    }
-	    if (ConfigGetInteger(aval, &ival, "no-pager", NULL)) {
-		if (ival) {
-		    rule->Options->Actions |= RULE_ACTION_NOPAGER;
-		}
+	    if (ConfigGetBoolean(aval, "no-pager", NULL)>0) {
+		rule->Options->Actions |= RULE_ACTION_NOPAGER;
 	    }
 	    // FIXME: should support layer names!
 	    // FIXME: use ParseLayer

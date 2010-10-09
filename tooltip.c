@@ -76,8 +76,8 @@ typedef struct _tooltip_
 static Tooltip TooltipVars[1];		///< current tooltip data
 
     /// tooltip delay in milliseconds
-int TooltipDelay = TOOLTIP_DEFAULT_DELAY;
-static int TooltipEnabled = 1;		///< flag tooltips are enabled
+int TooltipDelay;
+static int TooltipEnabled;		///< flag tooltips are enabled
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -297,7 +297,9 @@ void TooltipExit(void)
 void TooltipConfig(const Config * config)
 {
     ssize_t ival;
+    int i;
 
+    TooltipDelay = TOOLTIP_DEFAULT_DELAY;
     if (ConfigGetInteger(ConfigDict(config), &ival, "tooltip", "delay", NULL)) {
 	if (ival < 0) {
 	    Warning("invalid tooltip delay specified: %zd\n", ival);
@@ -305,9 +307,10 @@ void TooltipConfig(const Config * config)
 	    TooltipDelay = ival;
 	}
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "tooltip", "enabled",
-	    NULL)) {
-	TooltipEnabled = ival != 0;
+    TooltipEnabled = 1;
+    if ( (i=ConfigGetBoolean(ConfigDict(config), &ival, "tooltip", "enabled",
+	    NULL))>=0) {
+	TooltipEnabled = i;
     }
 }
 

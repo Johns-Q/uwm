@@ -35,21 +35,21 @@
 ///
 ///	<tt>
 ///	.----------------v---------------------------------------v------.
-///	|  film   |      |         |                   |         |      |
-///	|  roll   | NWC  |         |                   |         | NEC  |
-///	|         |      |         |                   |         |      |
-///	|         }------'         |                   |         `------{
-///	|         |                |                   |                |
-///	|         |                |                   |                |
-///	|         |                |                   |                |
-///	|         |       WS       |       FOTO        |      ES        |
-///	|         |                |                   |                |
-///	|         |                |                   |                |
-///	|         |                |                   |                |
-///	|         |------.         |                   |         ,------|
-///	|         |      |         |                   |         |      |
-///	|         |  NEC |         |                   |         | SEC  |
-///	|         |      |         |                   |         |      |
+///	|  film   |	 |	   |		       |	 |	|
+///	|  roll   | NWC  |	   |		       |	 | NEC	|
+///	|	  |	 |	   |		       |	 |	|
+///	|	  }------'	   |		       |	 `------{
+///	|	  |		   |		       |		|
+///	|	  |		   |		       |		|
+///	|	  |		   |		       |		|
+///	|	  |	  WS	   |	   FOTO        |      ES	|
+///	|	  |		   |		       |		|
+///	|	  |		   |		       |		|
+///	|	  |		   |		       |		|
+///	|	  |------.	   |		       |	 ,------|
+///	|	  |	 |	   |		       |	 |	|
+///	|	  |  NEC |	   |		       |	 | SEC	|
+///	|	  |	 |	   |		       |	 |	|
 ///	`---------'------'---------------------------------------'------'
 ///	</tt>
 ///
@@ -1529,21 +1529,20 @@ void DiaConfig(const Config * config)
 
     // FIXME: get dia table first
     // FIXME: should write a config -> c
-    // FXIME: Use GetBoolean
-    if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "label", NULL)) {
-	DiaVars->IndexLabel = ival != 0;
+    if (ConfigGetBoolean(ConfigDict(config), "dia", "label", NULL)>0) {
+	DiaVars->IndexLabel = 1;
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "film-strip", NULL)) {
-	DiaVars->FilmStrip = ival != 0;
+    if (ConfigGetBoolean(ConfigDict(config), "dia", "film-strip", NULL)>0) {
+	DiaVars->FilmStrip = 1;
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "slide-show", NULL)) {
-	DiaVars->SlideShow = ival != 0;
+    if (ConfigGetBoolean(ConfigDict(config), "dia", "slide-show", NULL)>0) {
+	DiaVars->SlideShow = 1;
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "back-drop", NULL)) {
-	DiaVars->Backdrop = ival != 0;
+    if (ConfigGetBoolean(ConfigDict(config), "dia", "back-drop", NULL)>0) {
+	DiaVars->Backdrop = 1;
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "fullscreen", NULL)) {
-	DiaVars->Fullscreen = ival != 0;
+    if (ConfigGetBoolean(ConfigDict(config), "dia", "fullscreen", NULL)>0) {
+	DiaVars->Fullscreen = 1;
     }
     if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "delay", NULL)) {
 	DiaVars->SlideShowDelay = ival;

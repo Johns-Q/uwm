@@ -458,8 +458,8 @@ Plugin *SwallowConfig(const ConfigObject * array)
     if (ConfigGetString(array, &sval, "execute", NULL)) {
 	swallow_plugin->Command = strdup(sval);
     }
-    if (ConfigGetInteger(array, &ival, "use-old", NULL)) {
-	swallow_plugin->UseOld = ival != 0;
+    if (ConfigGetBoolean(array, "use-old", NULL)>0) {
+	swallow_plugin->UseOld = 1;
     }
     if (ConfigGetInteger(array, &ival, "border", NULL)) {
 	if (0 <= ival && ival <= 32) {

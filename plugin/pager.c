@@ -835,11 +835,11 @@ Plugin *PagerConfig(const ConfigObject * array)
     pager_plugin = calloc(1, sizeof(*pager_plugin));
     SLIST_INSERT_HEAD(&Pagers, pager_plugin, Next);
 
-    if (ConfigGetInteger(array, &ival, "labeled", NULL)) {
-	pager_plugin->Labeled = ival != 0;
+    if (ConfigGetBoolean(array, "labeled", NULL)>0) {
+	pager_plugin->Labeled = 1;
     }
-    if (ConfigGetInteger(array, &ival, "sticky", NULL)) {
-	pager_plugin->Sticky = ival != 0;
+    if (ConfigGetBoolean(array, "sticky", NULL)>0) {
+	pager_plugin->Sticky = 1;
     }
 
     plugin = PanelPluginNew();

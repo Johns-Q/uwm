@@ -146,8 +146,8 @@ LIST_HEAD(_dialog_head_, _dialog_);
     /// list of all dialog
 static struct _dialog_head_ Dialogs = LIST_HEAD_INITIALIZER(&Dialogs);
 
-static char ShowExitConfirmation = 1;	///< show dialog for exit
-char ShowKillConfirmation = 1;		///< show dialog for kill
+static char ShowExitConfirmation;	///< show dialog for exit
+char ShowKillConfirmation;		///< show dialog for kill
 
 /**
 **	Display the message on the dialog window.
@@ -379,6 +379,8 @@ void DialogShowConfirm(Client * client, void (*action) (Client *), ...)
 static void DialogDelConfirm(Dialog * dialog)
 {
     int i;
+
+    xcb_destroy_window(Connection, dialog->Self->Window);
 
     // remove frame
     ClientDelWindow(dialog->Self);
@@ -2754,8 +2756,8 @@ MenuItem *MenuItemConfig(const ConfigObject * array)
     if (ConfigGetString(array, &sval, "icon", NULL)) {
 	item->IconName = strdup(sval);
     }
-    if (ConfigGetInteger(array, &ival, "icon-or-text", NULL)) {
-	item->IconOrText = ival != 0;
+    if (ConfigGetBoolean(array, "icon-or-text", NULL)>0) {
+	item->IconOrText = 1;
     }
 #endif
     if (ConfigGetString(array, &sval, "text", NULL)) {
@@ -2823,15 +2825,17 @@ void MenuConfig(const Config * config)
 {
     const ConfigObject *array;
     ssize_t ival;
+    int i;
 
-    // FIXME: use GetBoolean
-    if (ConfigGetInteger(ConfigDict(config), &ival, "show-exit-confirmation",
-	    NULL)) {
-	ShowExitConfirmation = ival != 0;
+    ShowExitConfirmation = 1;
+    if ((i =ConfigGetBoolean(ConfigDict(config), "show-exit-confirmation",
+	    NULL))>=0) {
+	ShowExitConfirmation = i;
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "show-kill-confirmation",
-	    NULL)) {
-	ShowKillConfirmation = ival != 0;
+	ShowKillConfirmation = 1;
+    if ((i =ConfigGetBoolean(ConfigDict(config), "show-kill-confirmation",
+	    NULL))>=0) {
+	ShowKillConfirmation = i;
     }
     if (ConfigGetInteger(ConfigDict(config), &ival, "window-menu-user-height",
 	    NULL)) {

@@ -41,6 +41,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <xcb/xcb_atom.h>
 #include <xcb/xcb_icccm.h>
 
 #include "core-array/core-array.h"
@@ -62,6 +63,7 @@
 // ------------------------------------------------------------------------ //
 
 #define BUTTON_BORDER	1		///< border around button
+#define USE_BUTTON_BACKGROUND		///< support button background
 
 /**
 **	Panel button plugin typedef.
@@ -91,6 +93,11 @@ struct _button_plugin_
 
     unsigned UserWidth:1;		///< user-specified width flag
     unsigned UserHeight:1;		///< user-specified height flag
+    unsigned DesktopName:1;		///< flag show desktop name
+
+#ifdef USE_BUTTON_BACKGROUND
+    unsigned Background:1;		///< user-specified background flag
+#endif
 
     MenuButton *Buttons;		///< commands to run on click
 
@@ -137,8 +144,11 @@ static void PanelButtonDraw(Plugin * plugin, int active)
 	label.Text = NULL;
     }
 #endif
-    // FIXME: hack current work space name
-    if (!label.Icon && !label.Text) {
+    if (button_plugin->Background) {
+	label.NoBackground = 1;
+    }
+    // show current work space name
+    if (button_plugin->DesktopName) {
 	label.Text = DesktopGetName(DesktopCurrent);
     }
 
@@ -155,7 +165,16 @@ static void PanelButtonDraw(Plugin * plugin, int active)
 */
 static void PanelButtonCreate(Plugin * plugin)
 {
+    ButtonPlugin *button_plugin;
+
     PanelPluginCreatePixmap(plugin);
+    button_plugin = plugin->Object;
+#ifdef USE_BUTTON_BACKGROUND
+    if (button_plugin->Background) {
+	Debug(2, "button: panel %p %+d%+d %#010x\n", plugin, plugin->X,
+	    plugin->Y, plugin->Pixmap);
+    }
+#endif
     PanelButtonDraw(plugin, 0);
 }
 
@@ -262,13 +281,9 @@ static void PanelButtonHandleButtonPress(Plugin * plugin, int
 
     PanelButtonDraw(plugin, 0);
     PanelUpdatePlugin(plugin->Panel, plugin);
+}
 
 #if 0
-    plugin->Grabbed =
-	PointerGrabReply(PointerGrabDefaultRequest(plugin->Panel->Window));
-    Debug(3, "pointer grabbed\n");
-#endif
-}
 
 /**
 **	Handle a release event on a button panel plugin.
@@ -293,6 +308,7 @@ static void PanelButtonHandleButtonRelease(Plugin * plugin, int
 
     Debug(2, "button release on panel button still needed?\n");
 }
+#endif
 
 /**
 **	Show tooltip of panel button panel plugin.
@@ -330,7 +346,7 @@ void PanelButtonDesktopUpdate(void)
 
     // search desktop labels
     SLIST_FOREACH(button_plugin, &Buttons, Next) {
-	if (!button_plugin->IconName && !button_plugin->Text) {
+	if (button_plugin->DesktopName) {
 	    PanelButtonDraw(button_plugin->Plugin, 0);
 	    PanelUpdatePlugin(button_plugin->Plugin->Panel,
 		button_plugin->Plugin);
@@ -461,8 +477,8 @@ Plugin *PanelButtonConfig(const ConfigObject * array)
     if (ConfigGetString(array, &sval, "icon", NULL)) {
 	button_plugin->IconName = strdup(sval);
     }
-    if (ConfigGetInteger(array, &ival, "icon-or-text", NULL)) {
-	button_plugin->IconOrText = ival != 0;
+    if (ConfigGetBoolean(array, "icon-or-text", NULL)>0) {
+	button_plugin->IconOrText = 1;
     }
 #endif
     if (ConfigGetString(array, &sval, "text", NULL)) {
@@ -488,6 +504,17 @@ Plugin *PanelButtonConfig(const ConfigObject * array)
 	plugin->RequestedHeight = ival;
 	button_plugin->UserHeight = 1;
     }
+    if (ConfigGetBoolean(array, "desktop", NULL)>0) {
+	button_plugin->DesktopName = 1;
+    }
+#ifdef USE_BUTTON_BACKGROUND
+    if (ConfigGetBoolean(array, "background", NULL)>0) {
+	button_plugin->Background = 1;
+    }
+    if (button_plugin->Background) {
+	Debug(2, "FIXME: background button\n");
+    }
+#endif
 
     plugin->Create = PanelButtonCreate;
     plugin->Delete = PanelPluginDeletePixmap;
@@ -500,7 +527,9 @@ Plugin *PanelButtonConfig(const ConfigObject * array)
     }
 
     plugin->HandleButtonPress = PanelButtonHandleButtonPress;
+#if 0
     plugin->HandleButtonRelease = PanelButtonHandleButtonRelease;
+#endif
 
     return plugin;
 }

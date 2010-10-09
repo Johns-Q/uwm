@@ -190,7 +190,8 @@ void CommandExit(void)
 **	@param head	command list head
 **	@param index	config index key
 */
-static void CommandAdd(const Config * config, Commands * head, const char *index)
+static void CommandAdd(const Config * config, Commands * head,
+    const char *index)
 {
     const ConfigObject *array;
 
