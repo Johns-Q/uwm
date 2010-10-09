@@ -663,9 +663,11 @@ static void RuleConfigRule(const ConfigObject * array)
 		RuleConfigAddOption(rule, n++, RULE_ACTION_HEIGHT, ival);
 	    }
 	    if (ConfigGetString(aval, &sval, "gravity", NULL)) {
-		ival = ParseGravity(sval, "rule");
-		if (ival > 0) {
-		    RuleConfigAddOption(rule, n++, RULE_ACTION_GRAVITY, ival);
+		int i;
+
+		i = ParseGravity(sval, "rule");
+		if (i >= 0) {		// static, ...
+		    RuleConfigAddOption(rule, n++, RULE_ACTION_GRAVITY, i);
 		}
 	    }
 	}

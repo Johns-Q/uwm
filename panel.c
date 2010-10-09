@@ -1412,31 +1412,13 @@ static void PanelConfigPanel(const ConfigObject * array)
 	}
     }
     //
-    //	gravity FIXME: use general gravity parser
+    //	gravity
     //
     if (ConfigGetString(array, &sval, "gravity", NULL)) {
-	if (!strcasecmp(sval, "static")) {
-	    // WARNING: static default
-	} else if (!strcasecmp(sval, "north")) {
-	    panel->Gravity = PANEL_GRAVITY_NORTH;
-	} else if (!strcasecmp(sval, "south")) {
-	    panel->Gravity = PANEL_GRAVITY_SOUTH;
-	} else if (!strcasecmp(sval, "west")) {
-	    panel->Gravity = PANEL_GRAVITY_WEST;
-	} else if (!strcasecmp(sval, "east")) {
-	    panel->Gravity = PANEL_GRAVITY_EAST;
-	} else if (!strcasecmp(sval, "center")) {
-	    panel->Gravity = PANEL_GRAVITY_CENTER;
-	} else if (!strcasecmp(sval, "north-west")) {
-	    panel->Gravity = PANEL_GRAVITY_NORTH_WEST;
-	} else if (!strcasecmp(sval, "north-east")) {
-	    panel->Gravity = PANEL_GRAVITY_NORTH_EAST;
-	} else if (!strcasecmp(sval, "south-west")) {
-	    panel->Gravity = PANEL_GRAVITY_SOUTH_WEST;
-	} else if (!strcasecmp(sval, "south-east")) {
-	    panel->Gravity = PANEL_GRAVITY_SOUTH_EAST;
-	} else {
-	    Warning("invalid panel gravity: \"%s\"\n", sval);
+	int i;
+
+	if ((i = ParseGravity(sval, "panel"))) {
+	    panel->Gravity = i;
 	}
     }
     //
