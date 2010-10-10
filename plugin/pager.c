@@ -830,7 +830,6 @@ Plugin *PagerConfig(const ConfigObject * array)
 {
     PagerPlugin *pager_plugin;
     Plugin *plugin;
-    ssize_t ival;
 
     pager_plugin = calloc(1, sizeof(*pager_plugin));
     SLIST_INSERT_HEAD(&Pagers, pager_plugin, Next);

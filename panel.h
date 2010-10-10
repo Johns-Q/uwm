@@ -59,6 +59,8 @@ struct _panel_plugin_
     uint16_t RequestedWidth;		///< requested width
     uint16_t RequestedHeight;		///< requested height
 
+    unsigned UserWidth:1;		///< user-specified width flag
+    unsigned UserHeight:1;		///< user-specified width flag
     unsigned Grabbed:1;			///< mouse was grabbed by plugin
 
     xcb_window_t Window;		///< content of window (plugin frees)
@@ -209,6 +211,11 @@ extern void PanelResize(Panel *);
 
 extern void PanelInit(void);		///< Initialize panel support.
 extern void PanelExit(void);		///< Cleanup panel support.
-extern void PanelConfig(const Config *);	///< Configure panel support.
+
+    /// Parse a panel plugin size configuration.
+extern void PanelPluginConfigSize(const ConfigObject *, Plugin *);
+
+    /// Configure panel support.
+extern void PanelConfig(const Config *);
 
 /// @}

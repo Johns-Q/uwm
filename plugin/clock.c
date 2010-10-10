@@ -77,8 +77,6 @@ struct _clock_plugin_
     MenuButton *Buttons;		///< commands to run on click
 
     char AsciiTime[80];			///< currently displayed time
-
-    unsigned UserWidth:1;		///< user-specified clock width flag
 };
 
     /// Clock plugin list head structure
@@ -131,7 +129,7 @@ static void ClockDraw(ClockPlugin * clock_plugin, const time_t * now)
     real_width = width + 2 * CLOCK_INNER_SPACE;
     // is clock right size?
     // FIXME: proportional font, too much resizes?
-    if (real_width == plugin->RequestedWidth || clock_plugin->UserWidth) {
+    if (real_width == plugin->RequestedWidth || plugin->UserWidth) {
 	// just draw the clock
 	FontDrawString(plugin->Pixmap, &Fonts.Clock, Colors.ClockFG.Pixel,
 	    plugin->Width / 2 - width / 2, plugin->Height / 2 - height / 2,
@@ -322,7 +320,6 @@ Plugin *ClockConfig(const ConfigObject * array)
     Plugin *plugin;
     ClockPlugin *clock_plugin;
     const char *sval;
-    ssize_t ival;
 
     clock_plugin = calloc(1, sizeof(*clock_plugin));
     SLIST_INSERT_HEAD(&Clocks, clock_plugin, Next);
@@ -344,15 +341,7 @@ Plugin *ClockConfig(const ConfigObject * array)
     plugin->Object = clock_plugin;
     clock_plugin->Plugin = plugin;
 
-    if (ConfigGetInteger(array, &ival, "width", NULL)) {
-	if (ival > 0) {
-	    plugin->RequestedWidth = ival;
-	    clock_plugin->UserWidth = 1;
-	}
-    }
-    if (ConfigGetInteger(array, &ival, "height", NULL)) {
-	plugin->RequestedHeight = ival;
-    }
+    PanelPluginConfigSize(array, plugin);
 
     plugin->Create = ClockCreate;
     plugin->Delete = PanelPluginDeletePixmap;

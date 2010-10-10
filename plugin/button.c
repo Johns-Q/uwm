@@ -91,8 +91,6 @@ struct _button_plugin_
     unsigned IconOrText:1;		///< flag display icon or text
 #endif
 
-    unsigned UserWidth:1;		///< user-specified width flag
-    unsigned UserHeight:1;		///< user-specified height flag
     unsigned DesktopName:1;		///< flag show desktop name
 
 #ifdef USE_BUTTON_BACKGROUND
@@ -192,6 +190,11 @@ static void PanelButtonSetSize(Plugin * plugin, unsigned width,
 {
     ButtonPlugin *button_plugin;
 
+    // both dimensions user-specified, nothing todo
+    if (plugin->UserHeight && plugin->UserWidth) {
+	return;
+    }
+
     button_plugin = plugin->Object;
     if (button_plugin->Icon) {		// only if icon
 	unsigned label_width;
@@ -218,7 +221,7 @@ static void PanelButtonSetSize(Plugin * plugin, unsigned width,
 	    label_width += LABEL_INNER_SPACE;
 	    label_height = Fonts.PanelButton.Height;
 	}
-	if (button_plugin->UserHeight) {
+	if (plugin->UserHeight) {
 	    label_height = plugin->RequestedHeight;
 	}
 
@@ -236,10 +239,11 @@ static void PanelButtonSetSize(Plugin * plugin, unsigned width,
 		icon_width + label_width + 2 * LABEL_INNER_SPACE +
 		2 * LABEL_BORDER;
 	}
-	if (button_plugin->UserHeight) {
+	// one dimension overwritten by user
+	if (plugin->UserHeight) {
 	    height = plugin->RequestedHeight;
 	}
-	if (button_plugin->UserWidth) {
+	if (plugin->UserWidth) {
 	    width = plugin->RequestedWidth;
 	}
 	plugin->Width = width;
@@ -420,11 +424,11 @@ void PanelButtonInit(void)
 		}
 	    }
 	}
-	if (!button_plugin->UserWidth) {
+	if (!plugin->UserWidth) {
 	    plugin->RequestedWidth =
 		button_width + 2 * LABEL_INNER_SPACE + 2 * LABEL_BORDER;
 	}
-	if (!button_plugin->UserHeight) {
+	if (!plugin->UserHeight) {
 	    plugin->RequestedHeight =
 		button_height + 2 * LABEL_INNER_SPACE + 2 * LABEL_BORDER;
 	}
@@ -468,7 +472,6 @@ Plugin *PanelButtonConfig(const ConfigObject * array)
     ButtonPlugin *button_plugin;
     Plugin *plugin;
     const char *sval;
-    ssize_t ival;
 
     button_plugin = calloc(1, sizeof(ButtonPlugin));
     SLIST_INSERT_HEAD(&Buttons, button_plugin, Next);
@@ -495,15 +498,8 @@ Plugin *PanelButtonConfig(const ConfigObject * array)
     plugin->Object = button_plugin;
     button_plugin->Plugin = plugin;
 
-    // FIXME: generic width/height?
-    if (ConfigGetInteger(array, &ival, "width", NULL)) {
-	plugin->RequestedWidth = ival;
-	button_plugin->UserWidth = 1;
-    }
-    if (ConfigGetInteger(array, &ival, "height", NULL)) {
-	plugin->RequestedHeight = ival;
-	button_plugin->UserHeight = 1;
-    }
+    PanelPluginConfigSize(array, plugin);	// get width, height
+
     if (ConfigGetBoolean(array, "desktop", NULL) > 0) {
 	button_plugin->DesktopName = 1;
     }
@@ -527,9 +523,6 @@ Plugin *PanelButtonConfig(const ConfigObject * array)
     }
 
     plugin->HandleButtonPress = PanelButtonHandleButtonPress;
-#if 0
-    plugin->HandleButtonRelease = PanelButtonHandleButtonRelease;
-#endif
 
     return plugin;
 }

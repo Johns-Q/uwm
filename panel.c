@@ -1341,6 +1341,25 @@ Panel *PanelNew(void)
 // Config
 
 /**
+**	Parse a panel plugin size configuration.
+**
+**	@param array	configuration array for panel plugin
+*/
+void PanelPluginConfigSize(const ConfigObject * array, Plugin * plugin)
+{
+    ssize_t ival;
+
+    if (ConfigGetInteger(array, &ival, "width", NULL)) {
+	plugin->RequestedWidth = ival;
+	plugin->UserWidth = 1;
+    }
+    if (ConfigGetInteger(array, &ival, "height", NULL)) {
+	plugin->RequestedHeight = ival;
+	plugin->UserHeight = 1;
+    }
+}
+
+/**
 **	Parse a single panel configuration.
 **
 **	@param array	config array of panel with plugins

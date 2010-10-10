@@ -74,8 +74,6 @@ struct _swallow_plugin_
     char *Command;			///< command to execute
 
     uint8_t Border;			///< size of swallow window border
-    unsigned UserWidth:1;		///< flag user width of plugin
-    unsigned UserHeight:1;		///< flag user height of plugin
     unsigned UseOld:1;			///< flag use old clients
 };
 
@@ -178,7 +176,10 @@ int SwallowTryWindow(int already_mapped, xcb_window_t window)
 
     cookie.sequence = 0;
     SLIST_FOREACH(swallow_plugin, &Swallows, Next) {
-	if (swallow_plugin->Plugin->Window) {
+	Plugin *plugin;
+
+	plugin = swallow_plugin->Plugin;
+	if (plugin->Window) {
 	    continue;			// already filled slot
 	}
 	if (already_mapped && swallow_plugin->Command
@@ -216,8 +217,8 @@ int SwallowTryWindow(int already_mapped, xcb_window_t window)
 	    xcb_change_save_set(Connection, XCB_SET_MODE_INSERT, window);
 	    xcb_change_window_attributes(Connection, window,
 		XCB_CW_BORDER_PIXEL, &Colors.PanelBG.Pixel);
-	    xcb_reparent_window(Connection, window,
-		swallow_plugin->Plugin->Panel->Window, 0, 0);
+	    xcb_reparent_window(Connection, window, plugin->Panel->Window, 0,
+		0);
 	    // raise window
 	    // FIXME: didn't must be above panel?
 	    value[0] = XCB_STACK_MODE_ABOVE;
@@ -226,7 +227,7 @@ int SwallowTryWindow(int already_mapped, xcb_window_t window)
 	    // map window on screen
 	    xcb_map_window(Connection, window);
 
-	    swallow_plugin->Plugin->Window = window;
+	    plugin->Window = window;
 
 	    // update size (FIXME: only if not all user)
 	    geom = xcb_get_geometry_reply(Connection, cookie, NULL);
@@ -234,19 +235,19 @@ int SwallowTryWindow(int already_mapped, xcb_window_t window)
 		Debug(3, "swallow '%s' %dx%d border %d\n", prop.instance_name,
 		    geom->width, geom->height, geom->border_width);
 		swallow_plugin->Border = geom->border_width;
-		if (!swallow_plugin->UserWidth) {
-		    swallow_plugin->Plugin->RequestedWidth =
+		if (!plugin->UserWidth) {
+		    plugin->RequestedWidth =
 			geom->width + 2 * swallow_plugin->Border;
 		}
-		if (!swallow_plugin->UserHeight) {
-		    swallow_plugin->Plugin->RequestedHeight =
+		if (!plugin->UserHeight) {
+		    plugin->RequestedHeight =
 			geom->height + 2 * swallow_plugin->Border;
 		}
 		free(geom);
 	    } else {
 		Warning("Can't get geometry, expect errors\n");
 	    }
-	    PanelResize(swallow_plugin->Plugin->Panel);
+	    PanelResize(plugin->Panel);
 
 	    xcb_get_wm_class_reply_wipe(&prop);
 	    return 1;
@@ -289,6 +290,7 @@ int SwallowHandleDestroyNotify(const xcb_destroy_notify_event_t * event)
 
 	    swallow_plugin->Plugin->Window = XCB_NONE;
 	    // FIXME: try 0, 0 here: 0,0 is dynamic size
+	    // FIXME: can use new plugin->UserWidth?
 	    swallow_plugin->Plugin->RequestedWidth = 1;
 	    swallow_plugin->Plugin->RequestedHeight = 1;
 	    PanelResize(swallow_plugin->Plugin->Panel);
@@ -475,15 +477,9 @@ Plugin *SwallowConfig(const ConfigObject * array)
     plugin->Resize = SwallowResize;
 
     plugin->RequestedWidth = 1;
-    if (ConfigGetInteger(array, &ival, "width", NULL)) {
-	plugin->RequestedWidth = ival;
-	swallow_plugin->UserWidth = 1;
-    }
-    plugin->RequestedHeight = 1;
-    if (ConfigGetInteger(array, &ival, "height", NULL)) {
-	plugin->RequestedHeight = ival;
-	swallow_plugin->UserHeight = 1;
-    }
+    plugin->RequestedHeight = 1;	// FIXME: needed to disable dyn-size
+
+    PanelPluginConfigSize(array, plugin);
 
     return plugin;
 }
