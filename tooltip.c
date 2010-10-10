@@ -308,8 +308,8 @@ void TooltipConfig(const Config * config)
 	}
     }
     TooltipEnabled = 1;
-    if ( (i=ConfigGetBoolean(ConfigDict(config), &ival, "tooltip", "enabled",
-	    NULL))>=0) {
+    if ((i = ConfigGetBoolean(ConfigDict(config), "tooltip", "enabled",
+		NULL)) >= 0) {
 	TooltipEnabled = i;
     }
 }

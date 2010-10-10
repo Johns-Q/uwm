@@ -2756,7 +2756,7 @@ MenuItem *MenuItemConfig(const ConfigObject * array)
     if (ConfigGetString(array, &sval, "icon", NULL)) {
 	item->IconName = strdup(sval);
     }
-    if (ConfigGetBoolean(array, "icon-or-text", NULL)>0) {
+    if (ConfigGetBoolean(array, "icon-or-text", NULL) > 0) {
 	item->IconOrText = 1;
     }
 #endif
@@ -2828,13 +2828,13 @@ void MenuConfig(const Config * config)
     int i;
 
     ShowExitConfirmation = 1;
-    if ((i =ConfigGetBoolean(ConfigDict(config), "show-exit-confirmation",
-	    NULL))>=0) {
+    if ((i = ConfigGetBoolean(ConfigDict(config), "show-exit-confirmation",
+		NULL)) >= 0) {
 	ShowExitConfirmation = i;
     }
-	ShowKillConfirmation = 1;
-    if ((i =ConfigGetBoolean(ConfigDict(config), "show-kill-confirmation",
-	    NULL))>=0) {
+    ShowKillConfirmation = 1;
+    if ((i = ConfigGetBoolean(ConfigDict(config), "show-kill-confirmation",
+		NULL)) >= 0) {
 	ShowKillConfirmation = i;
     }
     if (ConfigGetInteger(ConfigDict(config), &ival, "window-menu-user-height",

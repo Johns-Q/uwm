@@ -1529,19 +1529,19 @@ void DiaConfig(const Config * config)
 
     // FIXME: get dia table first
     // FIXME: should write a config -> c
-    if (ConfigGetBoolean(ConfigDict(config), "dia", "label", NULL)>0) {
+    if (ConfigGetBoolean(ConfigDict(config), "dia", "label", NULL) > 0) {
 	DiaVars->IndexLabel = 1;
     }
-    if (ConfigGetBoolean(ConfigDict(config), "dia", "film-strip", NULL)>0) {
+    if (ConfigGetBoolean(ConfigDict(config), "dia", "film-strip", NULL) > 0) {
 	DiaVars->FilmStrip = 1;
     }
-    if (ConfigGetBoolean(ConfigDict(config), "dia", "slide-show", NULL)>0) {
+    if (ConfigGetBoolean(ConfigDict(config), "dia", "slide-show", NULL) > 0) {
 	DiaVars->SlideShow = 1;
     }
-    if (ConfigGetBoolean(ConfigDict(config), "dia", "back-drop", NULL)>0) {
+    if (ConfigGetBoolean(ConfigDict(config), "dia", "back-drop", NULL) > 0) {
 	DiaVars->Backdrop = 1;
     }
-    if (ConfigGetBoolean(ConfigDict(config), "dia", "fullscreen", NULL)>0) {
+    if (ConfigGetBoolean(ConfigDict(config), "dia", "fullscreen", NULL) > 0) {
 	DiaVars->Fullscreen = 1;
     }
     if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "delay", NULL)) {

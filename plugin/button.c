@@ -477,7 +477,7 @@ Plugin *PanelButtonConfig(const ConfigObject * array)
     if (ConfigGetString(array, &sval, "icon", NULL)) {
 	button_plugin->IconName = strdup(sval);
     }
-    if (ConfigGetBoolean(array, "icon-or-text", NULL)>0) {
+    if (ConfigGetBoolean(array, "icon-or-text", NULL) > 0) {
 	button_plugin->IconOrText = 1;
     }
 #endif
@@ -504,11 +504,11 @@ Plugin *PanelButtonConfig(const ConfigObject * array)
 	plugin->RequestedHeight = ival;
 	button_plugin->UserHeight = 1;
     }
-    if (ConfigGetBoolean(array, "desktop", NULL)>0) {
+    if (ConfigGetBoolean(array, "desktop", NULL) > 0) {
 	button_plugin->DesktopName = 1;
     }
 #ifdef USE_BUTTON_BACKGROUND
-    if (ConfigGetBoolean(array, "background", NULL)>0) {
+    if (ConfigGetBoolean(array, "background", NULL) > 0) {
 	button_plugin->Background = 1;
     }
     if (button_plugin->Background) {

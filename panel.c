@@ -1450,13 +1450,13 @@ static void PanelConfigPanel(const ConfigObject * array)
     //
     //	auto-hide
     //
-    if (ConfigGetBoolean(array, "auto-hide", NULL)>0) {
+    if (ConfigGetBoolean(array, "auto-hide", NULL) > 0) {
 	panel->AutoHide = 1;
     }
     //
     //	maximize-over
     //
-    if (ConfigGetBoolean(array, "maximize-over", NULL)>0) {
+    if (ConfigGetBoolean(array, "maximize-over", NULL) > 0) {
 	panel->MaximizeOver = 1;
     }
     //
