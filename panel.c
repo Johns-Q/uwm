@@ -81,7 +81,7 @@
     /// list of all panels
 struct _panel_head_ Panels = SLIST_HEAD_INITIALIZER(Panels);
 
-static uint32_t PanelOpacity = UINT32_MAX;	///< panel window transparency
+static uint32_t PanelOpacity;		///< panel window transparency
 
 static int16_t LastMouseX;		///< last mouse x-coordinate
 static int16_t LastMouseY;		///< last mouse y-coordinate
@@ -1532,6 +1532,8 @@ void PanelConfig(const Config * config)
 {
     const ConfigObject *array;
     double opacity;
+
+    PanelOpacity = UINT32_MAX;
 
     //
     //	array of panels
