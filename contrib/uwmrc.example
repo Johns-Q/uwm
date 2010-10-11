@@ -440,7 +440,6 @@ panel = [
 	    text = "_"
 	    tooltip = "Toggle hide windows and show desktop"
 	    [ button = 1 toggle-show-desktop = true ]
-	    ; planned:
 	    [ button = 3 toggle-shade-desktop = true ]
 	]
 	[ type = `button
