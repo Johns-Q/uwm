@@ -2670,10 +2670,13 @@ static void MenuButtonConfig(const ConfigObject * array, MenuButton ** button)
 	}
 	b = ival + 16;
     }
+    // FIXME: triple-click, long-click
+
     // parse general command config
     MenuCommandConfig(array, &command);
     if (command.Type == MENU_ACTION_NONE) {
 	Warning("\tfor button %d\n", b);
+	return;
     }
     // append button to buttons
     if ((menu_button = *button)) {
@@ -2744,12 +2747,11 @@ MenuItem *MenuItemConfig(const ConfigObject * array)
 {
     MenuItem *item;
     const char *sval;
-    ssize_t ival;
 
     item = MenuNewItem(NULL, NULL);
     // separator ignore all other parameters
-    if (ConfigGetInteger(array, &ival, "separator", NULL) && ival) {
-	// item->Text = NULL && item->IconName flags separator
+    if (ConfigGetBoolean(array, "separator", NULL) > 0) {
+	// item->Text & item->IconName = NULL flags separator
 	return item;
     }
 #ifdef USE_ICON
