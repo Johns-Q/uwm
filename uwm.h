@@ -120,7 +120,7 @@
 #endif
 
 #if !defined(NO_MOTIF_HINTS) && !defined(USE_MOTIF_HINTS)
-#define USE_MOTIF_HINTS			///< support motif hints
+#define NO_MOTIF_HINTS			///< support motif hints
 #endif
 
 #if !defined(NO_DEBUG) && !defined(USE_DEBUG)
