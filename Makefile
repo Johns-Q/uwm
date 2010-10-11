@@ -39,6 +39,9 @@
 #	enable/disable snap for move/resize
 #CONFIG += -DUSE_SNAP
 #CONFIG += -DNO_SNAP
+#	enable/disable confirm dialog window
+#CONFIG += -DUSE_DIALOG
+#CONFIG += -DNO_DIALOG
 #	enable/disable menu
 #CONFIG += -DUSE_MENU
 #CONFIG += -DNO_MENU

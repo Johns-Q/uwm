@@ -38,7 +38,7 @@
 #define USE_SNAP			///< include snap for move/resize
 #endif
 #if !defined(NO_DIALOG) && !defined(USE_DIALOG)
-#define USE_DIALOG			///< include confirm dialog
+#define USE_DIALOG			///< include confirm dialog window
 #endif
 #if !defined(NO_MENU) && !defined(USE_MENU)
 #define USE_MENU			///< include menu

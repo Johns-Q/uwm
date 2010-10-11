@@ -61,6 +61,8 @@ extern void DialogExit(void);
 
 #else // }{ USE_DIALOG
 
+#define ShowKillConfirmation	0	///< Dummy for Show dialog for kill
+
     /// Dummy for Show a confirm dialog.
 #define DialogShowConfirm(client, action, ...) action(client)
 

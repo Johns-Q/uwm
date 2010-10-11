@@ -2284,6 +2284,8 @@ void ClientDelWindow(Client * client)
 
 /**
 **	Callback to kill client after confirm dialog.
+**
+**	@param client	client to kill
 */
 static void ClientKillHandler(Client * client)
 {

@@ -567,6 +567,10 @@ void DialogExit(void)
     LIST_INIT(&Dialogs);
 }
 
+#else // }{ !USE_DIALOG
+
+#define ShowExitConfirmation	0	///< show dialog for exit
+
 #endif // } USE_DIALOG
 
 /// @}
@@ -2828,6 +2832,8 @@ void MenuConfig(const Config * config)
 {
     const ConfigObject *array;
     ssize_t ival;
+
+#ifdef USE_DIALOG
     int i;
 
     ShowExitConfirmation = 1;
@@ -2840,6 +2846,7 @@ void MenuConfig(const Config * config)
 		NULL)) >= 0) {
 	ShowKillConfirmation = i;
     }
+#endif
     if (ConfigGetInteger(ConfigDict(config), &ival, "window-menu-user-height",
 	    NULL)) {
 	WindowMenuUserHeight = ival;
