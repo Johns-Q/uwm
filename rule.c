@@ -499,6 +499,8 @@ void RuleExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_RC				// {
+
 /**
 **	Add option to rule.
 **
@@ -760,6 +762,8 @@ void RuleConfig(const Config * config)
 	}
     }
 }
+
+#endif // } USE_RC
 
 #endif // } USE_RULE
 

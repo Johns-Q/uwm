@@ -1126,6 +1126,8 @@ void IconExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_RC				// {
+
 /**
 **	Parse icon config
 **
@@ -1171,6 +1173,8 @@ void IconConfig(const Config * config)
 	}
     }
 }
+
+#endif // } USE_RC
 
 #endif // } !USE_ICON
 

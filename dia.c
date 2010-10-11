@@ -1496,6 +1496,8 @@ void DiaTimeout(uint32_t tick, int __attribute__ ((unused)) x, int
     }
 }
 
+#ifdef USE_RC				// {
+
 /**
 **	Parse dia show configuration.
 **
@@ -1570,6 +1572,8 @@ void DiaConfig(const Config * config)
 	DiaVars->IndexHeight = ival;
     }
 }
+
+#endif // } USE_RC
 
 #endif // } USE_DIA
 

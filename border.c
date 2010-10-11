@@ -652,6 +652,8 @@ static void BorderDrawBorder(const Client * client, int draw_icon)
     }
     //
     //	Draw resize area
+    //	FIXME: what happens with BorderWidth = 1
+    //	FIXME: support drawing no corners
     //	FIXME: draw multiple rectangles faster than one big?
     //	I draw a rectangle instead of a L.
     //
@@ -1040,6 +1042,11 @@ void BorderInit(void)
     uint32_t value[1];
 
     if (!BorderTitleHeight) {		// config 0
+#ifdef DEBUG
+	if (!Fonts.Titlebar.Height) {
+	    Debug(0, "border needs font to be initialized already\n");
+	}
+#endif
 	BorderTitleHeight = Fonts.Titlebar.Height + 2 * BORDER_TITLE_SPACE;
     }
 
@@ -1103,6 +1110,8 @@ void BorderExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_RC				// {
+
 /**
 **	Parse window border configuration.
 **
@@ -1143,5 +1152,7 @@ void BorderConfig(const Config * config)
 	}
     }
 }
+
+#endif // } USE_RC
 
 /// @}

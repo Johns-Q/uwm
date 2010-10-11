@@ -717,6 +717,8 @@ void ColorExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_RC				// {
+
 /**
 **	Parse configuration for color module
 **
@@ -737,6 +739,8 @@ void ColorConfig(const Config * config)
 	}
     }
 }
+
+#endif // } USE_RC
 
 /// @}
 
@@ -1131,6 +1135,8 @@ void FontExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_RC				// {
+
 /**
 **	Parse configuration for font module
 **
@@ -1149,6 +1155,8 @@ void FontConfig(const Config * config)
 	}
     }
 }
+
+#endif // } USE_RC
 
 /// @}
 

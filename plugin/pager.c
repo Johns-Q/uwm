@@ -820,6 +820,8 @@ void PagerExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_RC				// {
+
 /**
 **	Create a new pager panel plugin from config data.
 **
@@ -855,6 +857,8 @@ Plugin *PagerConfig(const ConfigObject * array)
 
     return plugin;
 }
+
+#endif // } USE_RC
 
 #endif // } USE_PAGER
 

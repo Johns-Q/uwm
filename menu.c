@@ -52,6 +52,7 @@
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 
+#include "uwm-config.h"
 #include "misc.h"
 #include "event.h"
 #include "command.h"
@@ -968,8 +969,6 @@ static void RootMenuShow(int, int, int);
 
 static void WindowMenuChoose(const MenuCommand *);
 static Menu *WindowMenuCreateLayer(int);
-
-static Menu *MenuConfigMenu(const ConfigObject *);
 
 ///@}
 
@@ -2502,6 +2501,11 @@ void MenuDel(Menu * menu)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_RC				// {
+
+    /// forward define recursive menu configuration
+static Menu *MenuConfigMenu(const ConfigObject *);
+
 /**
 **	Parse menu command configuration.
 **
@@ -2890,6 +2894,8 @@ void MenuConfig(const Config * config)
     }
 }
 
+#endif // } USE_RC
+
 // ------------------------------------------------------------------------ //
 // Root menu
 // ------------------------------------------------------------------------ //
@@ -3067,6 +3073,8 @@ void RootMenuExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_RC				// {
+
 /**
 **	Parse root menu/command configuration.
 **
@@ -3080,6 +3088,8 @@ void RootMenuConfig(const Config * config)
 	MenuButtonsConfig(array, &RootButtons);
     }
 }
+
+#endif // } USE_RC
 
 /// @}
 

@@ -415,6 +415,8 @@ void SwallowExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_RC				// {
+
 /**
 **	Create a new swallow panel plugin from config data.
 **
@@ -483,6 +485,8 @@ Plugin *SwallowConfig(const ConfigObject * array)
 
     return plugin;
 }
+
+#endif // } USE_RC
 
 #endif // } USE_SWALLOW
 

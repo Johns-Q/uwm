@@ -736,6 +736,8 @@ void TaskExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_RC				// {
+
 /**
 **	Create a new task panel plugin from config data.
 **
@@ -783,6 +785,8 @@ Plugin *TaskConfig(const ConfigObject * array)
 
     return plugin;
 }
+
+#endif // } USE_RC
 
 #endif // } USE_TASK
 

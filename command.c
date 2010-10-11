@@ -183,6 +183,8 @@ void CommandExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_RC				// {
+
 /**
 **	Parse configuration of a command list.
 **
@@ -251,5 +253,7 @@ void CommandConfig(const Config * config)
     CommandAdd(config, &CommandsRestart, "command-restart");
     CommandAdd(config, &CommandsExiting, "command-exiting");
 }
+
+#endif // } USE_RC
 
 /// @}

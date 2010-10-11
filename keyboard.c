@@ -445,6 +445,11 @@ void KeyboardExit(void)
     }
 }
 
+// ------------------------------------------------------------------------ //
+// Config
+
+#ifdef USE_RC				// {
+
 /**
 **	Parse keyboard key-list configuration.
 **
@@ -500,6 +505,8 @@ static void KeyboardKeylistConfig(const ConfigObject * keylist,
 
 /**
 **	Parse keyboard binding configuration.
+**
+**	@param bindings	keyboard bindings array
 */
 static void KeyboardBindingConfig(const ConfigObject * binding)
 {
@@ -580,5 +587,7 @@ void KeyboardConfig(const Config * config)
 	}
     }
 }
+
+#endif // } USE_RC
 
 /// @}

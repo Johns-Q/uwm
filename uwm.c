@@ -463,6 +463,8 @@ static void ConnectionExit(void)
 // Configuration
 // ------------------------------------------------------------------------ //
 
+#ifdef USE_RC				// {
+
 /**
 **	Parse gravity.
 **
@@ -507,7 +509,7 @@ int ParseGravity(const char *keyword, const char *error)
 **
 **	@param config	global config dictionary
 */
-void GlobalConfig(const Config * config)
+static void GlobalConfig(const Config * config)
 {
     const char *sval;
     ssize_t ival;
@@ -515,34 +517,34 @@ void GlobalConfig(const Config * config)
     Debug(2, "%s: FIXME:\n", __FUNCTION__);
     // FIXME: global configs Placement Snap DoubleClick ...
 
+    FocusModus = FOCUS_SLOPPY;
     if (ConfigGetString(ConfigDict(config), &sval, "focus-model", NULL)) {
 	if (!strcasecmp(sval, "sloppy")) {
-	    FocusModus = FOCUS_SLOPPY;
+	    // default: FocusModus = FOCUS_SLOPPY;
 	} else if (!strcasecmp(sval, "click")) {
 	    FocusModus = FOCUS_CLICK;
 	} else {
-	    FocusModus = FOCUS_SLOPPY;
 	    Warning("invalid focus model: '%s'\n", sval);
 	}
     }
     // DoubleClick
+    DoubleClickDelta = DOUBLE_CLICK_DEFAULT_DELTA;
     if (ConfigGetInteger(ConfigDict(config), &ival, "double-click", "delta",
 	    NULL)) {
 	if (DOUBLE_CLICK_MINIMAL_DELTA <= ival
 	    && ival <= DOUBLE_CLICK_MAXIMAL_DELTA) {
 	    DoubleClickDelta = ival;
 	} else {
-	    DoubleClickDelta = DOUBLE_CLICK_DEFAULT_DELTA;
 	    Warning("double-click delta %zd out of range\n", ival);
 	}
     }
+    DoubleClickSpeed = DOUBLE_CLICK_DEFAULT_SPEED;
     if (ConfigGetInteger(ConfigDict(config), &ival, "double-click", "speed",
 	    NULL)) {
 	if (DOUBLE_CLICK_MINIMAL_SPEED <= ival
 	    && ival <= DOUBLE_CLICK_MAXIMAL_SPEED) {
 	    DoubleClickSpeed = ival;
 	} else {
-	    DoubleClickSpeed = DOUBLE_CLICK_DEFAULT_SPEED;
 	    Warning("double-click speed %zd out of range\n", ival);
 	}
     }
@@ -603,6 +605,13 @@ static void ParseConfig(const char *filename)
 
     ConfigFreeMem(config);
 }
+
+#else // }{ USE_RC
+
+    /// Dummy for Parse configuration file.
+#define ParseConfig(filename)
+
+#endif // } !USE_RC
 
 // ------------------------------------------------------------------------ //
 

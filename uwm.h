@@ -28,6 +28,9 @@
 //
 //	Which modules to build.
 //
+#if !defined(NO_RC) && !defined(USE_RC)
+#define USE_RC				///< include runtime configuration
+#endif
 #if !defined(NO_OUTLINE) && !defined(USE_OUTLINE)
 #define USE_OUTLINE			///< include outline window move/resize
 #endif

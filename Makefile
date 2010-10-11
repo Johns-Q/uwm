@@ -30,6 +30,9 @@
 #
 #CONFIG	+=	'-DDEFAULT_FONT="-*-luxi sans-*-*-*-*-*-*-*-*-*-*-*-*"'
 
+#	enable/disable runtime configuration
+#CONFIG += -DUSE_RC
+#CONFIG += -DNO_RC
 #	enable/disable outline window move/resize
 #CONFIG += -DUSE_OUTLINE
 #CONFIG += -DNO_OUTLINE
@@ -136,7 +139,8 @@ OPTIM=	-U_FORTIFY_SOURCE -D__OPTIMIZE__ -O0 -Os -fomit-frame-pointer
 CFLAGS= $(MARCH) $(OPTIM) -W -Wall -Wextra -g -pipe \
 	-I. $(DEFS) -DVERSION='$(VERSION)' \
 	$(if $(GIT_REV), -DGIT_REV='"$(GIT_REV)"') \
-	$(if $(findstring -DDEBUG,$(CONFIG)), -Werror)
+	$(if $(findstring -DDEBUG,$(CONFIG)), -Werror) \
+	-Wl,--sort-common,--gc-sections,--as-needed
 LIBS=	`pkg-config --static --libs xcb-keysyms xcb-aux xcb-atom xcb-property \
 	xcb-event xcb-icccm xcb-shape xcb-renderutil xcb-render xcb-image \
 	xcb-shm xcb` `pkg-config --static --libs libpng` -ljpeg -ltiff -lpthread
@@ -179,7 +183,9 @@ core-array/core-array.mk:
 	git submodule init core-array
 	git submodule update core-array
 
+ifeq ($(findstring -DNO_RC,$(CONFIG)),)
 include core-rc/core-rc.mk
+endif
 include core-array/core-array.mk
 
 #----------------------------------------------------------------------------

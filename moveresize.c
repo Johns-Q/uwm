@@ -364,6 +364,8 @@ void StatusUpdateResize(const Client * client, unsigned width, unsigned height)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_RC				// {
+
 /**
 **	Set location of resize status windows.
 **
@@ -449,6 +451,8 @@ void StatusConfig(const Config * config)
 	StatusResizeY = ival;
     }
 }
+
+#endif // } USE_RC
 
 #endif // } !USE_STATUS
 
@@ -557,6 +561,11 @@ void OutlineExit(void)
     xcb_free_gc(Connection, OutlineGC);
 }
 
+// ------------------------------------------------------------------------ //
+// Config
+
+#ifdef USE_RC				// {
+
 /**
 **	Parse outline configuration.
 **
@@ -588,6 +597,8 @@ void OutlineConfig(const Config * config)
 	}
     }
 }
+
+#endif // } USE_RC
 
 #else // }{ USE_OUTLINE
 
@@ -1067,6 +1078,8 @@ void ClientSnap(Client * client)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_RC				// {
+
 /**
 **	Parse snap configuration.
 **
@@ -1102,6 +1115,8 @@ void SnapConfig(const Config * config)
 	}
     }
 }
+
+#endif // } USE_RC
 
 #endif // } USE_SNAP
 

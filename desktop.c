@@ -339,6 +339,8 @@ void DesktopExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_RC				// {
+
 /**
 **	Parse configuration for desktop module.
 **
@@ -386,5 +388,7 @@ void DesktopConfig(const Config * config)
 	}
     }
 }
+
+#endif // } USE_RC
 
 /// @}

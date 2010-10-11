@@ -1221,7 +1221,7 @@ void PanelExit(void)
 }
 
 // ------------------------------------------------------------------------ //
-// Config
+// Init
 
 /**
 **	Default panel plugin create method.
@@ -1339,6 +1339,8 @@ Panel *PanelNew(void)
 
 // ------------------------------------------------------------------------ //
 // Config
+
+#ifdef USE_RC				// {
 
 /**
 **	Parse a panel plugin size configuration.
@@ -1569,6 +1571,8 @@ void PanelConfig(const Config * config)
 	}
     }
 }
+
+#endif // } USE_RC
 
 #endif // } USE_PANEL
 

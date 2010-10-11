@@ -460,6 +460,8 @@ void PanelButtonExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_RC				// {
+
 /**
 **	Create a new button panel plugin from config data.
 **
@@ -526,6 +528,8 @@ Plugin *PanelButtonConfig(const ConfigObject * array)
 
     return plugin;
 }
+
+#endif // } USE_RC
 
 #endif // } USE_BUTTON
 

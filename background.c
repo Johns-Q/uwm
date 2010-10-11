@@ -162,96 +162,6 @@ void BackgroundLoad(int desktop)
 }
 
 // ------------------------------------------------------------------------ //
-// Config
-
-/**
-**	Add background.
-**
-**	@param desktop	desktop number for this background
-**	@param type	background type (solid, ....)
-**	@param value	argument for background type (color, ....)
-*/
-static void BackgroundSet(int desktop, BackgroundType type, const char *value)
-{
-    Background *background;
-
-    // make sure we have value
-    if (!value) {
-	Warning("no value specified for background\n");
-	return;
-    }
-    // create background node
-    background = calloc(1, sizeof(*background));
-    background->Desktop = desktop;
-    background->Type = type;
-    background->Value = strdup(value);
-
-    // insert node into list
-    SLIST_INSERT_HEAD(&Backgrounds, background, Next);
-}
-
-/**
-**	Parse configuration for background module.
-**
-**	@param config	global config dictionary
-*/
-void BackgroundConfig(const Config * config)
-{
-    const ConfigObject *array;
-
-    //
-    //	get array of background(s)
-    //
-    if (ConfigGetArray(ConfigDict(config), &array, "background", NULL)) {
-	ssize_t ival;
-	const ConfigObject *index;
-	const ConfigObject *value;
-
-	//
-	//	parse array of backgrounds
-	//
-	index = NULL;
-	value = ConfigArrayFirstFixedKey(array, &index);
-	while (value) {
-	    const char *sval;
-	    const ConfigObject *table;
-
-	    if (ConfigCheckArray(value, &table)) {
-		ConfigCheckInteger(index, &ival);
-		Debug(3, "background %zd\n", ival);
-		// check for valid desktop numbers
-		if (ival != -1 && DesktopN) {
-		    if (ival < 0 || ival >= DesktopN) {
-			Warning("desktop %zd for background not configured\n",
-			    ival);
-		    }
-		}
-
-		if (ConfigGetString(table, &sval, "solid", NULL)) {
-		    Debug(3, "\tSolid %s\n", sval);
-		    BackgroundSet(ival, BACKGROUND_SOLID, sval);
-		} else if (ConfigGetString(table, &sval, "gradient", NULL)) {
-		    Debug(3, "\tGradient %s\n", sval);
-		    BackgroundSet(ival, BACKGROUND_GRADIENT, sval);
-		} else if (ConfigGetString(table, &sval, "execute", NULL)) {
-		    Debug(3, "\tExecute %s\n", sval);
-		    BackgroundSet(ival, BACKGROUND_COMMAND, sval);
-		} else if (ConfigGetString(table, &sval, "image", NULL)) {
-		    Debug(3, "\tImage %s\n", sval);
-		    BackgroundSet(ival, BACKGROUND_IMAGE, sval);
-		} else if (ConfigGetString(table, &sval, "scale", NULL)) {
-		    Debug(3, "\tScale %s\n", sval);
-		    BackgroundSet(ival, BACKGROUND_SCALE, sval);
-		}
-	    } else {
-		Warning("value in background ignored\n");
-	    }
-	    value = ConfigArrayNextFixedKey(array, &index);
-	}
-    }
-}
-
-// ------------------------------------------------------------------------ //
 
 /**
 **	Load solid background.
@@ -487,6 +397,100 @@ void BackgroundExit(void)
 
     BackgroundLast = NULL;
 }
+
+// ------------------------------------------------------------------------ //
+// Config
+
+#ifdef USE_RC				// {
+
+/**
+**	Add background.
+**
+**	@param desktop	desktop number for this background
+**	@param type	background type (solid, ....)
+**	@param value	argument for background type (color, ....)
+*/
+static void BackgroundSet(int desktop, BackgroundType type, const char *value)
+{
+    Background *background;
+
+    // make sure we have value
+    if (!value) {
+	Warning("no value specified for background\n");
+	return;
+    }
+    // create background node
+    background = calloc(1, sizeof(*background));
+    background->Desktop = desktop;
+    background->Type = type;
+    background->Value = strdup(value);
+
+    // insert node into list
+    SLIST_INSERT_HEAD(&Backgrounds, background, Next);
+}
+
+/**
+**	Parse configuration for background module.
+**
+**	@param config	global config dictionary
+*/
+void BackgroundConfig(const Config * config)
+{
+    const ConfigObject *array;
+
+    //
+    //	get array of background(s)
+    //
+    if (ConfigGetArray(ConfigDict(config), &array, "background", NULL)) {
+	ssize_t ival;
+	const ConfigObject *index;
+	const ConfigObject *value;
+
+	//
+	//	parse array of backgrounds
+	//
+	index = NULL;
+	value = ConfigArrayFirstFixedKey(array, &index);
+	while (value) {
+	    const char *sval;
+	    const ConfigObject *table;
+
+	    if (ConfigCheckArray(value, &table)) {
+		ConfigCheckInteger(index, &ival);
+		Debug(3, "background %zd\n", ival);
+		// check for valid desktop numbers
+		if (ival != -1 && DesktopN) {
+		    if (ival < 0 || ival >= DesktopN) {
+			Warning("desktop %zd for background not configured\n",
+			    ival);
+		    }
+		}
+
+		if (ConfigGetString(table, &sval, "solid", NULL)) {
+		    Debug(3, "\tSolid %s\n", sval);
+		    BackgroundSet(ival, BACKGROUND_SOLID, sval);
+		} else if (ConfigGetString(table, &sval, "gradient", NULL)) {
+		    Debug(3, "\tGradient %s\n", sval);
+		    BackgroundSet(ival, BACKGROUND_GRADIENT, sval);
+		} else if (ConfigGetString(table, &sval, "execute", NULL)) {
+		    Debug(3, "\tExecute %s\n", sval);
+		    BackgroundSet(ival, BACKGROUND_COMMAND, sval);
+		} else if (ConfigGetString(table, &sval, "image", NULL)) {
+		    Debug(3, "\tImage %s\n", sval);
+		    BackgroundSet(ival, BACKGROUND_IMAGE, sval);
+		} else if (ConfigGetString(table, &sval, "scale", NULL)) {
+		    Debug(3, "\tScale %s\n", sval);
+		    BackgroundSet(ival, BACKGROUND_SCALE, sval);
+		}
+	    } else {
+		Warning("value in background ignored\n");
+	    }
+	    value = ConfigArrayNextFixedKey(array, &index);
+	}
+    }
+}
+
+#endif // } USE_RC
 
 #endif // } !USE_BACKGROUND
 

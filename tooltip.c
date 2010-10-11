@@ -289,6 +289,8 @@ void TooltipExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_RC				// {
+
 /**
 **	Get tooltip configuration.
 **
@@ -313,5 +315,7 @@ void TooltipConfig(const Config * config)
 	TooltipEnabled = i;
     }
 }
+
+#endif // } USE_RC
 
 /// @}

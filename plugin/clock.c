@@ -306,14 +306,14 @@ void ClockExit(void)
 // ------------------------------------------------------------------------ //
 // Config
 
+#ifdef USE_RC				// {
+
 /**
 **	Create a new clock panel plugin from config data.
 **
 **	@param array	configuration array for clock panel plugin
 **
 **	@returns created clock panel plugin.
-**
-**	@todo use general panel height/width parse function
 */
 Plugin *ClockConfig(const ConfigObject * array)
 {
@@ -341,6 +341,7 @@ Plugin *ClockConfig(const ConfigObject * array)
     plugin->Object = clock_plugin;
     clock_plugin->Plugin = plugin;
 
+    // common config of plugin size
     PanelPluginConfigSize(array, plugin);
 
     plugin->Create = ClockCreate;
@@ -352,6 +353,8 @@ Plugin *ClockConfig(const ConfigObject * array)
 
     return plugin;
 }
+
+#endif // } USE_RC
 
 #endif // } USE_CLOCK
 
