@@ -20,13 +20,13 @@
 ///	$Id$
 //////////////////////////////////////////////////////////////////////////////
 
-/// @ingroup client
-/// @addtogroup status
-/// @{
-
 // ------------------------------------------------------------------------ //
 // Status
 // ------------------------------------------------------------------------ //
+
+/// @ingroup client
+/// @addtogroup status
+/// @{
 
 //////////////////////////////////////////////////////////////////////////////
 //	Prototypes
@@ -46,13 +46,13 @@ extern void StatusConfig(const Config *);
 
 /// @}
 
-/// @ingroup client
-/// @addtogroup outline
-/// @{
-
 // ------------------------------------------------------------------------ //
 // Outline
 // ------------------------------------------------------------------------ //
+
+/// @ingroup client
+/// @addtogroup outline
+/// @{
 
 //////////////////////////////////////////////////////////////////////////////
 //	Prototypes
@@ -73,10 +73,69 @@ extern void OutlineConfig(const Config *);
 #define OutlineInit()
     /// Dummy for Cleanup outline module.
 #define OutlineExit()
+    /// Dummy for parse outline configuration.
+#define OutlineConfig(config)
 
 #endif
 
-    /// Dummy for parse outline configuration.
-#define OutlineConfig(config)
+/// @}
+
+// ------------------------------------------------------------------------ //
+// Client snap
+// ------------------------------------------------------------------------ //
+
+/// @ingroup client
+/// @addtogroup snap
+/// @{
+
+//////////////////////////////////////////////////////////////////////////////
+//	Prototypes
+//////////////////////////////////////////////////////////////////////////////
+
+    /// Snap to screen and/or neighboring windows.
+extern void ClientSnap(Client * client);
+
+    /// Parse snap configuration.
+extern void SnapConfig(const Config *);
+
+/// @}
+
+// ------------------------------------------------------------------------ //
+// Client move
+// ------------------------------------------------------------------------ //
+
+/// @ingroup client
+/// @addtogroup move
+/// @{
+
+//////////////////////////////////////////////////////////////////////////////
+//	Prototypes
+//////////////////////////////////////////////////////////////////////////////
+
+    /// Interactive move client window.
+extern int ClientMoveLoop(Client *, int, int, int);
+
+    /// Move client window (keyboard or menu initiated).
+extern int ClientMoveKeyboard(Client *);
+
+/// @}
+
+// ------------------------------------------------------------------------ //
+// Client resize
+// ------------------------------------------------------------------------ //
+
+/// @ingroup client
+/// @addtogroup resize
+/// @{
+
+//////////////////////////////////////////////////////////////////////////////
+//	Prototypes
+//////////////////////////////////////////////////////////////////////////////
+
+    /// Interactive resize client window.
+extern void ClientResizeLoop(Client *, int, int, int, int);
+
+    /// Resize client window (keyboard or menu initiated).
+extern void ClientResizeKeyboard(Client *);
 
 /// @}

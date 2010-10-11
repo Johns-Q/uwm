@@ -55,6 +55,7 @@
 #include "pointer.h"
 #include "image.h"
 #include "client.h"
+#include "moveresize.h"
 #include "border.h"
 
 #include "icon.h"

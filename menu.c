@@ -60,6 +60,7 @@
 #include "screen.h"
 #include "pointer.h"
 #include "client.h"
+#include "moveresize.h"
 #include "border.h"
 #include "hints.h"
 #include "keyboard.h"
@@ -917,7 +918,7 @@ int MenuShown;				///< flag menu is shown
 
 static const Client *MenuClient;	///< client of menu
 static MenuCommand MenuCommandSelected;	///< selected menu command
-static uint32_t MenuOpacity = UINT32_MAX;	///< menu window transparency
+static uint32_t MenuOpacity;		///< menu window transparency
 static Menu **Menus;			///< table of menus
 static int MenuN;			///< number of menus in table
 
@@ -2854,6 +2855,7 @@ void MenuConfig(const Config * config)
 	//
 	//	opacity
 	//
+	MenuOpacity = UINT32_MAX;
 	if (ConfigGetDouble(array, &opacity, "opacity", NULL)) {
 	    if (opacity <= 0.0 || opacity > 1.0) {
 		Warning("invalid menu opacity: %g\n", opacity);

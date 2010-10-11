@@ -50,6 +50,7 @@
 #include "image.h"
 #include "pointer.h"
 #include "client.h"
+#include "moveresize.h"
 #include "border.h"
 #include "icon.h"
 #include "menu.h"

@@ -593,7 +593,6 @@ static void ParseConfig(const char *filename)
     StatusConfig(config);
     OutlineConfig(config);
     SnapConfig(config);
-    // MoveResizeConfig(config);
     KeyboardConfig(config);
     IconConfig(config);
     MenuConfig(config);

@@ -450,8 +450,6 @@ void StatusConfig(const Config * config)
     }
 }
 
-#else // }{ USE_STATUS
-
 #endif // } !USE_STATUS
 
 /// @}
@@ -469,9 +467,28 @@ void StatusConfig(const Config * config)
 ///	This module is only available, if compiled with #USE_OUTLINE.
 /// @{
 
+/**
+**	Window move modes enumeration.
+*/
+typedef enum
+{
+    MOVE_OPAQUE,			///< show window contents while moving
+    MOVE_OUTLINE			///< show an outline while moving
+} MoveMode;
+
+    /// typedef of enumeration of possible resize modes
+typedef enum
+{
+    RESIZE_OPAQUE,			///< show window contents while resizing
+    RESIZE_OUTLINE			///< show an outline while resizing
+} ResizeMode;
+
 #ifdef USE_OUTLINE			// {
 
-static int OutlineDrawn;		///< flag outline drawn on screen
+static MoveMode ClientMoveMode;		///< client window move mode
+static ResizeMode ClientResizeMode;	///< client window resize mode
+
+static char OutlineDrawn;		///< flag outline drawn on screen
 static xcb_rectangle_t OutlineLast;	///< last outline rectangle
 static xcb_gcontext_t OutlineGC;	///< outline graphic context
 
@@ -540,11 +557,47 @@ void OutlineExit(void)
     xcb_free_gc(Connection, OutlineGC);
 }
 
-#else // { !USE_OUTLINE
+/**
+**	Parse outline configuration.
+**
+**	@param config	global config dictionary
+*/
+void OutlineConfig(const Config * config)
+{
+    const char *sval;
+
+    ClientMoveMode = MOVE_OPAQUE;
+    if (ConfigGetString(ConfigDict(config), &sval, "move", "mode", NULL)) {
+	if (!strcasecmp(sval, "outline")) {
+	    ClientMoveMode = MOVE_OUTLINE;
+	} else if (!strcasecmp(sval, "opaque")) {
+	    // default: ClientMoveMode = MOVE_OPAQUE;
+	} else {
+	    Warning("invalid move mode type: \"%s\"\n", sval);
+	}
+    }
+
+    ClientResizeMode = RESIZE_OPAQUE;
+    if (ConfigGetString(ConfigDict(config), &sval, "resize", "mode", NULL)) {
+	if (!strcasecmp(sval, "outline")) {
+	    ClientResizeMode = RESIZE_OUTLINE;
+	} else if (!strcasecmp(sval, "opaque")) {
+	    // default: ClientResizeMode = RESIZE_OPAQUE;
+	} else {
+	    Warning("invalid resize mode type: \"%s\"\n", sval);
+	}
+    }
+}
+
+#else // }{ USE_OUTLINE
+
+    /// Constant without outline
+#define ClientMoveMode		MOVE_OPAQUE
+    /// Constant without outline
+#define ClientResizeMode	RESIZE_OPAQUE
 
     /// Dummy for Clear last outline.
 #define OutlineClear()
-
     /// Dummy for Draw an outline.
 #define OutlineDraw(x, y, width, height)
 
@@ -1067,18 +1120,6 @@ void SnapConfig(const Config * config)
 /// @{
 
 /**
-**	Window move modes enumeration.
-*/
-typedef enum
-{
-    MOVE_OPAQUE,			///< show window contents while moving
-    MOVE_OUTLINE			///< show an outline while moving
-} MoveMode;
-
-    /// client window move mode
-static MoveMode ClientMoveMode = MOVE_OPAQUE;
-
-/**
 **	Stop client move.
 **
 **	@param client	client moved arround
@@ -1452,16 +1493,6 @@ int ClientMoveKeyboard(Client * client)
 ///	This module contains the client window resize functions.
 ///
 /// @{
-
-    /// typedef of enumeration of possible resize modes
-typedef enum
-{
-    RESIZE_OPAQUE,			///< show window contents while resizing
-    RESIZE_OUTLINE			///< show an outline while resizing
-} ResizeMode;
-
-    /// client window resize mode
-static ResizeMode ClientResizeMode = RESIZE_OPAQUE;
 
 /**
 **	Stop resize action.

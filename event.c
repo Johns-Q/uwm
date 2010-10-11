@@ -56,6 +56,7 @@
 #include "misc.h"
 #include "event.h"
 #include "client.h"
+#include "moveresize.h"
 #include "border.h"
 #include "hints.h"
 

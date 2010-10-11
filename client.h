@@ -307,39 +307,6 @@ extern void ClientInit(void);
     /// Cleanup the client module
 extern void ClientExit(void);
 
-/// @addtogroup snap
-/// @{
-
-    /// Snap to screen and/or neighboring windows.
-extern void ClientSnap(Client * client);
-
-    /// Parse snap configuration.
-extern void SnapConfig(const Config *);
-
-/// @}
-
-/// @addtogroup move
-/// @{
-
-    /// Interactive move client window.
-extern int ClientMoveLoop(Client *, int, int, int);
-
-    /// Move client window (keyboard or menu initiated).
-extern int ClientMoveKeyboard(Client *);
-
-/// @}
-
-/// @addtogroup resize
-/// @{
-
-    /// Interactive resize client window.
-extern void ClientResizeLoop(Client *, int, int, int, int);
-
-    /// Resize client window (keyboard or menu initiated).
-extern void ClientResizeKeyboard(Client *);
-
-/// @}
-
 /// @addtogroup placement
 /// @{
 
