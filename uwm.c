@@ -64,7 +64,7 @@
 **	- compatible with uclibc
 **	- many features can be compile time enabled / disabled
 **
-**	see <a href="modules.html">µwm list of modules</a>.
+**	see <a href="modules.html">list of µwm modules</a>.
 */
 
 ///
@@ -171,8 +171,6 @@ char KeepLooping;			///< keep looping
 **	This should be done after loading clients since stacking order
 **	may cause borders on current desktop to become visible after moving
 **	clients to their assigned desktops.
-**
-**	@todo need to draw only clients on current desktop
 */
 static void RedrawCurrentDesktop(void)
 {
@@ -181,6 +179,7 @@ static void RedrawCurrentDesktop(void)
 
     for (layer = LAYER_BOTTOM; layer < LAYER_MAX; layer++) {
 	TAILQ_FOREACH(client, &ClientLayers[layer], LayerQueue) {
+	    // draw only clients on current desktop which are visible
 	    if (!(client->State & (WM_STATE_HIDDEN | WM_STATE_MINIMIZED))) {
 		BorderDraw(client, NULL);
 	    }
@@ -458,44 +457,45 @@ static void ConnectionExit(void)
 
 #ifdef USE_RC				// {
 
+#if defined(USE_RULE) || defined(USE_PANEL)	// {
+
 /**
 **	Parse gravity.
 **
 **	@param keyword	gravity type (static, north, ...)
 **	@param error	error info for failure message
 **
-**	@returns PanelGravity for given keyword.
-**
-**	@todo can move into rule module.
-**	@todo PANEL_GRAVITY_... can become GRAVITY_...
+**	@returns gravity for given keyword.
 */
-int ParseGravity(const char *keyword, const char *error)
+Gravity ParseGravity(const char *keyword, const char *error)
 {
     if (!strcasecmp(keyword, "static")) {
-	return PANEL_GRAVITY_STATIC;
+	return GRAVITY_STATIC;
     } else if (!strcasecmp(keyword, "north")) {
-	return PANEL_GRAVITY_NORTH;
+	return GRAVITY_NORTH;
     } else if (!strcasecmp(keyword, "south")) {
-	return PANEL_GRAVITY_SOUTH;
+	return GRAVITY_SOUTH;
     } else if (!strcasecmp(keyword, "west")) {
-	return PANEL_GRAVITY_WEST;
+	return GRAVITY_WEST;
     } else if (!strcasecmp(keyword, "east")) {
-	return PANEL_GRAVITY_EAST;
+	return GRAVITY_EAST;
     } else if (!strcasecmp(keyword, "center")) {
-	return PANEL_GRAVITY_CENTER;
+	return GRAVITY_CENTER;
     } else if (!strcasecmp(keyword, "north-west")) {
-	return PANEL_GRAVITY_NORTH_WEST;
+	return GRAVITY_NORTH_WEST;
     } else if (!strcasecmp(keyword, "north-east")) {
-	return PANEL_GRAVITY_NORTH_EAST;
+	return GRAVITY_NORTH_EAST;
     } else if (!strcasecmp(keyword, "south-west")) {
-	return PANEL_GRAVITY_SOUTH_WEST;
+	return GRAVITY_SOUTH_WEST;
     } else if (!strcasecmp(keyword, "south-east")) {
-	return PANEL_GRAVITY_SOUTH_EAST;
+	return GRAVITY_SOUTH_EAST;
     } else {
 	Warning("invalid %s gravity: \"%s\"\n", error, keyword);
 	return -1;
     }
 }
+
+#endif // } defined(USE_RULE) || defined(USE_PANEL)
 
 /**
 **	Get global configuration.
@@ -506,9 +506,6 @@ static void GlobalConfig(const Config * config)
 {
     const char *sval;
     ssize_t ival;
-
-    Debug(2, "%s: FIXME:\n", __FUNCTION__);
-    // FIXME: global configs Placement Snap DoubleClick ...
 
     FocusModus = FOCUS_SLOPPY;
     if (ConfigGetString(ConfigDict(config), &sval, "focus-model", NULL)) {
@@ -546,7 +543,7 @@ static void GlobalConfig(const Config * config)
 /**
 **	Parse configuration file.
 **
-**	@param filename	config file name
+**	@param filename config file name
 */
 static void ParseConfig(const char *filename)
 {
@@ -772,19 +769,7 @@ int main(int argc, char *const argv[])
     //	 If we have command to execute on shutdown, run it now
     //
     if (ExitCommand) {
-	const char *display;
-
-	// FIXME: use global function
-	// prepare environment
-	display = DisplayString ? DisplayString : getenv("DISPLAY");
-	if (display && *display) {
-	    char *str;
-
-	    str = alloca(9 + strlen(display));
-	    stpcpy(stpcpy(str, "DISPLAY="), display);
-	    putenv(str);
-	}
-
+	CommandPrepareEnv();
 	execl(Shell, Shell, "-c", ExitCommand, NULL);
 	Warning("exec failed: (%s) %s\n", Shell, ExitCommand);
 	return -1;

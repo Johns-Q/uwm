@@ -307,25 +307,25 @@ static void RuleApplyOptions(Client * client, int already_mapped,
 	if (!already_mapped) {
 	    // FIXME: use strut? and don't use XcbScreen->width_in_pixels/XcbScreen->height_in_pixels
 	    switch (options->Values[i].Integer) {
-		case PANEL_GRAVITY_STATIC:
+		case GRAVITY_STATIC:
 		    break;
-		case PANEL_GRAVITY_NORTH_WEST:
+		case GRAVITY_NORTH_WEST:
 		    break;
-		case PANEL_GRAVITY_NORTH:
+		case GRAVITY_NORTH:
 		    client->X =
 			XcbScreen->width_in_pixels / 2 - client->Width / 2 +
 			client->X;
 		    break;
-		case PANEL_GRAVITY_NORTH_EAST:
+		case GRAVITY_NORTH_EAST:
 		    client->X =
 			XcbScreen->width_in_pixels - client->Width + client->X;
 		    break;
-		case PANEL_GRAVITY_WEST:
+		case GRAVITY_WEST:
 		    client->Y =
 			XcbScreen->height_in_pixels / 2 - client->Height / 2 +
 			client->Y;
 		    break;
-		case PANEL_GRAVITY_CENTER:
+		case GRAVITY_CENTER:
 		    client->X =
 			XcbScreen->width_in_pixels / 2 - client->Width / 2 +
 			client->X;
@@ -333,19 +333,19 @@ static void RuleApplyOptions(Client * client, int already_mapped,
 			XcbScreen->height_in_pixels / 2 - client->Height / 2 +
 			client->Y;
 		    break;
-		case PANEL_GRAVITY_EAST:
+		case GRAVITY_EAST:
 		    client->X =
 			XcbScreen->width_in_pixels - client->Width + client->X;
 		    client->Y =
 			XcbScreen->height_in_pixels / 2 - client->Height / 2 +
 			client->Y;
 		    break;
-		case PANEL_GRAVITY_SOUTH_WEST:
+		case GRAVITY_SOUTH_WEST:
 		    client->Y =
 			XcbScreen->height_in_pixels - client->Height +
 			client->Y;
 		    break;
-		case PANEL_GRAVITY_SOUTH:
+		case GRAVITY_SOUTH:
 		    client->X =
 			XcbScreen->width_in_pixels / 2 - client->Width / 2 +
 			client->X;
@@ -353,7 +353,7 @@ static void RuleApplyOptions(Client * client, int already_mapped,
 			XcbScreen->height_in_pixels - client->Height +
 			client->Y;
 		    break;
-		case PANEL_GRAVITY_SOUTH_EAST:
+		case GRAVITY_SOUTH_EAST:
 		    client->X =
 			XcbScreen->width_in_pixels - client->Width + client->X;
 		    client->Y =

@@ -182,17 +182,18 @@ typedef TAILQ_HEAD(_client_layer_, _client_) ClientLayerHead;
 //	Variables
 //////////////////////////////////////////////////////////////////////////////
 
+extern FocusModel FocusModus;		///< current focus model
+
     /// singly-linked List of all clients for _NET_CLIENT_LIST and task list
 extern ClientNetListHead ClientNetList;
+
+extern int ClientN;			///< number of clients managed
 
     /// table of double linkted tail queues of all clients in a layer
 extern ClientLayerHead ClientLayers[LAYER_MAX];
 
-extern void (*ClientController) (void);	///< callback to stop move/resize
+extern void (*ClientController) (void); ///< callback to stop move/resize
 extern Client *ClientControlled;	///< current controlled client
-extern int ClientN;			///< number of clients managed
-
-extern FocusModel FocusModus;		///< current focus model
 
 //////////////////////////////////////////////////////////////////////////////
 //	Prototypes
@@ -286,7 +287,7 @@ extern Client *ClientAddWindow(xcb_window_t,
     /// Remove client window from management.
 extern void ClientDelWindow(Client *);
 
-    ///  Kill client window.
+    /// Kill client window.
 extern void ClientKill(Client *);
 
     /// Send a delete message to a client.

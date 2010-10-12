@@ -270,6 +270,25 @@
 //	Types
 //////////////////////////////////////////////////////////////////////////////
 
+/**
+**	New Enumeration of panel/window alignments.
+*/
+typedef enum
+{
+    /// static at user specified x and y coordinates
+    GRAVITY_STATIC = 0,
+
+    GRAVITY_NORTH_WEST,			///< top-left aligned
+    GRAVITY_NORTH,			///< top-middle aligned
+    GRAVITY_NORTH_EAST,			///< top-right aligned
+    GRAVITY_WEST,			///< left-center aligned
+    GRAVITY_CENTER,			///< screen center aligned
+    GRAVITY_EAST,			///< right-center aligned
+    GRAVITY_SOUTH_WEST,			///< bottom-left aligned
+    GRAVITY_SOUTH,			///< bottom-middle aligned
+    GRAVITY_SOUTH_EAST,			///< bottom-right aligned
+} Gravity;
+
 //////////////////////////////////////////////////////////////////////////////
 //	Variables
 //////////////////////////////////////////////////////////////////////////////
@@ -299,11 +318,8 @@ extern char KeepLooping;		///< keep looping
 //	Prototypes
 //////////////////////////////////////////////////////////////////////////////
 
-    /// Execute an external program. @ingroup commands
-extern void CommandRun(const char *);
-
     /// Parse gravity.
-extern int ParseGravity(const char *, const char *);
+extern Gravity ParseGravity(const char *, const char *);
 
     /// Signal desktop change
 #define DesktopUpdate() \

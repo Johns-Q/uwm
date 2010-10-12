@@ -96,25 +96,6 @@ typedef enum
 } PanelLayout;
 
 /**
-**	New Enumeration of panel alignments.
-*/
-typedef enum
-{
-    /// static at user specified x and y coordinates
-    PANEL_GRAVITY_STATIC = 0,
-
-    PANEL_GRAVITY_NORTH_WEST,		///< top-left aligned
-    PANEL_GRAVITY_NORTH,		///< top-middle aligned
-    PANEL_GRAVITY_NORTH_EAST,		///< top-right aligned
-    PANEL_GRAVITY_WEST,			///< left-center aligned
-    PANEL_GRAVITY_CENTER,		///< screen center aligned
-    PANEL_GRAVITY_EAST,			///< right-center aligned
-    PANEL_GRAVITY_SOUTH_WEST,		///< bottom-left aligned
-    PANEL_GRAVITY_SOUTH,		///< bottom-middle aligned
-    PANEL_GRAVITY_SOUTH_EAST,		///< bottom-right aligned
-} PanelGravity;
-
-/**
 **	Panel structure.
 */
 struct _panel_
@@ -142,7 +123,7 @@ struct _panel_
     unsigned MaximizeOver:1;		///< true if maximized over panel
 
     PanelLayout Layout:1;		///< layout
-    PanelGravity Gravity:4;		///< placement and alignment on screen
+    Gravity Gravity:4;			///< placement and alignment on screen
 
     xcb_window_t Window;		///< panel window
 

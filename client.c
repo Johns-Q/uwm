@@ -864,13 +864,13 @@ static LIST_HEAD(_client_child_, _client_) ClientByChild;
 static LIST_HEAD(_client_frame_, _client_) ClientByFrame;
 // *INDENT-ON*
 
+int ClientN;				///< number of clients managed
+
     /// table of double linked tail queues of all clients in layer
 ClientLayerHead ClientLayers[LAYER_MAX];
 
 void (*ClientController) (void);	///< callback to stop move/resize
 Client *ClientControlled;		///< current controlled client
-
-int ClientN;				///< number of clients managed
 
     /// pre-init -> init cookie
 static xcb_query_tree_cookie_t QueryTreeCookie;

@@ -1,7 +1,7 @@
 ///
 ///	@file command.h @brief command header file
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -37,6 +37,9 @@ extern const char *Shell;		///< shell for commands
 //////////////////////////////////////////////////////////////////////////////
 //	Prototypes
 //////////////////////////////////////////////////////////////////////////////
+
+    /// Prepare environment for command execution.
+extern void CommandPrepareEnv(void);
 
     /// Execute an external program.
 extern void CommandRun(const char *);

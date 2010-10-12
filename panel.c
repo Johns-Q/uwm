@@ -257,46 +257,46 @@ static void PanelHide(Panel * panel)
     y = panel->Y;
     // FIXME: use gravity to hide panel
     switch (panel->Gravity) {
-	case PANEL_GRAVITY_STATIC:
+	case GRAVITY_STATIC:
 	    // FIXME: should also hide, need to resize window size
 	    Debug(2, "FIXME: should hide static panel\n");
 	    break;
-	case PANEL_GRAVITY_NORTH_WEST:
+	case GRAVITY_NORTH_WEST:
 	    if (panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
 		x = panel->HiddenSize - panel->Width;
 	    } else {
 		y = panel->HiddenSize - panel->Height;
 	    }
 	    break;
-	case PANEL_GRAVITY_NORTH:
+	case GRAVITY_NORTH:
 	    y = panel->HiddenSize - panel->Height;
 	    break;
-	case PANEL_GRAVITY_NORTH_EAST:
+	case GRAVITY_NORTH_EAST:
 	    if (panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
 		x = XcbScreen->width_in_pixels - panel->HiddenSize;
 	    } else {
 		y = panel->HiddenSize - panel->Height;
 	    }
 	    break;
-	case PANEL_GRAVITY_WEST:
+	case GRAVITY_WEST:
 	    x = panel->HiddenSize - panel->Width;
 	    break;
-	case PANEL_GRAVITY_CENTER:
+	case GRAVITY_CENTER:
 	    break;
-	case PANEL_GRAVITY_EAST:
+	case GRAVITY_EAST:
 	    x = XcbScreen->width_in_pixels - panel->HiddenSize;
 	    break;
-	case PANEL_GRAVITY_SOUTH_WEST:
+	case GRAVITY_SOUTH_WEST:
 	    if (panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
 		x = panel->HiddenSize - panel->Width;
 	    } else {
 		y = XcbScreen->height_in_pixels - panel->HiddenSize;
 	    }
 	    break;
-	case PANEL_GRAVITY_SOUTH:
+	case GRAVITY_SOUTH:
 	    y = XcbScreen->height_in_pixels - panel->HiddenSize;
 	    break;
-	case PANEL_GRAVITY_SOUTH_EAST:
+	case GRAVITY_SOUTH_EAST:
 	    if (panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
 		x = XcbScreen->width_in_pixels - panel->HiddenSize;
 	    } else {
@@ -867,7 +867,7 @@ static void PanelComputeSize(Panel * panel)
     panel->X = panel->RequestedX;
     panel->Y = panel->RequestedY;
     switch (panel->Gravity) {
-	case PANEL_GRAVITY_STATIC:
+	case GRAVITY_STATIC:
 	    if (panel->X < 0) {
 		panel->X += XcbScreen->width_in_pixels - panel->Width + 1;
 	    }
@@ -875,39 +875,39 @@ static void PanelComputeSize(Panel * panel)
 		panel->Y += XcbScreen->height_in_pixels - panel->Height + 1;
 	    }
 	    break;
-	case PANEL_GRAVITY_NORTH_WEST:
+	case GRAVITY_NORTH_WEST:
 	    // panel->X += 0;
 	    // panel->Y += 0;
 	    break;
-	case PANEL_GRAVITY_NORTH:
+	case GRAVITY_NORTH:
 	    panel->X += XcbScreen->width_in_pixels / 2 - panel->Width / 2;
 	    // panel->Y += 0;
 	    break;
-	case PANEL_GRAVITY_NORTH_EAST:
+	case GRAVITY_NORTH_EAST:
 	    panel->X += XcbScreen->width_in_pixels - panel->Width;
 	    // panel->Y += 0;
 	    break;
-	case PANEL_GRAVITY_WEST:
+	case GRAVITY_WEST:
 	    // panel->X += 0;
 	    panel->Y += XcbScreen->height_in_pixels / 2 - panel->Height / 2;
 	    break;
-	case PANEL_GRAVITY_CENTER:
+	case GRAVITY_CENTER:
 	    panel->X += XcbScreen->width_in_pixels / 2 - panel->Width / 2;
 	    panel->Y += XcbScreen->height_in_pixels / 2 - panel->Height / 2;
 	    break;
-	case PANEL_GRAVITY_EAST:
+	case GRAVITY_EAST:
 	    panel->X += XcbScreen->width_in_pixels - panel->Width;
 	    panel->Y += XcbScreen->height_in_pixels / 2 - panel->Height / 2;
 	    break;
-	case PANEL_GRAVITY_SOUTH_WEST:
+	case GRAVITY_SOUTH_WEST:
 	    // panel->X += 0;
 	    panel->Y += XcbScreen->height_in_pixels - panel->Height;
 	    break;
-	case PANEL_GRAVITY_SOUTH:
+	case GRAVITY_SOUTH:
 	    panel->X += XcbScreen->width_in_pixels / 2 - panel->Width / 2;
 	    panel->Y += XcbScreen->height_in_pixels - panel->Height;
 	    break;
-	case PANEL_GRAVITY_SOUTH_EAST:
+	case GRAVITY_SOUTH_EAST:
 	    panel->X += XcbScreen->width_in_pixels - panel->Width;
 	    panel->Y += XcbScreen->height_in_pixels - panel->Height;
 	    break;

@@ -76,6 +76,23 @@ const char *Shell;			///< shell for commands
 // ------------------------------------------------------------------------ //
 
 /**
+**	Prepare environment for command execution.
+**
+**	Add "DISPLAY=..." to environment, if needed.
+*/
+void CommandPrepareEnv(void)
+{
+    // prepare environment
+    if (DisplayString && *DisplayString) {
+	char *str;
+
+	str = malloc(sizeof("DISPLAY=") + strlen(DisplayString));
+	stpcpy(stpcpy(str, "DISPLAY="), DisplayString);
+	putenv(str);
+    }
+}
+
+/**
 **	Execute an external program.
 **
 **	@param command	command string to be executed in shell
@@ -90,19 +107,8 @@ void CommandRun(const char *command)
 
     if (!fork()) {
 	if (!fork()) {
-	    const char *display;
-
-	    // prepare environment
-	    display = DisplayString ? DisplayString : getenv("DISPLAY");
-	    if (display && *display) {
-		char *str;
-
-		str = alloca(9 + strlen(display));
-		stpcpy(stpcpy(str, "DISPLAY="), display);
-		putenv(str);
-	    }
-
 	    close(xcb_get_file_descriptor(Connection));
+	    CommandPrepareEnv();
 	    execl(Shell, Shell, "-c", command, NULL);
 	    Warning("exec failed: %s -c %s\n", Shell, command);
 	    exit(-1);

@@ -288,7 +288,7 @@ static Image *ImageLoadJPEG(const char *name)
 
 #ifdef USE_PNG				// {
 
-// png includes setjmp self and fails if already included!
+/// png includes setjmp self and fails if already included!
 #define PNG_SKIP_SETJMP_CHECK
 #include <png.h>
 
