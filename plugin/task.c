@@ -710,7 +710,7 @@ static void TaskTooltip(Plugin * plugin, int x, int y)
 void TaskInit(void)
 {
     MinimizedPixmap =
-	xcb_create_pixmap_from_bitmap_data(Connection, RootWindow,
+	xcb_create_pixmap_from_bitmap_data(Connection, XcbScreen->root,
 	(uint8_t *) MinimizedBitmap, TASK_MINIMIZED_WIDTH,
 	TASK_MINIMIZED_HEIGHT, 1, 1, 0, NULL);
 }

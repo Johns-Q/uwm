@@ -318,9 +318,10 @@ static void DiaDrawImage(const Image * image, int x, int y, unsigned width,
 
     // create a temporary xcb_image for scaling
     xcb_image =
-	xcb_image_create_native(Connection, width, height, (RootDepth == 1)
-	? XCB_IMAGE_FORMAT_XY_BITMAP : XCB_IMAGE_FORMAT_Z_PIXMAP, RootDepth,
-	NULL, 0L, NULL);
+	xcb_image_create_native(Connection, width, height,
+	(XcbScreen->root_depth == 1)
+	? XCB_IMAGE_FORMAT_XY_BITMAP : XCB_IMAGE_FORMAT_Z_PIXMAP,
+	XcbScreen->root_depth, NULL, 0L, NULL);
 
     // determine scale factor
     scale_x = (65536 * image->Width) / width;
@@ -792,31 +793,31 @@ void DiaCreate(const char *name)
     if (DiaVars->Fullscreen) {		// fullscreen mode
 	x = 0;
 	y = 0;
-	width = RootWidth;
-	height = RootHeight;
+	width = XcbScreen->width_in_pixels;
+	height = XcbScreen->height_in_pixels;
     } else {				// window mode
-	x = RootWidth / 8;
-	y = RootHeight / 8;
-	width = (RootWidth * 3) / 4;
-	height = (RootHeight * 3) / 4;
+	x = XcbScreen->width_in_pixels / 8;
+	y = XcbScreen->height_in_pixels / 8;
+	width = (XcbScreen->width_in_pixels * 3) / 4;
+	height = (XcbScreen->height_in_pixels * 3) / 4;
     }
 
     window = xcb_generate_id(Connection);
     values[0] =
 	XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE |
 	XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_EXPOSURE;
-    xcb_create_window(Connection, XCB_COPY_FROM_PARENT, window, RootWindow, x,
-	y, width, height, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
+    xcb_create_window(Connection, XCB_COPY_FROM_PARENT, window,
+	XcbScreen->root, x, y, width, height, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
 	XCB_COPY_FROM_PARENT, XCB_CW_EVENT_MASK, values);
 
     // display pixmap
     DiaVars->Pixmap = xcb_generate_id(Connection);
-    xcb_create_pixmap(Connection, RootDepth, DiaVars->Pixmap, window, width,
-	height);
+    xcb_create_pixmap(Connection, XcbScreen->root_depth, DiaVars->Pixmap,
+	window, width, height);
     // working pixmap
     DiaVars->Working = xcb_generate_id(Connection);
-    xcb_create_pixmap(Connection, RootDepth, DiaVars->Working, window, width,
-	height);
+    xcb_create_pixmap(Connection, XcbScreen->root_depth, DiaVars->Working,
+	window, width, height);
 
     size_hints.flags = 0;
     xcb_size_hints_set_position(&size_hints, 0, x, y);
@@ -1310,8 +1311,9 @@ static void DiaMoveCommand(int x, int
 		DiaVars->FilmStripWidth += move_x / DIA_MOVE_DIVIDER;
 		if (DiaVars->FilmStripWidth < 32) {
 		    DiaVars->FilmStripWidth = 32;
-		} else if (DiaVars->FilmStripWidth > RootWidth / 2) {
-		    DiaVars->FilmStripWidth = RootWidth / 2;
+		} else if (DiaVars->FilmStripWidth >
+		    XcbScreen->width_in_pixels / 2) {
+		    DiaVars->FilmStripWidth = XcbScreen->width_in_pixels / 2;
 		}
 		DiaVars->FilmStripHeight =
 		    (DiaVars->FilmStripWidth * DiaVars->AspectDen) /
@@ -1349,8 +1351,8 @@ static void DiaMoveCommand(int x, int
 	DiaVars->IndexWidth += move_x / DIA_MOVE_DIVIDER;
 	if (DiaVars->IndexWidth < 32) {
 	    DiaVars->IndexWidth = 32;
-	} else if (DiaVars->IndexWidth > RootWidth / 2) {
-	    DiaVars->IndexWidth = RootWidth / 2;
+	} else if (DiaVars->IndexWidth > XcbScreen->width_in_pixels / 2) {
+	    DiaVars->IndexWidth = XcbScreen->width_in_pixels / 2;
 	}
 	DiaVars->IndexHeight =
 	    (DiaVars->IndexWidth * DiaVars->AspectDen) / DiaVars->AspectNum;

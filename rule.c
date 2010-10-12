@@ -274,8 +274,9 @@ static void RuleApplyOptions(Client * client, int already_mapped,
 	Debug(3, "   width %d\n", options->Values[i].Integer);
 	if (!already_mapped) {
 	    if (options->Values[i].Integer <= 0) {
-		// FIXME: should use strut? and don't use RootWidth
-		client->Width = RootWidth - options->Values[i].Integer;
+		// FIXME: should use strut? and don't use XcbScreen->width_in_pixels
+		client->Width =
+		    XcbScreen->width_in_pixels - options->Values[i].Integer;
 	    } else {
 		client->Width = options->Values[i].Integer;
 	    }
@@ -288,8 +289,9 @@ static void RuleApplyOptions(Client * client, int already_mapped,
 	Debug(3, "   height %d\n", options->Values[i].Integer);
 	if (!already_mapped) {
 	    if (options->Values[i].Integer <= 0) {
-		// FIXME: should use strut? and don't use RootHeight
-		client->Height = RootHeight - options->Values[i].Integer;
+		// FIXME: should use strut? and don't use XcbScreen->height_in_pixels
+		client->Height =
+		    XcbScreen->height_in_pixels - options->Values[i].Integer;
 	    } else {
 		client->Height = options->Values[i].Integer;
 	    }
@@ -303,42 +305,60 @@ static void RuleApplyOptions(Client * client, int already_mapped,
 	Debug(3, "   gravity %d - %+d%+d\n", options->Values[i].Integer,
 	    client->X, client->Y);
 	if (!already_mapped) {
-	    // FIXME: use strut? and don't use RootWidth/RootHeight
+	    // FIXME: use strut? and don't use XcbScreen->width_in_pixels/XcbScreen->height_in_pixels
 	    switch (options->Values[i].Integer) {
 		case PANEL_GRAVITY_STATIC:
 		    break;
 		case PANEL_GRAVITY_NORTH_WEST:
 		    break;
 		case PANEL_GRAVITY_NORTH:
-		    client->X = RootWidth / 2 - client->Width / 2 + client->X;
+		    client->X =
+			XcbScreen->width_in_pixels / 2 - client->Width / 2 +
+			client->X;
 		    break;
 		case PANEL_GRAVITY_NORTH_EAST:
-		    client->X = RootWidth - client->Width + client->X;
+		    client->X =
+			XcbScreen->width_in_pixels - client->Width + client->X;
 		    break;
 		case PANEL_GRAVITY_WEST:
 		    client->Y =
-			RootHeight / 2 - client->Height / 2 + client->Y;
+			XcbScreen->height_in_pixels / 2 - client->Height / 2 +
+			client->Y;
 		    break;
 		case PANEL_GRAVITY_CENTER:
-		    client->X = RootWidth / 2 - client->Width / 2 + client->X;
+		    client->X =
+			XcbScreen->width_in_pixels / 2 - client->Width / 2 +
+			client->X;
 		    client->Y =
-			RootHeight / 2 - client->Height / 2 + client->Y;
+			XcbScreen->height_in_pixels / 2 - client->Height / 2 +
+			client->Y;
 		    break;
 		case PANEL_GRAVITY_EAST:
-		    client->X = RootWidth - client->Width + client->X;
+		    client->X =
+			XcbScreen->width_in_pixels - client->Width + client->X;
 		    client->Y =
-			RootHeight / 2 - client->Height / 2 + client->Y;
+			XcbScreen->height_in_pixels / 2 - client->Height / 2 +
+			client->Y;
 		    break;
 		case PANEL_GRAVITY_SOUTH_WEST:
-		    client->Y = RootHeight - client->Height + client->Y;
+		    client->Y =
+			XcbScreen->height_in_pixels - client->Height +
+			client->Y;
 		    break;
 		case PANEL_GRAVITY_SOUTH:
-		    client->X = RootWidth / 2 - client->Width / 2 + client->X;
-		    client->Y = RootHeight - client->Height + client->Y;
+		    client->X =
+			XcbScreen->width_in_pixels / 2 - client->Width / 2 +
+			client->X;
+		    client->Y =
+			XcbScreen->height_in_pixels - client->Height +
+			client->Y;
 		    break;
 		case PANEL_GRAVITY_SOUTH_EAST:
-		    client->X = RootWidth - client->Width + client->X;
-		    client->Y = RootHeight - client->Height + client->Y;
+		    client->X =
+			XcbScreen->width_in_pixels - client->Width + client->X;
+		    client->Y =
+			XcbScreen->height_in_pixels - client->Height +
+			client->Y;
 		    break;
 	    }
 	    Debug(3, "	 gravity: %dx%d%+d%+d\n", client->Width,

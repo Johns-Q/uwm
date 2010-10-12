@@ -281,10 +281,6 @@ extern const char *DisplayString;	///< X11 display string
 extern xcb_connection_t *Connection;	///< connection to X11 server
 extern xcb_screen_t *XcbScreen;		///< our screen
 
-#define RootWidth (XcbScreen->width_in_pixels)	///< FIXME: quick fix
-#define RootHeight (XcbScreen->height_in_pixels)	///< FIXME: quick fix
-extern xcb_window_t RootWindow;		///< our root window
-extern unsigned RootDepth;		///< root window depth
 extern xcb_gcontext_t RootGC;		///< root graphic context
 extern xcb_visualtype_t *RootVisualType;	///< root visual type
 

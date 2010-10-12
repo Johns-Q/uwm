@@ -276,8 +276,9 @@ static void DialogSetupSize(Dialog * dialog)
 	if (dialog->X < 0) {
 	    dialog->X = 0;
 	}
-	if (dialog->X + (unsigned)dialog->Width >= RootWidth) {
-	    dialog->X = RootWidth - dialog->Width - east - west;
+	if (dialog->X + (unsigned)dialog->Width >= XcbScreen->width_in_pixels) {
+	    dialog->X =
+		XcbScreen->width_in_pixels - dialog->Width - east - west;
 	}
 
 	dialog->Y =
@@ -286,8 +287,10 @@ static void DialogSetupSize(Dialog * dialog)
 	if (dialog->Y < 0) {
 	    dialog->Y = 0;
 	}
-	if (dialog->Y + (unsigned)dialog->Height >= RootHeight) {
-	    dialog->Y = RootHeight - dialog->Height - north - south;
+	if (dialog->Y + (unsigned)dialog->Height >=
+	    XcbScreen->height_in_pixels) {
+	    dialog->Y =
+		XcbScreen->height_in_pixels - dialog->Height - north - south;
 	}
     } else {				// place in the middle of screen
 	const Screen *screen;
@@ -345,9 +348,9 @@ void DialogShowConfirm(Client * client, void (*action) (Client *), ...)
     values[1] =
 	XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE |
 	XCB_EVENT_MASK_EXPOSURE;
-    xcb_create_window(Connection, XCB_COPY_FROM_PARENT, window, RootWindow,
-	dialog->X, dialog->Y, dialog->Width, dialog->Height, 0,
-	XCB_WINDOW_CLASS_INPUT_OUTPUT, XCB_COPY_FROM_PARENT,
+    xcb_create_window(Connection, XCB_COPY_FROM_PARENT, window,
+	XcbScreen->root, dialog->X, dialog->Y, dialog->Width, dialog->Height,
+	0, XCB_WINDOW_CLASS_INPUT_OUTPUT, XCB_COPY_FROM_PARENT,
 	XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK, values);
 
     size_hints.flags = 0;
@@ -1117,13 +1120,13 @@ static void MenuSetPosition(Runtime * runtime, int index)
     //
     //	Menu bigger than screen, must scroll.
     //
-    if (runtime->Height >= RootHeight) {
+    if (runtime->Height >= XcbScreen->height_in_pixels) {
 	updated = 0;
 	while (runtime->Y + y < runtime->ItemHeight / 2) {
 	    runtime->Y += runtime->ItemHeight;
 	    updated = 1;
 	}
-	while (runtime->Y + y > (int)RootHeight) {
+	while (runtime->Y + y > (int)XcbScreen->height_in_pixels) {
 	    runtime->Y -= runtime->ItemHeight;
 	    updated = -1;
 	}
@@ -1168,16 +1171,16 @@ static void MenuCreateWindow(Runtime * runtime, int x, int y)
     //
     //	 Check if menu fits on screen
     //
-    if (x + runtime->Width > (int)RootWidth) {
+    if (x + runtime->Width > (int)XcbScreen->width_in_pixels) {
 	if (runtime->Parent) {
 	    x = runtime->Parent->X - runtime->Width;
 	} else {
-	    x = RootWidth - runtime->Width;
+	    x = XcbScreen->width_in_pixels - runtime->Width;
 	}
     }
     runtime->ParentOffset = y;
-    if (y + runtime->Height > (int)RootHeight) {
-	y = RootHeight - runtime->Height;
+    if (y + runtime->Height > (int)XcbScreen->height_in_pixels) {
+	y = XcbScreen->height_in_pixels - runtime->Height;
     }
     if (y < 0) {
 	y = 0;
@@ -1192,7 +1195,7 @@ static void MenuCreateWindow(Runtime * runtime, int x, int y)
     values[1] = 1;
     values[2] = XCB_EVENT_MASK_EXPOSURE;
     xcb_create_window(Connection, XCB_COPY_FROM_PARENT, runtime->Window,
-	RootWindow, x, y, runtime->Width, runtime->Height, 0,
+	XcbScreen->root, x, y, runtime->Width, runtime->Height, 0,
 	XCB_WINDOW_CLASS_INPUT_OUTPUT, XCB_COPY_FROM_PARENT,
 	XCB_CW_BACK_PIXEL | XCB_CW_SAVE_UNDER | XCB_CW_EVENT_MASK, values);
 
@@ -1628,7 +1631,8 @@ int MenuHandleMotionNotify(Runtime * runtime,
 	runtime->CurrentIndex = -1;
     }
     // scroll the menu if needed
-    if (runtime->Height > RootHeight && runtime->CurrentIndex >= 0) {
+    if (runtime->Height > XcbScreen->height_in_pixels
+	&& runtime->CurrentIndex >= 0) {
 	// if near the top, shift down
 	if (runtime->Y + y < runtime->ItemHeight / 2) {
 	    if (runtime->CurrentIndex > 0) {
@@ -1636,7 +1640,8 @@ int MenuHandleMotionNotify(Runtime * runtime,
 	    }
 	}
 	// if near the bottom, shift up
-	if (runtime->Y + y + runtime->ItemHeight / 2 > (int)RootHeight) {
+	if (runtime->Y + y + runtime->ItemHeight / 2 >
+	    (int)XcbScreen->height_in_pixels) {
 	    if (runtime->CurrentIndex + 1 < runtime->Menu->ItemCount) {
 		MenuSetPosition(runtime, ++runtime->CurrentIndex);
 	    }
@@ -2015,8 +2020,8 @@ static void MenuShowRuntime(Runtime * runtime, int x, int y,
     int mouse_grabbed;
     int keyboard_grabbed;
 
-    pointer_cookie = PointerGrabDefaultRequest(RootWindow);
-    keyboard_cookie = KeyboardGrabRequest(RootWindow);
+    pointer_cookie = PointerGrabDefaultRequest(XcbScreen->root);
+    keyboard_cookie = KeyboardGrabRequest(XcbScreen->root);
 
     mouse_grabbed = PointerGrabReply(pointer_cookie);
     keyboard_grabbed = KeyboardGrabReply(keyboard_cookie);
@@ -3046,7 +3051,7 @@ Menu *RootMenuFromDirectory(char *path)
 void RootMenuInit(void)
 {
     MenuArrowPixmap =
-	xcb_create_pixmap_from_bitmap_data(Connection, RootWindow,
+	xcb_create_pixmap_from_bitmap_data(Connection, XcbScreen->root,
 	(uint8_t *) MenuSubmenuArrowBitmap, SUB_MENU_ARROW_WIDTH,
 	SUB_MENU_ARROW_HEIGHT, 1, 1, 0, NULL);
 }

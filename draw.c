@@ -1084,8 +1084,8 @@ void FontInit(void)
     // create graphics context
     FontGC = xcb_generate_id(Connection);
     value[0] = 0;
-    xcb_create_gc(Connection, FontGC, RootWindow, XCB_GC_GRAPHICS_EXPOSURES,
-	value);
+    xcb_create_gc(Connection, FontGC, XcbScreen->root,
+	XCB_GC_GRAPHICS_EXPOSURES, value);
 
     FontCheck1(&Fonts.Fallback);
     FontCheck1(&Fonts.Titlebar);

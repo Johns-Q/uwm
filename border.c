@@ -246,7 +246,7 @@ void ShapeRoundedRectWindow(xcb_window_t window, unsigned width,
 	    xcb_free_pixmap(Connection, ShapePixmap);
 	}
 	ShapePixmap = xcb_generate_id(Connection);
-	xcb_create_pixmap(Connection, 1, ShapePixmap, RootWindow, width,
+	xcb_create_pixmap(Connection, 1, ShapePixmap, XcbScreen->root, width,
 	    height);
 	if (ShapeGC == XCB_NONE) {
 	    ShapeGC = xcb_generate_id(Connection);
@@ -291,7 +291,7 @@ void ShapeRoundedRectSubtract(xcb_window_t window, unsigned width,
 	    xcb_free_pixmap(Connection, ShapePixmap);
 	}
 	ShapePixmap = xcb_generate_id(Connection);
-	xcb_create_pixmap(Connection, 1, ShapePixmap, RootWindow, width,
+	xcb_create_pixmap(Connection, 1, ShapePixmap, XcbScreen->root, width,
 	    height);
 	if (ShapeGC == XCB_NONE) {
 	    ShapeGC = xcb_generate_id(Connection);
@@ -841,7 +841,7 @@ xcb_cursor_t BorderGetCursor(BorderAction action)
 */
 xcb_grab_pointer_cookie_t PointerGrabForResizeRequest(int action)
 {
-    return PointerGrabRequest(RootWindow, BorderGetCursor(action));
+    return PointerGrabRequest(XcbScreen->root, BorderGetCursor(action));
 }
 
 /**
@@ -1060,15 +1060,15 @@ void BorderInit(void)
 	    //
 	}
 	button->Pixmap =
-	    xcb_create_pixmap_from_bitmap_data(Connection, RootWindow,
+	    xcb_create_pixmap_from_bitmap_data(Connection, XcbScreen->root,
 	    (uint8_t *) button->Bitmap, BORDER_BUTTON_WIDTH,
 	    BORDER_BUTTON_HEIGHT, 1, 1, 0, NULL);
     }
 
     BorderGC = xcb_generate_id(Connection);
     value[0] = 0;
-    xcb_create_gc(Connection, BorderGC, RootWindow, XCB_GC_GRAPHICS_EXPOSURES,
-	value);
+    xcb_create_gc(Connection, BorderGC, XcbScreen->root,
+	XCB_GC_GRAPHICS_EXPOSURES, value);
 }
 
 /**

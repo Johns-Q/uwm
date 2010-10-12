@@ -126,7 +126,7 @@ void SetIconSize(void)
 	size.width_inc = IconSize;
 	size.height_inc = IconSize;
 
-	XSetIconSizes(Connection, RootWindow, &size, 1);
+	XSetIconSizes(Connection, XcbScreen->root, &size, 1);
 
     }
 }
@@ -182,8 +182,8 @@ static ScaledIcon *IconCreateRenderScaled(Icon * icon, int width, int height)
 
     // create pixmap
     pixmap = xcb_generate_id(Connection);
-    xcb_create_pixmap(Connection, 32, pixmap, RootWindow, icon->Image->Width,
-	icon->Image->Height);
+    xcb_create_pixmap(Connection, 32, pixmap, XcbScreen->root,
+	icon->Image->Width, icon->Image->Height);
     gc = xcb_generate_id(Connection);
     xcb_create_gc(Connection, gc, pixmap, 0, NULL);
 
@@ -252,8 +252,8 @@ static ScaledIcon *IconCreateRenderScaled(Icon * icon, int width, int height)
     xcb_render_pictforminfo_t *pictforminfo;
     xcb_render_pictformat_t pictformat;
 
-    // FIXME: disable HaveRender with RootDepth != 24
-    if (!icon->UseRender || !HaveRender || RootDepth < 24) {
+    // FIXME: disable HaveRender with XcbScreen->root_depth != 24
+    if (!icon->UseRender || !HaveRender || XcbScreen->root_depth < 24) {
 	icon->UseRender = 0;
 	return NULL;
     }
@@ -270,7 +270,7 @@ static ScaledIcon *IconCreateRenderScaled(Icon * icon, int width, int height)
 
     image_data =
 	xcb_image_create_native(Connection, width, height,
-	XCB_IMAGE_FORMAT_Z_PIXMAP, RootDepth, NULL, 0L, NULL);
+	XCB_IMAGE_FORMAT_Z_PIXMAP, XcbScreen->root_depth, NULL, 0L, NULL);
 
     scale_x = (double)icon->Image->Width / width;
     scale_y = (double)icon->Image->Height / height;
@@ -307,7 +307,8 @@ static ScaledIcon *IconCreateRenderScaled(Icon * icon, int width, int height)
 
     // create alpha data pixmap
     pixmap_mask = xcb_generate_id(Connection);
-    xcb_create_pixmap(Connection, 8, pixmap_mask, RootWindow, width, height);
+    xcb_create_pixmap(Connection, 8, pixmap_mask, XcbScreen->root, width,
+	height);
     gc = xcb_generate_id(Connection);
     xcb_create_gc(Connection, gc, pixmap_mask, 0, NULL);
 
@@ -318,8 +319,8 @@ static ScaledIcon *IconCreateRenderScaled(Icon * icon, int width, int height)
 
     // create color data pixmap
     pixmap_data = xcb_generate_id(Connection);
-    xcb_create_pixmap(Connection, RootDepth, pixmap_data, RootWindow, width,
-	height);
+    xcb_create_pixmap(Connection, XcbScreen->root_depth, pixmap_data,
+	XcbScreen->root, width, height);
     // render image data to color data pixmap
     xcb_image_put(Connection, pixmap_data, RootGC, image_data, 0, 0, 0);
     xcb_image_destroy(image_data);
@@ -545,9 +546,9 @@ static ScaledIcon *IconGetScaled(Icon * icon, int width, int height)
     // create a temporary xcb_image for scaling
     xcb_image =
 	xcb_image_create_native(Connection, width, height,
-	(RootDepth ==
+	(XcbScreen->root_depth ==
 	    1) ? XCB_IMAGE_FORMAT_XY_BITMAP : XCB_IMAGE_FORMAT_Z_PIXMAP,
-	RootDepth, NULL, 0L, NULL);
+	XcbScreen->root_depth, NULL, 0L, NULL);
 
     // determine scale factor
     // FIXME: remove doubles
@@ -585,8 +586,8 @@ static ScaledIcon *IconGetScaled(Icon * icon, int width, int height)
 
     // create color data pixmap
     scaled->Image.Pixmap = xcb_generate_id(Connection);
-    xcb_create_pixmap(Connection, RootDepth, scaled->Image.Pixmap, RootWindow,
-	width, height);
+    xcb_create_pixmap(Connection, XcbScreen->root_depth, scaled->Image.Pixmap,
+	XcbScreen->root, width, height);
     // render xcb_image to color data pixmap
     xcb_image_put(Connection, scaled->Image.Pixmap, RootGC, xcb_image, 0, 0,
 	0);
@@ -596,8 +597,8 @@ static ScaledIcon *IconGetScaled(Icon * icon, int width, int height)
     scaled->Mask.Pixmap = XCB_NONE;
     if (mask) {
 	scaled->Mask.Pixmap =
-	    xcb_create_pixmap_from_bitmap_data(Connection, RootWindow, mask,
-	    width, height, 1, 0, 0, NULL);
+	    xcb_create_pixmap_from_bitmap_data(Connection, XcbScreen->root,
+	    mask, width, height, 1, 0, 0, NULL);
 	free(mask);
     }
 
@@ -1090,8 +1091,8 @@ void IconInit(void)
     // FIXME: can't use rootGC?
     IconGC = xcb_generate_id(Connection);
     value[0] = 0;
-    xcb_create_gc(Connection, IconGC, RootWindow, XCB_GC_GRAPHICS_EXPOSURES,
-	value);
+    xcb_create_gc(Connection, IconGC, XcbScreen->root,
+	XCB_GC_GRAPHICS_EXPOSURES, value);
 
     MaximumRequestLength = xcb_get_maximum_request_length(Connection);
 }

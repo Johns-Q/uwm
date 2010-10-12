@@ -99,7 +99,7 @@ static void SwallowDelete(Plugin * plugin)
 	xcb_get_wm_protocols_reply_t protocols;
 	SwallowPlugin *swallow_plugin;
 
-	xcb_reparent_window(Connection, plugin->Window, RootWindow, 0, 0);
+	xcb_reparent_window(Connection, plugin->Window, XcbScreen->root, 0, 0);
 	xcb_change_save_set(Connection, XCB_SET_MODE_DELETE, plugin->Window);
 
 	// kill only swallows which we own!

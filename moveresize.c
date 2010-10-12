@@ -201,7 +201,7 @@ static void StatusCreateWindow(const Client * client, StatusType type, int x,
     xcb_create_window(Connection,	// connection
 	XCB_COPY_FROM_PARENT,		// depth (same as root)
 	Status->Window,			// window Id
-	RootWindow,			// parent window
+	XcbScreen->root,		// parent window
 	x, y,				// x, y
 	width, Status->Height,		// width, height
 	0,				// border_width
@@ -514,7 +514,8 @@ static void OutlineDraw(int x, int y, unsigned width, unsigned height)
 	OutlineLast.y = y;
 	OutlineLast.width = width;
 	OutlineLast.height = height;
-	xcb_poly_rectangle(Connection, RootWindow, OutlineGC, 1, &OutlineLast);
+	xcb_poly_rectangle(Connection, XcbScreen->root, OutlineGC, 1,
+	    &OutlineLast);
 
 	OutlineDrawn = 1;
     }
@@ -526,7 +527,8 @@ static void OutlineDraw(int x, int y, unsigned width, unsigned height)
 static void OutlineClear(void)
 {
     if (OutlineDrawn) {
-	xcb_poly_rectangle(Connection, RootWindow, OutlineGC, 1, &OutlineLast);
+	xcb_poly_rectangle(Connection, XcbScreen->root, OutlineGC, 1,
+	    &OutlineLast);
 
 	xcb_aux_sync(Connection);
 	xcb_ungrab_server(Connection);
@@ -547,7 +549,7 @@ void OutlineInit(void)
     values[0] = XCB_GX_INVERT;
     values[1] = 2;
     values[2] = XCB_SUBWINDOW_MODE_INCLUDE_INFERIORS;
-    xcb_create_gc(Connection, OutlineGC, RootWindow,
+    xcb_create_gc(Connection, OutlineGC, XcbScreen->root,
 	XCB_GC_FUNCTION | XCB_GC_LINE_WIDTH | XCB_GC_SUBWINDOW_MODE, values);
 
     OutlineDrawn = 0;
@@ -1361,7 +1363,7 @@ int ClientMoveLoop(Client * client, int button, int startx, int starty)
 		    }
 #if 0
 		    // FIXME: see ClientMoveKeyboard
-		    PointerWrap(RootWindow, client->X + west,
+		    PointerWrap(XcbScreen->root, client->X + west,
 			client->Y + north);
 		    DiscardMotionEvents((xcb_motion_notify_event_t **) & event,
 			client->Window);
@@ -1477,7 +1479,7 @@ int ClientMoveKeyboard(Client * client)
 	return 0;
     }
     // move pointer to upper-left corner of window
-    PointerWrap(RootWindow, client->X, client->Y);
+    PointerWrap(XcbScreen->root, client->X, client->Y);
     event = NULL;
     DiscardMotionEvents(&event, client->Window);
 
@@ -1993,7 +1995,7 @@ void ClientResizeKeyboard(Client * client)
 	return;
     }
     // move pointer to lower-right corner of window
-    PointerWrap(RootWindow, client->X + client->Width,
+    PointerWrap(XcbScreen->root, client->X + client->Width,
 	client->Y + client->Height);
     event = NULL;
     DiscardMotionEvents(&event, client->Window);

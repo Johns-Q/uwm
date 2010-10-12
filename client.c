@@ -452,7 +452,7 @@ void ClientGetStrut(const Client * client)
 	    if (data[1] > 0) {		// right
 		strut = malloc(sizeof(Strut));
 		strut->Client = client;
-		strut->Rectangle.X = RootWidth - data[1];
+		strut->Rectangle.X = XcbScreen->width_in_pixels - data[1];
 		strut->Rectangle.Y = data[4];
 		strut->Rectangle.Width = data[1];
 		strut->Rectangle.Height = data[5] - data[4];
@@ -473,7 +473,7 @@ void ClientGetStrut(const Client * client)
 		strut = malloc(sizeof(Strut));
 		strut->Client = client;
 		strut->Rectangle.X = data[8];
-		strut->Rectangle.Y = RootHeight - data[3];
+		strut->Rectangle.Y = XcbScreen->height_in_pixels - data[3];
 		strut->Rectangle.Width = data[9] - data[8];
 		strut->Rectangle.Height = data[3];
 		LIST_INSERT_HEAD(&Struts, strut, Node);
@@ -498,17 +498,17 @@ void ClientGetStrut(const Client * client)
 		strut->Rectangle.X = 0;
 		strut->Rectangle.Y = 0;
 		strut->Rectangle.Width = data[0];
-		strut->Rectangle.Height = RootHeight;
+		strut->Rectangle.Height = XcbScreen->height_in_pixels;
 		LIST_INSERT_HEAD(&Struts, strut, Node);
 	    }
 
 	    if (data[1] > 0) {		// right
 		strut = malloc(sizeof(Strut));
 		strut->Client = client;
-		strut->Rectangle.X = RootWidth - data[1];
+		strut->Rectangle.X = XcbScreen->width_in_pixels - data[1];
 		strut->Rectangle.Y = 0;
 		strut->Rectangle.Width = data[1];
-		strut->Rectangle.Height = RootHeight;
+		strut->Rectangle.Height = XcbScreen->height_in_pixels;
 		LIST_INSERT_HEAD(&Struts, strut, Node);
 	    }
 
@@ -517,7 +517,7 @@ void ClientGetStrut(const Client * client)
 		strut->Client = client;
 		strut->Rectangle.X = 0;
 		strut->Rectangle.Y = 0;
-		strut->Rectangle.Width = RootWidth;
+		strut->Rectangle.Width = XcbScreen->width_in_pixels;
 		strut->Rectangle.Height = data[2];
 		LIST_INSERT_HEAD(&Struts, strut, Node);
 	    }
@@ -526,8 +526,8 @@ void ClientGetStrut(const Client * client)
 		strut = malloc(sizeof(Strut));
 		strut->Client = client;
 		strut->Rectangle.X = 0;
-		strut->Rectangle.Y = RootHeight - data[3];
-		strut->Rectangle.Width = RootWidth;
+		strut->Rectangle.Y = XcbScreen->height_in_pixels - data[3];
+		strut->Rectangle.Width = XcbScreen->width_in_pixels;
 		strut->Rectangle.Height = data[3];
 		LIST_INSERT_HEAD(&Struts, strut, Node);
 	    }
@@ -1099,7 +1099,7 @@ void ClientFocus(Client * client)
 	if (!(client->State & WM_STATE_SHADED)) {
 	    ClientUpdateColormap(client);
 
-	    AtomSetWindow(RootWindow, &Atoms.NET_ACTIVE_WINDOW,
+	    AtomSetWindow(XcbScreen->root, &Atoms.NET_ACTIVE_WINDOW,
 		client->Window);
 	}
 
@@ -1113,7 +1113,7 @@ void ClientFocus(Client * client)
 	    client->Window, XCB_CURRENT_TIME);
     } else {
 	xcb_set_input_focus(Connection, XCB_INPUT_FOCUS_POINTER_ROOT,
-	    RootWindow, XCB_CURRENT_TIME);
+	    XcbScreen->root, XCB_CURRENT_TIME);
     }
 }
 
@@ -1359,7 +1359,7 @@ void ClientSetFullscreen(Client * client, int fullscreen)
 
 	// resize window to screen size
 	screen = ScreenGetByXY(client->X, client->Y);
-	xcb_reparent_window(Connection, client->Window, RootWindow, 0, 0);
+	xcb_reparent_window(Connection, client->Window, XcbScreen->root, 0, 0);
 	values[0] = 0;
 	values[1] = 0;
 	values[2] = screen->Width;
@@ -1413,7 +1413,8 @@ void ClientSetFullscreen(Client * client, int fullscreen)
 	event.parent = client->Parent;
 	event.window = client->Window;
 	xcb_send_event(Connection, XCB_SEND_EVENT_DEST_POINTER_WINDOW,
-	    RootWindow, XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT, (void *)&event);
+	    XcbScreen->root, XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT,
+	    (void *)&event);
 
 	client->State |= WM_STATE_MAPPED;
 #endif
@@ -1933,7 +1934,7 @@ static void ClientReparent(Client * client, int not_owner)
     values[4] = XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
 
     xcb_create_window(Connection, XCB_COPY_FROM_PARENT, client->Parent,
-	RootWindow, x, y, width, height, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
+	XcbScreen->root, x, y, width, height, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
 	XCB_COPY_FROM_PARENT,
 	XCB_CW_BACK_PIXMAP | XCB_CW_BACK_PIXEL | XCB_CW_OVERRIDE_REDIRECT |
 	XCB_CW_EVENT_MASK | XCB_CW_DONT_PROPAGATE, values);
@@ -2204,7 +2205,7 @@ void ClientDelWindow(Client * client)
 	ClientFocusNextStacked(client);
     }
     if (ClientActive == client) {
-	AtomSetWindow(RootWindow, &Atoms.NET_ACTIVE_WINDOW, XCB_NONE);
+	AtomSetWindow(XcbScreen->root, &Atoms.NET_ACTIVE_WINDOW, XCB_NONE);
 	ClientActive = NULL;
     }
     // grab server to avoid race conditions
@@ -2238,8 +2239,8 @@ void ClientDelWindow(Client * client)
 	}
 	xcb_ungrab_button(Connection, XCB_BUTTON_INDEX_ANY, client->Window,
 	    XCB_BUTTON_MASK_ANY);
-	xcb_reparent_window(Connection, client->Window, RootWindow, client->X,
-	    client->Y);
+	xcb_reparent_window(Connection, client->Window, XcbScreen->root,
+	    client->X, client->Y);
 	xcb_change_save_set(Connection, XCB_SET_MODE_DELETE, client->Window);
     }
     // destroy parent
@@ -2366,7 +2367,7 @@ static void ClientUpdateFocus(void)
     xcb_query_pointer_reply_t *reply;
     Client *client;
 
-    cookie = xcb_query_pointer_unchecked(Connection, RootWindow);
+    cookie = xcb_query_pointer_unchecked(Connection, XcbScreen->root);
     reply = xcb_query_pointer_reply(Connection, cookie, NULL);
     if (reply) {
 	client = ClientFindByAny(reply->child);
@@ -2382,7 +2383,7 @@ static void ClientUpdateFocus(void)
 */
 void ClientPreInit(void)
 {
-    QueryTreeCookie = xcb_query_tree_unchecked(Connection, RootWindow);
+    QueryTreeCookie = xcb_query_tree_unchecked(Connection, XcbScreen->root);
 }
 
 /**

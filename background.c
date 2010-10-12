@@ -154,11 +154,11 @@ void BackgroundLoad(int desktop)
     }
 
     // set pixmap, clear window, update property
-    xcb_change_window_attributes(Connection, RootWindow, XCB_CW_BACK_PIXMAP,
-	&background->Pixmap);
-    xcb_aux_clear_window(Connection, RootWindow);
+    xcb_change_window_attributes(Connection, XcbScreen->root,
+	XCB_CW_BACK_PIXMAP, &background->Pixmap);
+    xcb_aux_clear_window(Connection, XcbScreen->root);
 
-    AtomSetPixmap(RootWindow, &Atoms.XROOTPMAP_ID, background->Pixmap);
+    AtomSetPixmap(XcbScreen->root, &Atoms.XROOTPMAP_ID, background->Pixmap);
 }
 
 // ------------------------------------------------------------------------ //
@@ -177,8 +177,8 @@ static void BackgroundLoadSolid(Background * background)
 
     // create 1x1 pixmap
     background->Pixmap = xcb_generate_id(Connection);
-    xcb_create_pixmap(Connection, RootDepth, background->Pixmap, RootWindow, 1,
-	1);
+    xcb_create_pixmap(Connection, XcbScreen->root_depth, background->Pixmap,
+	XcbScreen->root, 1, 1);
 
     // draw point on it
     xcb_change_gc(Connection, RootGC, XCB_GC_FOREGROUND, &c.pixel);
@@ -219,8 +219,9 @@ static void BackgroundLoadGradient(Background * background)
 
     // create fullscreen pixmap
     background->Pixmap = xcb_generate_id(Connection);
-    xcb_create_pixmap(Connection, RootDepth, background->Pixmap, RootWindow,
-	RootWidth, RootHeight);
+    xcb_create_pixmap(Connection, XcbScreen->root_depth, background->Pixmap,
+	XcbScreen->root, XcbScreen->width_in_pixels,
+	XcbScreen->height_in_pixels);
 
     if (color1.pixel == color2.pixel) {
 	xcb_rectangle_t rectangle;
@@ -228,13 +229,14 @@ static void BackgroundLoadGradient(Background * background)
 	xcb_change_gc(Connection, RootGC, XCB_GC_FOREGROUND, &color1.pixel);
 	rectangle.x = 0;
 	rectangle.y = 0;
-	rectangle.width = RootWidth;
-	rectangle.height = RootHeight;
+	rectangle.width = XcbScreen->width_in_pixels;
+	rectangle.height = XcbScreen->height_in_pixels;
 	xcb_poly_fill_rectangle(Connection, background->Pixmap, RootGC, 1,
 	    &rectangle);
     } else {
 	GradientDrawHorizontal(background->Pixmap, RootGC, color1.pixel,
-	    color2.pixel, 0, 0, RootWidth, RootHeight);
+	    color2.pixel, 0, 0, XcbScreen->width_in_pixels,
+	    XcbScreen->height_in_pixels);
     }
 }
 
@@ -268,22 +270,23 @@ static void BackgroundLoadImage(Background * background)
 	width = icon->Image->Width;
 	height = icon->Image->Height;
     } else {
-	width = RootWidth;
-	height = RootHeight;
+	width = XcbScreen->width_in_pixels;
+	height = XcbScreen->height_in_pixels;
     }
 
     // create image pixmap
     background->Pixmap = xcb_generate_id(Connection);
-    xcb_create_pixmap(Connection, RootDepth, background->Pixmap, RootWindow,
-	RootWidth, RootHeight);
+    xcb_create_pixmap(Connection, XcbScreen->root_depth, background->Pixmap,
+	XcbScreen->root, XcbScreen->width_in_pixels,
+	XcbScreen->height_in_pixels);
 
     // clear pixmap in case it is too small
     xcb_change_gc(Connection, RootGC, XCB_GC_FOREGROUND,
 	&XcbScreen->black_pixel);
     rectangle.x = 0;
     rectangle.y = 0;
-    rectangle.width = RootWidth;
-    rectangle.height = RootHeight;
+    rectangle.width = XcbScreen->width_in_pixels;
+    rectangle.height = XcbScreen->height_in_pixels;
     xcb_poly_fill_rectangle(Connection, background->Pixmap, RootGC, 1,
 	&rectangle);
 
@@ -321,7 +324,7 @@ void BackgroundInit(void)
 	if (ia_reply->atom) {
 	    Debug(3, "found XSETROOT_ID atom %d\n", ia_reply->atom);
 	    gp_cookie =
-		xcb_get_property_unchecked(Connection, 1, RootWindow,
+		xcb_get_property_unchecked(Connection, 1, XcbScreen->root,
 		ia_reply->atom, PIXMAP, 0, UINT32_MAX);
 	}
 	free(ia_reply);

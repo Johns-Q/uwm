@@ -130,7 +130,8 @@ void DesktopChange(int desktop)
 
     DesktopCurrent = desktop;
 
-    AtomSetCardinal(RootWindow, &Atoms.NET_CURRENT_DESKTOP, DesktopCurrent);
+    AtomSetCardinal(XcbScreen->root, &Atoms.NET_CURRENT_DESKTOP,
+	DesktopCurrent);
 
     ClientRestack();
     TaskUpdate();
@@ -241,7 +242,8 @@ void DesktopToggleShow(void)
     DesktopShowing = !DesktopShowing;
 
     // _NET_SHOWING_DESKTOP
-    AtomSetCardinal(RootWindow, &Atoms.NET_SHOWING_DESKTOP, DesktopShowing);
+    AtomSetCardinal(XcbScreen->root, &Atoms.NET_SHOWING_DESKTOP,
+	DesktopShowing);
 
     ClientRestack();
 }
@@ -300,10 +302,11 @@ void DesktopInit(void)
     //
 
     // _NET_SHOWING_DESKTOP
-    AtomSetCardinal(RootWindow, &Atoms.NET_SHOWING_DESKTOP, DesktopShowing);
+    AtomSetCardinal(XcbScreen->root, &Atoms.NET_SHOWING_DESKTOP,
+	DesktopShowing);
 
     // _NET_NUMBER_OF_DESKTOPS
-    AtomSetCardinal(RootWindow, &Atoms.NET_NUMBER_OF_DESKTOPS, DesktopN);
+    AtomSetCardinal(XcbScreen->root, &Atoms.NET_NUMBER_OF_DESKTOPS, DesktopN);
 
     // _NET_DESKTOP_NAMES
     for (n = i = 0; i < DesktopN; i++) {
@@ -314,7 +317,7 @@ void DesktopInit(void)
 	strcpy(data + n, Desktops[i].Name);
 	n += strlen(Desktops[i].Name) + 1;
     }
-    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, RootWindow,
+    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, XcbScreen->root,
 	Atoms.NET_DESKTOP_NAMES.Atom, Atoms.UTF8_STRING.Atom, 8, n, data);
 }
 

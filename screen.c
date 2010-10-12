@@ -165,8 +165,8 @@ void ScreenInit(void)
     // no extension 1 screen default
     ScreenN = 1;
     Screens = calloc(1, sizeof(*Screens));
-    Screens->Width = RootWidth;
-    Screens->Height = RootHeight;
+    Screens->Width = XcbScreen->width_in_pixels;
+    Screens->Height = XcbScreen->height_in_pixels;
 }
 
 /**

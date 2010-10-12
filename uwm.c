@@ -146,10 +146,6 @@ const char *DisplayString;		///< X11 display string
 xcb_connection_t *Connection;		///< connection to X11 server
 xcb_screen_t *XcbScreen;		///< our screen
 
-// FIXME: this is all in XcbScreen->
-xcb_window_t RootWindow;		///< our root window
-unsigned RootDepth;			///< root window depth
-
 // Prepared
 xcb_gcontext_t RootGC;			///< root graphic context
 xcb_visualtype_t *RootVisualType;	///< root visual type
@@ -240,7 +236,7 @@ static void ModulesInit(void)
 
 //    Initializing = 0;
 
-    PointerSetDefaultCursor(RootWindow);
+    PointerSetDefaultCursor(XcbScreen->root);
     DesktopCurrent = -1;		// force update
     HintGetNetCurrentDesktop(net_current_desktop_cookie);
 
@@ -329,9 +325,6 @@ static void ConnectionOpen(void)
 
     Connection = connection;
     XcbScreen = screen;
-    // FIXME: should i really copy this?
-    RootWindow = screen->root;
-    RootDepth = screen->root_depth;
 
     // emulate DefaultGC
     RootGC = xcb_generate_id(connection);
@@ -339,7 +332,7 @@ static void ConnectionOpen(void)
     values[0] = screen->white_pixel;
     values[1] = screen->black_pixel;
     values[2] = 0;
-    xcb_create_gc(connection, RootGC, RootWindow, mask, values);
+    xcb_create_gc(connection, RootGC, XcbScreen->root, mask, values);
 
     RootVisualType = xcb_aux_find_visual_by_id(screen, screen->root_visual);
 
@@ -402,8 +395,8 @@ static void ConnectionInit(void)
 	XCB_EVENT_MASK_POINTER_MOTION_HINT | XCB_EVENT_MASK_STRUCTURE_NOTIFY |
 	XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_PROPERTY_CHANGE |
 	XCB_EVENT_MASK_COLOR_MAP_CHANGE;
-    xcb_change_window_attributes(Connection, RootWindow, XCB_CW_EVENT_MASK,
-	value);
+    xcb_change_window_attributes(Connection, XcbScreen->root,
+	XCB_CW_EVENT_MASK, value);
 
     signal(SIGTERM, SignalHandler);
     signal(SIGINT, SignalHandler);
@@ -426,9 +419,9 @@ static void ConnectionInit(void)
     query_extension_reply = xcb_get_extension_data(Connection, &xcb_render_id);
     if ((HaveRender = query_extension_reply->present)) {
 	Debug(2, "render extension enabled\n");
-	if (RootDepth < 24) {
+	if (XcbScreen->root_depth < 24) {
 	    Warning("root depth is %d, icon alpha channel disabled\n",
-		RootDepth);
+		XcbScreen->root_depth);
 	    HaveRender = 0;
 	}
     } else {
@@ -631,11 +624,11 @@ static void SendClientMessage(const char *string)
     memset(&event, 0, sizeof(event));
     event.response_type = XCB_CLIENT_MESSAGE;
     event.format = 32;
-    event.window = RootWindow;
+    event.window = XcbScreen->root;
     event.type = xcb_atom_get(Connection, string);
 
-    xcb_send_event(Connection, XCB_SEND_EVENT_DEST_POINTER_WINDOW, RootWindow,
-	XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT, (void *)&event);
+    xcb_send_event(Connection, XCB_SEND_EVENT_DEST_POINTER_WINDOW,
+	XcbScreen->root, XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT, (void *)&event);
 
     ConnectionClose();
 }

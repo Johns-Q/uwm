@@ -705,14 +705,17 @@ static void PagerSetSize(Plugin * plugin, unsigned width, unsigned height)
     Debug(3, "%s (%d,%d)\n", __FUNCTION__, width, height);
     if (width) {			// vertical pager,
 	// compute height from width.
-	pager_plugin->DeskHeight = (width * RootHeight) / RootWidth;
+	pager_plugin->DeskHeight =
+	    (width * XcbScreen->height_in_pixels) / XcbScreen->width_in_pixels;
 	pager_plugin->DeskWidth = width;
 	pager_plugin->Layout = PANEL_LAYOUT_VERTICAL;
 	plugin->Width = width;
 	plugin->Height = (pager_plugin->DeskHeight + 1) * DesktopN;
     } else if (height) {		// horizontal pager
 	// compute width from height
-	pager_plugin->DeskWidth = (height * RootWidth) / RootHeight;
+	pager_plugin->DeskWidth =
+	    (height * XcbScreen->width_in_pixels) /
+	    XcbScreen->height_in_pixels;
 	pager_plugin->DeskHeight = height;
 	pager_plugin->Layout = PANEL_LAYOUT_HORIZONTAL;
 	plugin->Width = (pager_plugin->DeskWidth + 1) * DesktopN;
@@ -722,9 +725,9 @@ static void PagerSetSize(Plugin * plugin, unsigned width, unsigned height)
     }
 
     pager_plugin->ScaleX = ((pager_plugin->DeskWidth - 2)
-	* 65536) / RootWidth;
+	* 65536) / XcbScreen->width_in_pixels;
     pager_plugin->ScaleY = ((pager_plugin->DeskHeight - 2)
-	* 65536) / RootHeight;
+	* 65536) / XcbScreen->height_in_pixels;
 }
 
 /**

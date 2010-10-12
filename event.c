@@ -267,7 +267,7 @@ static int HandleButtonPress( __attribute__ ((unused))
     //
     //	Root window
     //
-    if (event->event == RootWindow) {
+    if (event->event == XcbScreen->root) {
 	RootMenuHandleButtonPress(event);
 	return 1;
     }
@@ -848,7 +848,7 @@ static int HandleClientMessage( __attribute__ ((unused))
     Debug(3, "client message - window %x\n", event->window);
 
     // message for our root window
-    if (event->window == RootWindow) {
+    if (event->window == XcbScreen->root) {
 	if (event->type == Atoms.UWM_RESTART.Atom) {
 	    KeepRunning = 1;
 	    KeepLooping = 0;

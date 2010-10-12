@@ -336,7 +336,7 @@ void AtomInit(void)
 	++i, ++atom) {
 	values[i] = atom->Atom;
     }
-    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, RootWindow,
+    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, XcbScreen->root,
 	Atoms.NET_SUPPORTED.Atom, ATOM, 32, i, values);
 
     //
@@ -348,11 +348,11 @@ void AtomInit(void)
 
     // create our own window
     father = xcb_generate_id(Connection);
-    xcb_create_window(Connection, XCB_COPY_FROM_PARENT, father, RootWindow, -1,
-	-1, 1, 1, 0, XCB_COPY_FROM_PARENT, XCB_COPY_FROM_PARENT,
-	XCB_CW_BACK_PIXEL, &Colors.PanelBG.Pixel);
+    xcb_create_window(Connection, XCB_COPY_FROM_PARENT, father,
+	XcbScreen->root, -1, -1, 1, 1, 0, XCB_COPY_FROM_PARENT,
+	XCB_COPY_FROM_PARENT, XCB_CW_BACK_PIXEL, &Colors.PanelBG.Pixel);
 
-    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, RootWindow,
+    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, XcbScreen->root,
 	Atoms.NET_SUPPORTING_WM_CHECK.Atom, WINDOW, 32, 1, &father);
 
     xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, father,
@@ -364,15 +364,15 @@ void AtomInit(void)
     AtomSupportingWindow = father;
 
     // _NET_DESKTOP_GEOMETRY
-    values[0] = RootWidth;
-    values[1] = RootHeight;
-    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, RootWindow,
+    values[0] = XcbScreen->width_in_pixels;
+    values[1] = XcbScreen->height_in_pixels;
+    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, XcbScreen->root,
 	Atoms.NET_DESKTOP_GEOMETRY.Atom, CARDINAL, 32, 2, values);
 
     // _NET_DESKTOP_VIEWPORT
     values[0] = 0;
     values[1] = 0;
-    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, RootWindow,
+    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, XcbScreen->root,
 	Atoms.NET_DESKTOP_VIEWPORT.Atom, CARDINAL, 32, 2, values);
 
     // _NET_CLIENT_LIST and _NET_CLIENT_LIST_STACKING set later.
@@ -457,7 +457,7 @@ typedef struct
 */
 xcb_get_property_cookie_t HintNetCurrentDesktopRequest(void)
 {
-    return AtomCardinalRequest(RootWindow, &Atoms.NET_CURRENT_DESKTOP);
+    return AtomCardinalRequest(XcbScreen->root, &Atoms.NET_CURRENT_DESKTOP);
 }
 
 /**
@@ -1081,7 +1081,7 @@ void HintSetNetWorkarea(void)
 	values[i * 4 + 2] = XcbScreen->width_in_pixels;
 	values[i * 4 + 3] = XcbScreen->height_in_pixels;
     }
-    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, RootWindow,
+    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, XcbScreen->root,
 	Atoms.NET_WORKAREA.Atom, CARDINAL, 32, DesktopN * 4, values);
 }
 
@@ -1106,7 +1106,7 @@ void HintSetNetClientList(void)
     IfDebug(if (count != ClientN) {
 	Debug(0, "lost windows\n");}
     ) ;
-    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, RootWindow,
+    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, XcbScreen->root,
 	Atoms.NET_CLIENT_LIST.Atom, WINDOW, 32, count, window);
 
     // set _NET_CLIENT_LIST_STACKING
@@ -1120,7 +1120,7 @@ void HintSetNetClientList(void)
     IfDebug(if (count != ClientN) {
 	Debug(0, "lost windows\n");}
     ) ;
-    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, RootWindow,
+    xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, XcbScreen->root,
 	Atoms.NET_CLIENT_LIST_STACKING.Atom, WINDOW, 32, count, window);
 }
 

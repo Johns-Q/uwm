@@ -79,7 +79,7 @@ xcb_button_mask_t PointerGetButtonMask(void)
     xcb_query_pointer_reply_t *query_reply;
     xcb_button_mask_t mask;
 
-    query_cookie = xcb_query_pointer_unchecked(Connection, RootWindow);
+    query_cookie = xcb_query_pointer_unchecked(Connection, XcbScreen->root);
     mask = 0;
     query_reply = xcb_query_pointer_reply(Connection, query_cookie, NULL);
     if (query_reply) {
@@ -150,7 +150,7 @@ xcb_grab_pointer_cookie_t PointerGrabDefaultRequest(xcb_window_t window)
 */
 xcb_grab_pointer_cookie_t PointerGrabForMoveRequest(void)
 {
-    return PointerGrabRequest(RootWindow, Cursors.Move);
+    return PointerGrabRequest(XcbScreen->root, Cursors.Move);
 }
 
 /**
@@ -160,7 +160,7 @@ xcb_grab_pointer_cookie_t PointerGrabForMoveRequest(void)
 */
 xcb_grab_pointer_cookie_t PointerGrabForChooseRequest(void)
 {
-    return PointerGrabRequest(RootWindow, Cursors.Choose);
+    return PointerGrabRequest(XcbScreen->root, Cursors.Choose);
 }
 
 /**
@@ -170,7 +170,7 @@ xcb_grab_pointer_cookie_t PointerGrabForChooseRequest(void)
 */
 xcb_query_pointer_cookie_t PointerQueryRequest(void)
 {
-    return xcb_query_pointer_unchecked(Connection, RootWindow);
+    return xcb_query_pointer_unchecked(Connection, XcbScreen->root);
 }
 
 /**
@@ -242,13 +242,13 @@ void PointerSetDefaultCursor(xcb_window_t window)
 */
 static xcb_cursor_t CursorCreate(xcb_font_t font, int index)
 {
-    xcb_cursor_t c;
+    xcb_cursor_t cursor;
 
-    c = xcb_generate_id(Connection);
-    xcb_create_glyph_cursor(Connection, c, font, font, index, index + 1, 0, 0,
-	0, 65535, 65535, 65535);
+    cursor = xcb_generate_id(Connection);
+    xcb_create_glyph_cursor(Connection, cursor, font, font, index, index + 1,
+	0, 0, 0, 65535, 65535, 65535);
 
-    return c;
+    return cursor;
 }
 
 /**

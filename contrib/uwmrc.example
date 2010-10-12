@@ -705,6 +705,8 @@ button5 = 0x20001000
 ;		see /usr/include/X11/keysymdef.h for keysym names and value
 ;
 tab = 0xff09
+return = 0xff0d
+space = 0x0020
 f1 = 0xffbe
 f2 = 0xffbf
 f3 = 0xffc0
@@ -754,6 +756,8 @@ key-binding = [
     [ [ mod4 f10 ] set-desktop = 9 ]
     [ [ mod4 f11 ] set-desktop = 10 ]
     [ [ mod4 f12 ] set-desktop = 11 ]
+    ; execute shell
+    [ [ mod4 return ] execute = DEFAULT_TERM ]
 ]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

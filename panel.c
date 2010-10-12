@@ -273,7 +273,7 @@ static void PanelHide(Panel * panel)
 	    break;
 	case PANEL_GRAVITY_NORTH_EAST:
 	    if (panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
-		x = RootWidth - panel->HiddenSize;
+		x = XcbScreen->width_in_pixels - panel->HiddenSize;
 	    } else {
 		y = panel->HiddenSize - panel->Height;
 	    }
@@ -284,23 +284,23 @@ static void PanelHide(Panel * panel)
 	case PANEL_GRAVITY_CENTER:
 	    break;
 	case PANEL_GRAVITY_EAST:
-	    x = RootWidth - panel->HiddenSize;
+	    x = XcbScreen->width_in_pixels - panel->HiddenSize;
 	    break;
 	case PANEL_GRAVITY_SOUTH_WEST:
 	    if (panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
 		x = panel->HiddenSize - panel->Width;
 	    } else {
-		y = RootHeight - panel->HiddenSize;
+		y = XcbScreen->height_in_pixels - panel->HiddenSize;
 	    }
 	    break;
 	case PANEL_GRAVITY_SOUTH:
-	    y = RootHeight - panel->HiddenSize;
+	    y = XcbScreen->height_in_pixels - panel->HiddenSize;
 	    break;
 	case PANEL_GRAVITY_SOUTH_EAST:
 	    if (panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
-		x = RootWidth - panel->HiddenSize;
+		x = XcbScreen->width_in_pixels - panel->HiddenSize;
 	    } else {
-		y = RootHeight - panel->HiddenSize;
+		y = XcbScreen->height_in_pixels - panel->HiddenSize;
 	    }
 	    break;
     }
@@ -311,8 +311,8 @@ static void PanelHide(Panel * panel)
 	x = panel->X;
 
 	// move to top or bottom side?
-	if (panel->Y >= (signed)(RootHeight / 2)) {
-	    y = RootHeight - panel->HiddenSize;
+	if (panel->Y >= (signed)(XcbScreen->height_in_pixels / 2)) {
+	    y = XcbScreen->height_in_pixels - panel->HiddenSize;
 	} else {
 	    y = panel->HiddenSize - panel->Height;
 	}
@@ -320,8 +320,8 @@ static void PanelHide(Panel * panel)
 	y = panel->Y;
 
 	// move to left or right side?
-	if (panel->X >= (signed)(RootWidth / 2)) {
-	    x = RootWidth - panel->HiddenSize;
+	if (panel->X >= (signed)(XcbScreen->width_in_pixels / 2)) {
+	    x = XcbScreen->width_in_pixels - panel->HiddenSize;
 	} else {
 	    x = panel->HiddenSize - panel->Width;
 	}
@@ -842,7 +842,7 @@ static void PanelComputeSize(Panel * panel)
     if (panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
 	if (!panel->Width) {
 	    if (PanelCheckHorizontalFill(panel)) {
-		panel->Width = RootWidth;
+		panel->Width = XcbScreen->width_in_pixels;
 	    } else {
 		panel->Width = PanelComputeTotalWidth(panel);
 	    }
@@ -853,7 +853,7 @@ static void PanelComputeSize(Panel * panel)
     } else {
 	if (!panel->Height) {
 	    if (PanelCheckVerticalFill(panel)) {
-		panel->Height = RootHeight;
+		panel->Height = XcbScreen->height_in_pixels;
 	    } else {
 		panel->Height = PanelComputeTotalHeight(panel);
 	    }
@@ -869,10 +869,10 @@ static void PanelComputeSize(Panel * panel)
     switch (panel->Gravity) {
 	case PANEL_GRAVITY_STATIC:
 	    if (panel->X < 0) {
-		panel->X += RootWidth - panel->Width + 1;
+		panel->X += XcbScreen->width_in_pixels - panel->Width + 1;
 	    }
 	    if (panel->Y < 0) {
-		panel->Y += RootHeight - panel->Height + 1;
+		panel->Y += XcbScreen->height_in_pixels - panel->Height + 1;
 	    }
 	    break;
 	case PANEL_GRAVITY_NORTH_WEST:
@@ -880,36 +880,36 @@ static void PanelComputeSize(Panel * panel)
 	    // panel->Y += 0;
 	    break;
 	case PANEL_GRAVITY_NORTH:
-	    panel->X += RootWidth / 2 - panel->Width / 2;
+	    panel->X += XcbScreen->width_in_pixels / 2 - panel->Width / 2;
 	    // panel->Y += 0;
 	    break;
 	case PANEL_GRAVITY_NORTH_EAST:
-	    panel->X += RootWidth - panel->Width;
+	    panel->X += XcbScreen->width_in_pixels - panel->Width;
 	    // panel->Y += 0;
 	    break;
 	case PANEL_GRAVITY_WEST:
 	    // panel->X += 0;
-	    panel->Y += RootHeight / 2 - panel->Height / 2;
+	    panel->Y += XcbScreen->height_in_pixels / 2 - panel->Height / 2;
 	    break;
 	case PANEL_GRAVITY_CENTER:
-	    panel->X += RootWidth / 2 - panel->Width / 2;
-	    panel->Y += RootHeight / 2 - panel->Height / 2;
+	    panel->X += XcbScreen->width_in_pixels / 2 - panel->Width / 2;
+	    panel->Y += XcbScreen->height_in_pixels / 2 - panel->Height / 2;
 	    break;
 	case PANEL_GRAVITY_EAST:
-	    panel->X += RootWidth - panel->Width;
-	    panel->Y += RootHeight / 2 - panel->Height / 2;
+	    panel->X += XcbScreen->width_in_pixels - panel->Width;
+	    panel->Y += XcbScreen->height_in_pixels / 2 - panel->Height / 2;
 	    break;
 	case PANEL_GRAVITY_SOUTH_WEST:
 	    // panel->X += 0;
-	    panel->Y += RootHeight - panel->Height;
+	    panel->Y += XcbScreen->height_in_pixels - panel->Height;
 	    break;
 	case PANEL_GRAVITY_SOUTH:
-	    panel->X += RootWidth / 2 - panel->Width / 2;
-	    panel->Y += RootHeight - panel->Height;
+	    panel->X += XcbScreen->width_in_pixels / 2 - panel->Width / 2;
+	    panel->Y += XcbScreen->height_in_pixels - panel->Height;
 	    break;
 	case PANEL_GRAVITY_SOUTH_EAST:
-	    panel->X += RootWidth - panel->Width;
-	    panel->Y += RootHeight - panel->Height;
+	    panel->X += XcbScreen->width_in_pixels - panel->Width;
+	    panel->Y += XcbScreen->height_in_pixels - panel->Height;
 	    break;
     }
 }
@@ -1119,8 +1119,8 @@ void PanelInit(void)
 	values[3] = Cursors.Default;
 
 	xcb_create_window(Connection, XCB_COPY_FROM_PARENT, panel->Window,
-	    RootWindow, panel->X, panel->Y, panel->Width, panel->Height, 0,
-	    XCB_WINDOW_CLASS_INPUT_OUTPUT, XCB_COPY_FROM_PARENT,
+	    XcbScreen->root, panel->X, panel->Y, panel->Width, panel->Height,
+	    0, XCB_WINDOW_CLASS_INPUT_OUTPUT, XCB_COPY_FROM_PARENT,
 	    XCB_CW_BACK_PIXEL | XCB_CW_OVERRIDE_REDIRECT | XCB_CW_EVENT_MASK |
 	    XCB_CW_CURSOR, values);
 
@@ -1233,8 +1233,8 @@ void PanelExit(void)
 void PanelPluginCreatePixmap(Plugin * plugin)
 {
     plugin->Pixmap = xcb_generate_id(Connection);
-    xcb_create_pixmap(Connection, RootDepth, plugin->Pixmap, RootWindow,
-	plugin->Width, plugin->Height);
+    xcb_create_pixmap(Connection, XcbScreen->root_depth, plugin->Pixmap,
+	XcbScreen->root, plugin->Width, plugin->Height);
 }
 
 /**
@@ -1393,14 +1393,16 @@ static void PanelConfigPanel(const ConfigObject * array)
     //
     if (ConfigGetInteger(array, &ival, "width", NULL)) {
 	panel->RequestedWidth =
-	    ival < 0 ? ((ssize_t) RootWidth * -ival) / 100 : ival;
+	    ival <
+	    0 ? ((ssize_t) XcbScreen->width_in_pixels * -ival) / 100 : ival;
     }
     //
     //	request-height
     //
     if (ConfigGetInteger(array, &ival, "height", NULL)) {
 	panel->RequestedHeight =
-	    ival < 0 ? ((ssize_t) RootHeight * -ival) / 100 : ival;
+	    ival <
+	    0 ? ((ssize_t) XcbScreen->height_in_pixels * -ival) / 100 : ival;
     }
     //
     //	border
