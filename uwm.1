@@ -1,0 +1,77 @@
+.\"
+.\"	@file uwm.1		@brief µwm µ window manager man page
+.\"
+.\"	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+.\"
+.\"	Contributor(s):
+.\"
+.\"	License: AGPLv3
+.\"
+.\"	This program is free software: you can redistribute it and/or modify
+.\"	it under the terms of the GNU Affero General Public License as
+.\"	published by the Free Software Foundation, either version 3 of the
+.\"	License.
+.\"
+.\"	This program is distributed in the hope that it will be useful,
+.\"	but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\"	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\"	GNU Affero General Public License for more details.
+.\"
+.\"	$Id$
+.\" ------------------------------------------------------------------------
+.TH "µwm" 1 "2010-10-12" "1" "µwm Manual"
+
+.SH NAME
+uwm \- µwm µ window manager
+
+.SH SYNOPSIS
+.B uwm
+.BI [\-?|\-h]
+.BI [\-erpv]
+.BI [\-c \ config ]
+.BI [\-d \ display ]
+
+.SH DESCRIPTION
+µwm is a lightweight stacking window manager for the X11 Window System.
+It has builtin menus/panels/buttons and other plugins.
+
+.SH OPTIONS
+.TP
+.B \-?|\-h
+Show short usage help and exit.  The help is printed to stdout.  A note to all
+developers: please print to stdout!
+.TP
+.B \-e
+Exit running µwm.  Done by sending _UWM_EXIT to the root window.
+.TP
+.B \-r
+Restart running µwm.  Done by sending _UWM_RESTART to the root window.
+.TP
+.B \-p
+Parse the configuration file and exit.  Use this to check your µwm runtime
+configuration.
+.TP
+.B \-v
+Display version information.
+.TP
+.BI \-c \ config
+Load 'config' as µwm runtime configuration.
+.TP
+.BI \-d \ display
+Attempt to manage the named X display.  In the absence of this option, the
+display specified by the DISPLAY environment variable is used.
+
+.SH FILES
+.TP
+.I ~/.uwm/uwmrc
+User configuration file.
+.TP
+.I /etc/system.uwmrc /usr/local/etc/system.uwmrc
+Default system configuration file.  Loaded if no user configuration is present.
+
+.SH SEE ALSO
+.TP
+uwmrc(5)
+
+.SH AUTHOR
+Copyright (C) 2009, 2010 Lutz Sammer.  License: AGPLv3.

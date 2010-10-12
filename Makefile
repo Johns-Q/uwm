@@ -159,7 +159,7 @@ HDRS	= uwm.h command.h pointer.h keyboard.h draw.h image.h icon.h \
 	plugin/systray.h plugin/clock.h \
 	readable_bitmap.h dia.h td.h
 
-FILES=	Makefile u.xpm contrib/uwm-helper.sh.in \
+FILES=	Makefile u.xpm contrib/uwm-helper.sh.in uwm.1 \
 	contrib/uwm.doxyfile contrib/uwm16x16.xpm contrib/uwmrc.example
 
 all:	uwm #udm
