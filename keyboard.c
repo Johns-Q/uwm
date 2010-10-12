@@ -135,10 +135,18 @@ xcb_keysym_t KeyboardGet(xcb_keycode_t keycode, unsigned modifier)
     xcb_keysym_t ks0;
     xcb_keysym_t ks1;
 
-    Debug(3, "key %x:%x ", modifier, keycode);
+    Debug(3, "key %d=%#x:%d=%#x ", modifier, modifier, keycode, keycode);
 
     // XCB_MOD_MASK_SHIFT XCB_MOD_MASK_LOCK XCB_MOD_MASK_CONTROL
     // XCB_MOD_MASK_1 .. XCB_MOD_MASK_5
+
+    Debug(4, " %#x %#x %#x %#x %#x %#x\n",
+	xcb_key_symbols_get_keysym(XcbKeySymbols, keycode, 0),
+	xcb_key_symbols_get_keysym(XcbKeySymbols, keycode, 1),
+	xcb_key_symbols_get_keysym(XcbKeySymbols, keycode, 2),
+	xcb_key_symbols_get_keysym(XcbKeySymbols, keycode, 3),
+	xcb_key_symbols_get_keysym(XcbKeySymbols, keycode, 4),
+	xcb_key_symbols_get_keysym(XcbKeySymbols, keycode, 5));
 
     // handle mode-switch
     if (modifier & ModeSwitchMask) {
@@ -155,6 +163,7 @@ xcb_keysym_t KeyboardGet(xcb_keycode_t keycode, unsigned modifier)
     if (ks1 == XCB_NO_SYMBOL) {
 	ks1 = ks0;
     }
+
     // see xcb-util-0.3.6/keysyms/keysyms.c:
     if (!(modifier & XCB_MOD_MASK_SHIFT) && !(modifier & XCB_MOD_MASK_LOCK)) {
 	return ks0;

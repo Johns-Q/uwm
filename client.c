@@ -867,10 +867,8 @@ static LIST_HEAD(_client_frame_, _client_) ClientByFrame;
     /// table of double linked tail queues of all clients in layer
 ClientLayerHead ClientLayers[LAYER_MAX];
 
-int ClientFinishAction;			///< flag finish current action
-
-// FIXME: void (*ClientController) (void);	///< callback to stop move/resize.
-// FIXME: Client * ClientControlled;		///< current client
+void (*ClientController) (void);	///< callback to stop move/resize
+Client *ClientControlled;		///< current controlled client
 
 int ClientN;				///< number of clients managed
 
@@ -2028,13 +2026,6 @@ Client *ClientFindByAny(xcb_window_t window)
 }
 
 /**
-**	No operation client controller.
-*/
-void ClientDefaultController(void)
-{
-}
-
-/**
 **	Add window to management.
 **
 **	@param window		client window
@@ -2070,7 +2061,6 @@ Client *ClientAddWindow(xcb_window_t window,
 
     // prepare client structure for this window
     client = calloc(1, sizeof(*client));
-    client->Controller = ClientDefaultController;
     client->Window = window;
     ++ClientN;
 

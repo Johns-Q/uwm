@@ -165,8 +165,6 @@ struct _client_
     // FIXME: Icon *
     void *Icon;				///< icon assigned to this window
 #endif
-    /// FIXME: move out of client structure
-    void (*Controller) (void);		///< callback to stop move/resize.
 };
 
 // *INDENT-OFF*
@@ -190,7 +188,8 @@ extern ClientNetListHead ClientNetList;
     /// table of double linkted tail queues of all clients in a layer
 extern ClientLayerHead ClientLayers[LAYER_MAX];
 
-extern int ClientFinishAction;		///< finish current action
+extern void (*ClientController) (void);	///< callback to stop move/resize
+extern Client *ClientControlled;	///< current controlled client
 extern int ClientN;			///< number of clients managed
 
 extern FocusModel FocusModus;		///< current focus model
@@ -279,9 +278,6 @@ extern Client *ClientFindByChild(xcb_window_t);
 
     /// Find a client by (client) window or parent (frame) window.
 extern Client *ClientFindByAny(xcb_window_t);
-
-    /// No operation client controller.
-extern void ClientDefaultController(void);
 
     /// Add window to management.
 extern Client *ClientAddWindow(xcb_window_t,

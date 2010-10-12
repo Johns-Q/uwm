@@ -603,7 +603,9 @@ static int HandleDestroyNotify( __attribute__ ((unused))
 
     if ((client = ClientFindByChild(event->window))) {
 	Debug(3, "destroy client %s\n", client->Name);
-	client->Controller();		// stop, if move/resize
+	if (client == ClientControlled) {
+	    ClientController();		// stop, if move/resize
+	}
 	ClientDelWindow(client);
 	return 1;
     } else if (SwallowHandleDestroyNotify(event)) {
@@ -645,7 +647,10 @@ static int HandleUnmapNotify(void *data, xcb_connection_t * conn,
 	if (!XCB_EVENT_SENT(event)) {
 	    return 1;
 	}
-	client->Controller();		// stop, if move/resize
+
+	if (client == ClientControlled) {
+	    ClientController();		// stop, if move/resize
+	}
 
 	if (client->State & WM_STATE_MAPPED) {
 	    client->State &= ~WM_STATE_MAPPED;
@@ -743,7 +748,9 @@ static int HandleConfigureRequest( __attribute__ ((unused))
 	if (!changed) {			// nothing changed
 	    return 1;
 	}
-	client->Controller();		// stop, if any move/resize
+	if (client == ClientControlled) {
+	    ClientController();		// stop, if move/resize
+	}
 
 	ClientConstrainSize(client);
 	client->State &= ~(WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT);
@@ -870,7 +877,9 @@ static int HandleClientMessage( __attribute__ ((unused))
     // message for our client window
     if ((client = ClientFindByAny(event->window))) {
 	if (event->type == Atoms.WM_CHANGE_STATE.Atom) {
-	    client->Controller();	// stop, if move/resize
+	    if (client == ClientControlled) {
+		ClientController();	// stop, if move/resize
+	    }
 
 	    switch (event->data.data32[0]) {
 		case XCB_WM_STATE_WITHDRAWN:
@@ -892,7 +901,9 @@ static int HandleClientMessage( __attribute__ ((unused))
 	    if (event->data.data32[0] == (uint32_t) ~ 0L) {
 		ClientSetSticky(client, 1);
 	    } else {
-		client->Controller();	// stop, if move/resize
+		if (client == ClientControlled) {
+		    ClientController();	// stop, if move/resize
+		}
 		if (event->data.data32[0] < (uint32_t) DesktopN) {
 		    ClientSetSticky(client, 0);
 		    ClientSetDesktop(client, event->data.data32[0]);

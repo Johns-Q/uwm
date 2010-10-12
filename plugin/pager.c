@@ -207,12 +207,15 @@ static Client *PagerGetClient(PagerPlugin * pager_plugin, int x, int y)
 
 /**
 **	Client-terminated pager move.
+**
+**	ungrab keyboard and pointer.
 */
 static void PagerMoveController(void)
 {
     xcb_ungrab_pointer(Connection, XCB_CURRENT_TIME);
     xcb_ungrab_keyboard(Connection, XCB_CURRENT_TIME);
-    ClientFinishAction = 1;
+
+    ClientControlled = NULL;
 }
 
 /**
@@ -231,9 +234,13 @@ static void PagerStopMove(Client * client, int do_move, int hmax, int vmax)
     int west;
     uint32_t values[2];
 
+#ifdef DEBUG
+    if (client != ClientControlled) {
+	Debug(0, "stop pager move of uncontrolled client\n");
+    }
+#endif
     // release grabs
-    client->Controller();
-    client->Controller = ClientDefaultController;
+    ClientController();
 
     if (do_move) {
 	// THIS is only needed, if moved with outline
@@ -298,8 +305,8 @@ int PagerMoveLoop(Plugin * plugin, int startx, int starty)
     vmax = 0;
     do_move = 0;
 
-    ClientFinishAction = 0;
-    client->Controller = PagerMoveController;
+    ClientController = PagerMoveController;
+    ClientControlled = client;
 
     olddesktop = client->Desktop;
 
@@ -314,8 +321,7 @@ int PagerMoveLoop(Plugin * plugin, int startx, int starty)
 	for (;;) {
 	    xcb_generic_event_t *event;
 
-	    if (ClientFinishAction || !KeepLooping) {
-		client->Controller = ClientDefaultController;
+	    if (!ClientControlled || !KeepLooping) {
 		return do_move;
 	    }
 	    if (!(event = PollNextEvent())) {

@@ -1149,8 +1149,12 @@ void SnapConfig(const Config * config)
 static void ClientStopMove(Client * client, int do_move, int oldx, int oldy,
     int hmax, int vmax)
 {
-    client->Controller();
-    client->Controller = ClientDefaultController;
+#ifdef DEBUG
+    if (client != ClientControlled) {
+	Debug(0, "stop move of uncontrolled client");
+    }
+#endif
+    ClientController();
 
     if (do_move) {
 	int north;
@@ -1180,6 +1184,8 @@ static void ClientStopMove(Client * client, int do_move, int oldx, int oldy,
 
 /**
 **	Callback for stopping moves.
+**
+**	ungrab keyboard and pointer, restore outline, remove status window.
 */
 static void ClientMoveController(void)
 {
@@ -1191,7 +1197,7 @@ static void ClientMoveController(void)
     }
     StatusDestroyMove();
 
-    ClientFinishAction = 1;
+    ClientControlled = NULL;
 }
 
 /**
@@ -1232,8 +1238,8 @@ int ClientMoveLoop(Client * client, int button, int startx, int starty)
 	gk_cookie = KeyboardGrabRequest(client->Window);
     }
 
-    ClientFinishAction = 0;
-    client->Controller = ClientMoveController;
+    ClientController = ClientMoveController;
+    ClientControlled = client;
 
     oldx = client->X;
     oldy = client->Y;
@@ -1276,8 +1282,7 @@ int ClientMoveLoop(Client * client, int button, int startx, int starty)
 	for (;;) {
 	    xcb_generic_event_t *event;
 
-	    if (ClientFinishAction || !KeepLooping) {
-		client->Controller = ClientDefaultController;
+	    if (!ClientControlled || !KeepLooping) {
 		return do_move;
 	    }
 	    if (!(event = PollNextEvent())) {
@@ -1524,8 +1529,12 @@ static void ClientStopResize(Client * client)
     int west;
     uint32_t values[4];
 
-    client->Controller();
-    client->Controller = ClientDefaultController;
+#ifdef DEBUG
+    if (client != ClientControlled) {
+	Debug(0, "stop resize of uncontrolled client\n");
+    }
+#endif
+    ClientController();
 
     ClientUpdateShape(client);
 
@@ -1555,6 +1564,8 @@ static void ClientStopResize(Client * client)
 
 /**
 **	Callback for stopping resizes.
+**
+**	ungrab keyboard and pointer, restore outline, remove status window.
 */
 static void ClientResizeController(void)
 {
@@ -1566,7 +1577,7 @@ static void ClientResizeController(void)
     }
     StatusDestroyResize();
 
-    ClientFinishAction = 1;
+    ClientControlled = NULL;
 }
 
 /**
@@ -1675,8 +1686,8 @@ void ClientResizeLoop(Client * client, int button, int action, int startx,
 	action &= ~(BORDER_ACTION_RESIZE_N | BORDER_ACTION_RESIZE_S);
     }
 
-    ClientFinishAction = 0;
-    client->Controller = ClientResizeController;
+    ClientController = ClientResizeController;
+    ClientControlled = client;
 
     oldx = client->X;
     oldy = client->Y;
@@ -1718,8 +1729,7 @@ void ClientResizeLoop(Client * client, int button, int action, int startx,
 	for (;;) {
 	    xcb_generic_event_t *event;
 
-	    if (ClientFinishAction || !KeepLooping) {
-		client->Controller = ClientDefaultController;
+	    if (!ClientControlled || !KeepLooping) {
 		// PointerSetDefaultCursor(client->Parent);
 		return;
 	    }
