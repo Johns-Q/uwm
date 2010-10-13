@@ -46,6 +46,13 @@
 #if !defined(NO_MENU) && !defined(USE_MENU)
 #define USE_MENU			///< include menu
 #endif
+
+#ifdef USE_MENU				// only possible if menu enabled
+#if !defined(NO_MENU_DIR) && !defined(USE_MENU_DIR)
+#define USE_MENU_DIR			///< include directory menu
+#endif
+#endif
+
 #if !defined(NO_PANEL) && !defined(USE_PANEL)
 #define USE_PANEL			///< include panel
 #endif
@@ -159,6 +166,7 @@
 #define CORNER_RADIUS 4			///< radius of rounded windows
 
 #define MENU_INNER_SPACE 2		///< inner border of menu items
+#define MENU_SEPARATOR_HEIGHT 5		///< height of menu separator item
 
 #define PANEL_DEFAULT_WIDTH 32		///< default panel width
 #define PANEL_DEFAULT_HEIGHT 32		///< default panel height

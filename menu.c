@@ -600,22 +600,24 @@ void DialogExit(void)
 /**
 **	Get the scaled size of an icon for a label.
 **
-**	@param icon		icon scaled to fit in menu keeping aspect ratio
-**	@param maxsize		maximal size available in menu
+**	@param icon		icon scaled to fit in label keeping aspect ratio
+**	@param maxsize		maximal size available in label
 **	@param[out] width	width of scaled icon
 **	@param[out] height	height of scaled icon
 */
-static void MenuScaledIconSize(const Icon * icon, int maxsize, unsigned *width,
-    unsigned *height)
+static void LabelScaledIconSize(const Icon * icon, int maxsize,
+    unsigned *width, unsigned *height)
 {
     unsigned long ratio;
 
     // width to height
     ratio = (unsigned long)(icon->Image->Width * 65536) / icon->Image->Height;
-    if (icon->Image->Width > icon->Image->Height) {	// compute size wrt width
+    if (icon->Image->Width > icon->Image->Height) {
+	// compute size wrt width
 	*width = (maxsize * ratio) / 65536;
 	*height = (*width * 65536) / ratio;
-    } else {				// compute size wrt height
+    } else {
+	// compute size wrt height
 	*height = (maxsize * 65536) / ratio;
 	*width = (*height * ratio) / 65536;
     }
@@ -626,9 +628,41 @@ static void MenuScaledIconSize(const Icon * icon, int maxsize, unsigned *width,
 /**
 **	Draw a label.
 **
+**	The label has a border=outline, an icon, a text and a background.
+**
 **	Used for menus and panel plugins.
 **
 **	@param label	label to draw
+**
+**	<pre>
+**	.-------------------------------.
+**	|				|
+**	| .------.			|
+**	| |	 |			|
+**	| | Icon | Text 		|
+**	| |	 |			|
+**	| `------'			|
+**	|				|
+**	`-------------------------------'
+**	</pre>
+**	or
+**	<pre>
+**	.-------------------------------.
+**	|				|
+**	| .------.			|
+**	| |	 |			|
+**	| | Icon |			|
+**	| |	 |			|
+**	| `------'			|
+**	|				|
+**	| Text				|
+**	|				|
+**	`-------------------------------'
+**	</pre>
+**
+**	icon, text, background are optional
+**	- #LABEL_BORDER		size of border arround the label (1 pixel)
+**	- #LABEL_INNER_SPACE	space between icon/border icon/text text/border
 */
 void LabelDraw(const Label * label)
 {
@@ -680,7 +714,7 @@ void LabelDraw(const Label * label)
 	    fg_pixel = Colors.MenuFG.Pixel;
 	    bg1_pixel = Colors.MenuBG.Pixel;
 	    bg2_pixel = Colors.MenuBG.Pixel;
-	    outline_pixel = Colors.MenuBG.Pixel;
+	    outline_pixel = Colors.MenuOutline.Pixel;
 	    top_pixel = Colors.MenuBG.Pixel;
 	    bottom_pixel = Colors.MenuBG.Pixel;
 	    break;
@@ -776,41 +810,96 @@ void LabelDraw(const Label * label)
 	    break;
     }
 
-    // determine the size of the icon (if any) to display
     icon_width = 0;
     icon_height = 0;
+    text_height = label->Font->Height;
+
+    //
+    //	draw icon above text
+    //
+    if (label->Text && height > text_height * 3) {
+
+	xoffset = LABEL_BORDER + LABEL_INNER_SPACE;
+	yoffset = LABEL_BORDER + LABEL_INNER_SPACE;
+#ifdef USE_ICON
+	//
+	//	draw icon
+	//
+	if (label->Icon) {
+	    LabelScaledIconSize(label->Icon, MIN(width - 2 * LABEL_INNER_SPACE,
+		    height - text_height - 3 * LABEL_INNER_SPACE)
+		- 2 * LABEL_BORDER, &icon_width, &icon_height);
+
+	    if (label->Alignment == LABEL_ALIGN_CENTER) {
+		xoffset = width / 2 - icon_width / 2;
+		if (xoffset < 0) {
+		    xoffset = 0;
+		}
+	    }
+	    IconDraw(label->Icon, drawable, x + xoffset, y + yoffset,
+		icon_width, icon_height);
+
+	    yoffset += icon_height + LABEL_INNER_SPACE;
+	} else {
+	    yoffset +=
+		height - LABEL_INNER_SPACE - text_height -
+		2 * LABEL_INNER_SPACE;
+	}
+#endif
+	//
+	//	draw text
+	//
+	text_width = FontTextWidthReply(cookie_text);
+	clipped_text_width = text_width;
+
+	// clip text to label size
+	if (xoffset + clipped_text_width + LABEL_INNER_SPACE + LABEL_BORDER >
+	    width) {
+	    clipped_text_width =
+		width - xoffset - LABEL_INNER_SPACE + LABEL_BORDER;
+	}
+
+	if (label->Alignment == LABEL_ALIGN_CENTER) {
+	    xoffset = width / 2 - clipped_text_width / 2;
+	    if (xoffset < 0) {
+		xoffset = 0;
+	    }
+	}
+
+	FontDrawString(drawable, label->Font, fg_pixel, x + xoffset,
+	    y + yoffset, clipped_text_width, NULL, label->Text);
+
+	return;
+    }
+    //
+    //	draw icon left, text right
+    //
+
+    // determine the size of the icon (if any) to display
 #ifdef USE_ICON
     if (label->Icon) {
-	if (width < height) {
-	    MenuScaledIconSize(label->Icon,
-		width - 2 * LABEL_INNER_SPACE - LABEL_BORDER, &icon_width,
-		&icon_height);
-	} else {
-	    MenuScaledIconSize(label->Icon,
-		height - 2 * LABEL_INNER_SPACE - LABEL_BORDER, &icon_width,
-		&icon_height);
-	}
+	LabelScaledIconSize(label->Icon, MIN(width, height)
+	    - 2 * LABEL_INNER_SPACE - 2 * LABEL_BORDER, &icon_width,
+	    &icon_height);
     }
 #endif
 
     // determine how much room is left for text
     clipped_text_width = 0;
-    text_height = 0;
     if (label->Text) {
 	if (label->TextOffset) {
 	    text_offset = label->TextOffset;
 	} else {
-	    text_offset = icon_width;
+	    text_offset = icon_width + LABEL_BORDER;
 	    if (icon_width) {
 		text_offset += LABEL_INNER_SPACE;
 	    }
 	}
 
-	text_height = label->Font->Height;
 	text_width = FontTextWidthReply(cookie_text);
 	clipped_text_width = text_width;
 
-	// clipp text to label sizw
+	// clip text to label size
 	if (clipped_text_width + text_offset + 2 * LABEL_INNER_SPACE +
 	    2 * LABEL_BORDER > width) {
 	    if (width <
@@ -852,7 +941,6 @@ void LabelDraw(const Label * label)
 
 	FontDrawString(drawable, label->Font, fg_pixel, x + xoffset,
 	    y + yoffset, clipped_text_width, NULL, label->Text);
-
     }
 }
 
@@ -1282,36 +1370,59 @@ static void MenuDrawArrow(const Runtime * runtime, const MenuItem * item,
 }
 
 /**
-**	Draw an unselected menu item.
+**	Draw label for menu item.
 **
 **	@param runtime	menu runtime which contains the menu item
-**	@param item	menu item to draw (NULL to draw label)
+**	@param item	menu item to draw
+**	@param type	label type (selected / unselected)
 */
-static void MenuDrawItem(const Runtime * runtime, const MenuItem * item)
+static void MenuDrawItemLabel(const Runtime * runtime, const MenuItem * item,
+    LabelType type)
 {
     Label label;
 
+    LabelReset(&label, runtime->Window, RootGC);
+
+    label.Type = type;
+
+    label.TextOffset = runtime->TextOffset;
+    label.X = MENU_INNER_SPACE;
+    label.Y = item->OffsetY;
+    label.Width = runtime->Width - MENU_INNER_SPACE * 2 - 1;
+    label.Height = runtime->ItemHeight;
+
+#ifdef USE_ICON
+    label.Icon = item->Icon;
+#endif
+    label.Font = &Fonts.Menu;
+    if (!item->IconOrText || !item->Icon) {
+	label.Text = item->Text;
+    }
+    LabelDraw(&label);
+}
+
+/**
+**	Draw an unselected menu item.
+**
+**	This draw icon and/or text, background and the sub-menu marker.
+**
+**	@param runtime	menu runtime which contains the menu item
+**	@param item	menu item to draw
+*/
+static void MenuDrawItem(const Runtime * runtime, const MenuItem * item)
+{
     if (item->Text
 #ifdef USE_ICON
 	|| item->Icon
 #endif
 	) {				// used item
-	LabelReset(&label, runtime->Window, RootGC);
-
-	label.Type = LABEL_MENU_LABEL;
-
-	label.TextOffset = runtime->TextOffset;
-	label.X = MENU_INNER_SPACE;
-	label.Y = item->OffsetY;
-	label.Width = runtime->Width - MENU_INNER_SPACE * 2 - 1;
-	label.Height = runtime->ItemHeight;
-
-#ifdef USE_ICON
-	label.Icon = item->Icon;
-#endif
-	label.Font = &Fonts.Menu;
-	label.Text = item->Text;
-	LabelDraw(&label);
+	MenuDrawItemLabel(runtime, item, LABEL_MENU_LABEL);
+	//
+	//	Draw arrow for submenu
+	//
+	if (item->Command.Type >= MENU_ACTION_SUBMENU) {
+	    MenuDrawArrow(runtime, item, Colors.MenuFG.Pixel);
+	}
     } else {				// separator
 	xcb_point_t points[2];
 
@@ -1331,17 +1442,12 @@ static void MenuDrawItem(const Runtime * runtime, const MenuItem * item)
 	xcb_poly_line(Connection, XCB_COORD_MODE_ORIGIN, runtime->Window,
 	    RootGC, 2, points);
     }
-
-    //
-    //	Draw arrow for submenu
-    //
-    if (item->Command.Type >= MENU_ACTION_SUBMENU) {
-	MenuDrawArrow(runtime, item, Colors.MenuFG.Pixel);
-    }
 }
 
 /**
 **	Draw a selected menu item.
+**
+**	This draw icon and/or text, background and the sub-menu marker.
 **
 **	@param runtime	menu runtime which contains the menu item
 **	@param item	menu item to draw
@@ -1354,24 +1460,7 @@ static void MenuDrawSelectedItem(const Runtime * runtime,
 	    item->Icon ||
 #endif
 	    item->Text)) {		// no separator
-	Label label;
-
-	LabelReset(&label, runtime->Window, RootGC);
-	label.Type = LABEL_MENU_ACTIVE;
-
-	label.TextOffset = runtime->TextOffset;
-	label.X = MENU_INNER_SPACE;
-	label.Y = item->OffsetY;
-	label.Width = runtime->Width - MENU_INNER_SPACE * 2 - 1;
-	label.Height = runtime->ItemHeight;
-
-#ifdef USE_ICON
-	label.Icon = item->Icon;
-#endif
-	label.Font = &Fonts.Menu;
-	label.Text = item->Text;
-	LabelDraw(&label);
-
+	MenuDrawItemLabel(runtime, item, LABEL_MENU_ACTIVE);
 	//
 	//	Draw arrow of submenu
 	//
@@ -1379,6 +1468,7 @@ static void MenuDrawSelectedItem(const Runtime * runtime,
 	    MenuDrawArrow(runtime, item, Colors.MenuActiveFG.Pixel);
 	}
     }
+    // separator can't be selected
 }
 
 /**
@@ -1832,9 +1922,11 @@ static Runtime *MenuPrepareRuntime(Menu * menu)
     NO_WARNING(cookie_label);
     NO_WARNING(cookies);
 
+#ifdef DEBUG
     if (!menu) {			// shouldn't happen
 	abort();
     }
+#endif
 
     runtime = calloc(1, sizeof(*runtime));
     runtime->Menu = menu;
@@ -1866,12 +1958,13 @@ static Runtime *MenuPrepareRuntime(Menu * menu)
 	    item->IconLoaded = 1;
 	    free(name);			// icon and name share same slot
 	}
-	// icon loaded
+	// icon successfull loaded
 	if (item->Icon) {
 	    // use for auto height by biggest icon
 	    if (runtime->ItemHeight < item->Icon->Image->Height) {
 		runtime->ItemHeight = item->Icon->Image->Height;
 	    }
+	    // use for align all texts
 	    if (runtime->TextOffset <
 		item->Icon->Image->Width + LABEL_INNER_SPACE * 2) {
 		runtime->TextOffset =
@@ -1879,8 +1972,8 @@ static Runtime *MenuPrepareRuntime(Menu * menu)
 	    }
 	}
 #endif
-	// FIXME: or-text: only need to send request, when text is drawn
-	if (item->Text) {
+	// text to display?
+	if (item->Text && (!item->IconOrText || !item->Icon)) {
 	    cookies[i] =
 		FontQueryExtentsRequest(&Fonts.Menu, strlen(item->Text),
 		item->Text);
@@ -1913,8 +2006,8 @@ static Runtime *MenuPrepareRuntime(Menu * menu)
     //
     //	Calculate menu size
     //
-    runtime->Height = 1;
-    runtime->Width = 5;
+    runtime->Height = LABEL_BORDER;
+    runtime->Width = LABEL_BORDER + SUB_MENU_ARROW_WIDTH;
     if (menu->Label) {
 	unsigned width;
 
@@ -1937,7 +2030,7 @@ static Runtime *MenuPrepareRuntime(Menu * menu)
 
 	item = menu->ItemTable[i];
 	item->OffsetY = runtime->Height;
-	if (item->Text) {
+	if (item->Text && (!item->IconOrText || !item->Icon)) {
 	    unsigned width;
 
 	    width = FontTextWidthReply(cookies[i]) + LABEL_INNER_SPACE;
@@ -1950,16 +2043,22 @@ static Runtime *MenuPrepareRuntime(Menu * menu)
 	    runtime->Height += runtime->ItemHeight;
 #endif
 	} else {			// separator
-	    runtime->Height += 5;
+	    runtime->Height += MENU_SEPARATOR_HEIGHT;
 	}
 
 	if (item->Command.Type >= MENU_ACTION_SUBMENU) {
 	    submenu_offset = SUB_MENU_ARROW_WIDTH + MENU_INNER_SPACE;
 	}
     }
+
+    // icon draw infront of text
+    if (runtime->ItemHeight <= Fonts.Menu.Height * 3) {
+	runtime->Width += runtime->TextOffset;
+    }
+    // add outer border + space
     runtime->Width +=
-	MENU_INNER_SPACE * 2 + LABEL_INNER_SPACE * 2 + LABEL_BORDER * 2 +
-	submenu_offset + runtime->TextOffset;
+	MENU_INNER_SPACE * 2 + LABEL_BORDER * 2 + LABEL_INNER_SPACE * 2 +
+	submenu_offset;
     runtime->Height += MENU_INNER_SPACE * 2;
 
     return runtime;
@@ -2118,6 +2217,7 @@ static void MenuCommandPrepare(MenuCommand * command)
 	    }
 	    command->Submenu = WindowMenuCreateLayer(i);
 	    break;
+#ifdef USE_MENU_DIR
 	case MENU_ACTION_DIR:
 	    if ((submenu = RootMenuFromDirectory(command->String))) {
 		command->Submenu = submenu;
@@ -2125,6 +2225,7 @@ static void MenuCommandPrepare(MenuCommand * command)
 		command->Type = MENU_ACTION_DIR_PREPARED;
 	    }
 	    break;
+#endif
 	    // FIXME: must generate other menus
     }
 }
@@ -2797,6 +2898,8 @@ MenuItem *MenuItemConfig(const ConfigObject * array)
 **	Parse the menu config of a single menu or sub menu.
 **
 **	@param array	config table of a single menu
+**
+**	@returns menu with menu items.
 */
 static Menu *MenuConfigMenu(const ConfigObject * array)
 {
@@ -2980,6 +3083,8 @@ void RootMenuHandleButtonPress(const xcb_button_press_event_t * event)
 	NULL);
 }
 
+#ifdef USE_MENU_DIR
+
 /**
 **	Build menu from directory.
 **
@@ -3042,6 +3147,8 @@ Menu *RootMenuFromDirectory(char *path)
     }
     return submenu;
 }
+
+#endif
 
 // ------------------------------------------------------------------------ //
 

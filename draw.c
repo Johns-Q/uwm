@@ -280,6 +280,8 @@ ColorTable Colors = {
     ,
     .MenuBG = {"menu-bg", NULL, 0UL, "gray44"}
     ,
+    .MenuOutline = {"menu-outline", NULL, 0UL, "gray44"}
+    ,
     .MenuActiveFG = {"menu-active-fg", NULL, 0UL, "white"}
     ,
     .MenuActiveBG1 = {"menu-active-bg1", NULL, 0UL, "gray33"}

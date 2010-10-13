@@ -95,6 +95,7 @@ struct _color_table_
 
     Color MenuFG;			///< menu foreground
     Color MenuBG;			///< menu background
+    Color MenuOutline;			///< menu item outline
     Color MenuActiveFG;			///< active menu item foreground
     Color MenuActiveBG1;		///< active menu item background 1
     Color MenuActiveBG2;		///< active menu item background 2

@@ -450,9 +450,9 @@ static void TaskDraw(TaskPlugin * task_plugin)
 	    label.Height = task_plugin->ItemHeight - 1;
 	    if (remainder) {
 		if (task_plugin->Layout == PANEL_LAYOUT_HORIZONTAL) {
-		    label.Width = item_width - TASK_INNER_SPACE;
+		    label.Width++;
 		} else {
-		    label.Height = task_plugin->ItemHeight;
+		    label.Height++;
 		}
 	    }
 

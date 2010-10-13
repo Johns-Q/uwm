@@ -48,6 +48,11 @@
 #	enable/disable menu
 #CONFIG += -DUSE_MENU
 #CONFIG += -DNO_MENU
+#
+#		enable/disable directory menu (needs menu)
+#CONFIG += -DUSE_MENU_DIR
+#CONFIG += -DNO_MENU_DIR
+#
 #	enable/disable panel
 #CONFIG += -DUSE_PANEL
 #CONFIG += -DNO_PANEL

@@ -78,6 +78,7 @@ color = [
 
     menu-fg = "gray11"
     menu-bg = "gray44"
+    menu-outline = "gray44"
     menu-active-fg = "white"
     menu-active-bg1 = "gray33"
     menu-active-bg2 = "gray66"
