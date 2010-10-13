@@ -45,6 +45,7 @@
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 
+#include "command.h"
 #include "client.h"
 #include "hints.h"
 

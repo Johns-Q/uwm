@@ -57,6 +57,7 @@
 #include "core-rc/core-rc.h"
 
 #include "misc.h"
+#include "command.h"
 #include "client.h"
 #include "hints.h"
 
