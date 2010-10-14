@@ -121,6 +121,7 @@ desktop = [
 ;		gradient color|color
 ;		execute command-string
 ;		scale file-name (maximized wallpaper, preserving aspect)
+;		zoom file-name (fill screen, preserving aspect)
 ;		image file-name (placed wallpaper, top-left corner)
 ;
 ;	Note:	that each background which isn't solid color, needs about
@@ -135,7 +136,8 @@ background = [
     [2] = [solid = "red"]
     [3] = [solid = "#ffffff"]
 ;    [0] = [image = "/usr/share/slim/themes/default/background.jpg"]
-;    [0] = [scale = "/usr/share/slim/themes/default/background.jpg"]
+;    [1] = [scale = "/usr/share/slim/themes/default/background.jpg"]
+;    [2] = [zoom = "/usr/share/slim/themes/default/background.jpg"]
 ;    [0] = [execute = "fbsetbg -a /usr/share/slim/themes/default/background.jpg"]
 ]
 

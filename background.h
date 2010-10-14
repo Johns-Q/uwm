@@ -28,6 +28,9 @@
     /// Load background for specified desktop.
 extern void BackgroundLoad(int);
 
+    /// Prepare initialize background support.
+extern void BackgroundPreInit(void);
+
     /// Initialize background support.
 extern void BackgroundInit(void);
 
@@ -42,6 +45,8 @@ extern void BackgroundConfig(const Config *);
     /// Dummy for load background for specified desktop.
 #define BackgroundLoad(desktop)
 
+    /// Dummy for prepare initialize background support.
+#define BackgroundPreInit()
     /// Dummy for initialize background module.
 #define BackgroundInit()
     /// Dummy for cleanup background module.

@@ -206,6 +206,7 @@ static void ModulesInit(void)
 
     AtomInit();
     net_current_desktop_cookie = HintNetCurrentDesktopRequest();
+    BackgroundPreInit();
 
     ColorInit();
     IconInit();

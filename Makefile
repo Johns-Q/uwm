@@ -79,6 +79,10 @@
 #	enable/disable desktop background setting(s) (depends on ICON/JPEG/PNG)
 #CONFIG += -DUSE_BACKGROUND
 #CONFIG	+= -DNO_BACKGROUND
+#		enable/disable support for XSETROOT_ID property
+#CONDIF += -DUSE_XSETROOT_ID
+#CONDIF += -DNO_XSETROOT_ID
+#
 #	enable/disable icon support
 #CONFIG += -DUSE_ICON
 #CONFIG	+= -DNO_ICON

@@ -81,6 +81,12 @@
 #if !defined(NO_BACKGROUND) && !defined(USE_BACKGROUND)
 #define USE_BACKGROUND			///< include background support
 #endif
+#ifdef USE_BACKGROUND
+#if !defined(NO_XSETROOT_ID) && !defined(USE_XSETROOT_ID)
+#define NO_XSETROOT_ID			///< support XSETROOT_ID property
+#endif
+#endif
+
 #if !defined(NO_ICON) && !defined(USE_ICON)
 #define USE_ICON			///< include icon support
 #endif

@@ -23,19 +23,25 @@
 ///
 ///	@defgroup background The background module.
 ///
-///	This module contains background control functions.
+///	This module contains the desktop background control functions.
 ///
 ///	This module is only available, if compiled with #USE_BACKGROUND.
 ///	Image as backgrounds are only available, if compiled with #USE_ICON.
 ///
 ///	Alternative xsetroot can be used to set the background.
 ///
+///	If backgrounds are (runtime) configured, other application can
+///	set the background, but they are lost, when the user switches the
+///	desktop.
+///
 ///	@todo all background are pre-loaded consuming many many memory!
 ///	(about 4MB pro background), generate them on fly,
 ///
-///	@todo support tile / zoom / centered images
+///	@todo support tiled and stretched or centered images
 ///
-///	@todo remove list, use table
+///	@note Is XSETROOT_ID still needed to be supported?
+///	If you need it, compile with #USE_XSETROOT_ID.
+///
 /// @{
 
 #include <xcb/xcb.h>
@@ -79,7 +85,8 @@ typedef enum
     BACKGROUND_GRADIENT,		///< gradient background
     BACKGROUND_COMMAND,			///< command to run for setting
     BACKGROUND_IMAGE,			///< image placed (top-left)
-    BACKGROUND_SCALE,			///< stretched image
+    BACKGROUND_SCALE,			///< scaled image (fit)
+    BACKGROUND_ZOOM,			///< zoomed image
 } BackgroundType;
 
 /**
@@ -92,27 +99,24 @@ typedef struct _background_ Background;
 */
 struct _background_
 {
-    SLIST_ENTRY(_background_) Next;	///< singly-linked list
+    int16_t Desktop;			///< desktop
 
-    int Desktop;			///< desktop
-
-    BackgroundType Type;		///< type of background
+    BackgroundType Type : 8;		///< type of background
     char *Value;			///< value for background type
 
     xcb_pixmap_t Pixmap;		///< background pixmap
-};
+} __attribute__ ((packed));
 
-    /// Background list head typedef
-typedef struct _background_head_ BackgroundHead;
+    /// table of backgrounds.
+static Background *Backgrounds;
 
-    /// Background list head structure
-SLIST_HEAD(_background_head_, _background_);
-
-    /// Linked list of backgrounds.
-static BackgroundHead Backgrounds = SLIST_HEAD_INITIALIZER(Backgrounds);
+    /// number of backgrounds in table.
+static int BackgroundN;
 
 static Background *BackgroundDefault;	///< default background
 static Background *BackgroundLast;	///< last background loaded
+
+static xcb_get_property_cookie_t Cookie;	///< _XROOTPMAP_ID request cookie
 
 // ---------------------------------------------------------------------------
 
@@ -126,14 +130,15 @@ void BackgroundLoad(int desktop)
     Background *background;
 
     // determine background to load
-    SLIST_FOREACH(background, &Backgrounds, Next) {
+    for (background = Backgrounds; background < Backgrounds + BackgroundN;
+	++background) {
 	if (background->Desktop == desktop) {
-	    break;
+	    goto found;
 	}
     }
-    if (!background) {
-	background = BackgroundDefault;
-    }
+    background = BackgroundDefault;
+
+  found:
     // if there is no background specified for this desktop, just return
     if (!background || !background->Value) {
 	return;
@@ -253,6 +258,7 @@ static void BackgroundLoadImage(Background * background)
     Icon *icon;
     unsigned width;
     unsigned height;
+    int i;
     xcb_rectangle_t rectangle;
     char *name;
 
@@ -266,15 +272,6 @@ static void BackgroundLoadImage(Background * background)
 	Warning("background image not found: \"%s\"", background->Value);
 	return;
     }
-    // determine size of background pixmap
-    if (background->Type == BACKGROUND_IMAGE) {
-	width = icon->Image->Width;
-	height = icon->Image->Height;
-    } else {
-	width = XcbScreen->width_in_pixels;
-	height = XcbScreen->height_in_pixels;
-    }
-
     // create image pixmap
     background->Pixmap = xcb_generate_id(Connection);
     xcb_create_pixmap(Connection, XcbScreen->root_depth, background->Pixmap,
@@ -291,6 +288,26 @@ static void BackgroundLoadImage(Background * background)
     xcb_poly_fill_rectangle(Connection, background->Pixmap, RootGC, 1,
 	&rectangle);
 
+    // determine size of background pixmap
+    width = XcbScreen->width_in_pixels;
+    height = XcbScreen->height_in_pixels;
+    switch (background->Type) {
+	case BACKGROUND_IMAGE:
+	    width = icon->Image->Width;
+	    height = icon->Image->Height;
+	    break;
+	case BACKGROUND_SCALE:
+	default:
+	    break;
+	case BACKGROUND_ZOOM:
+	    // keep icon aspect ratio
+	    i = (icon->Image->Width * 65536) / icon->Image->Height;
+	    width = MAX(width * 65536, height * i);
+	    height = MAX(height, width / i);
+	    width = (height * i) / 65536;
+	    break;
+    }
+
     // draw icon on background pixmap
     IconDraw(icon, background->Pixmap, 0, 0, width, height);
 
@@ -300,60 +317,80 @@ static void BackgroundLoadImage(Background * background)
 #endif // USE_ICON
 
 /**
+**	Prepare initialize background support.
+*/
+void BackgroundPreInit(void)
+{
+    Cookie =
+	xcb_get_property_unchecked(Connection, 0, XcbScreen->root,
+	Atoms.XROOTPMAP_ID.Atom, PIXMAP, 0, UINT32_MAX);
+}
+
+/**
 **	Initialize background support.
-**
-**	@todo is XSETROOT_ID still needed to be supported?
 */
 void BackgroundInit(void)
 {
+#ifdef USE_XSETROOT_ID
     xcb_intern_atom_cookie_t ia_cookie;
     xcb_intern_atom_reply_t *ia_reply;
-    xcb_get_property_cookie_t gp_cookie;
-
-    // xcb_get_property_reply_t *gp_reply;
+#endif
+    xcb_get_property_reply_t *gp_reply;
+    xcb_pixmap_t pixmap;
     Background *background;
 
     //
     //	free memory for pixmaps already used as backgrounds.
     //
+    pixmap = XCB_NONE;
 
+#ifdef USE_XSETROOT_ID
     // don't intern these old properties
     ia_cookie =
 	xcb_intern_atom_unchecked(Connection, 1, sizeof("XSETROOT_ID") - 1,
 	"XSETROOT_ID");
     if ((ia_reply = xcb_intern_atom_reply(Connection, ia_cookie, NULL))) {
 	if (ia_reply->atom) {
+	    xcb_get_property_cookie_t gp_cookie;
+
 	    Debug(3, "found XSETROOT_ID atom %d\n", ia_reply->atom);
 	    gp_cookie =
 		xcb_get_property_unchecked(Connection, 1, XcbScreen->root,
 		ia_reply->atom, PIXMAP, 0, UINT32_MAX);
+
+	    gp_reply = xcb_get_property_reply(Connection, gp_cookie, NULL);
+	    if (gp_reply) {
+		const void *data;
+
+		Debug(3, "found XSETROOT_ID atom %d\n", ia_reply->atom);
+		if (gp_reply->value_len
+		    && (data = xcb_get_property_value(gp_reply))
+		    && (pixmap = *(const xcb_pixmap_t *)data)) {
+		    xcb_kill_client(Connection, pixmap);
+		}
+		free(gp_reply);
+	    }
+	    //xcb_delete_property(Connection, XcbScreen->root, ia_reply->atom);
 	}
 	free(ia_reply);
     }
-
-    Debug(2, "FIXME: handle old pixmaps\n");
-#if 0
-
-    if (XGetWindowProperty(dpy2, root2, XA_XSETROOT_ID, 0L, 1L, True,
-	    XA_PIXMAP, &type, &format, &length, &after, &data) == Success
-	&& type == XA_PIXMAP && format == 32 && length == 1 && after == 0
-	&& (Pixmap) (*(long *)data) != XCB_NONE) {
-	xcb_kill_client(Connection, *((Pixmap *) data));
-    }
-    if (XGetWindowProperty(dpy2, root2, XA_ESETROOT_PMAP_ID, 0L, 1L, True,
-	    XA_PIXMAP, &type, &format, &length, &after, &data) == Success
-	&& type == XA_PIXMAP && format == 32 && length == 1 && after == 0
-	&& (Pixmap) (*(Pixmap *) data) != XCB_NONE) {
-	e_deleted = True;
-	xcb_kill_client(Connection, *((Pixmap *) data));
-    }
-    if (e_deleted) {
-	XDeleteProperty(Connection, root2, XA_XROOTPMAP_ID);
-    }
 #endif
 
+    gp_reply = xcb_get_property_reply(Connection, Cookie, NULL);
+    if (gp_reply) {
+	const void *data;
+
+	Debug(3, "found _XROOTPMAP_ID atom\n");
+	if (gp_reply->value_len && (data = xcb_get_property_value(gp_reply))
+	    && (pixmap = *(const xcb_pixmap_t *)data)) {
+	    Debug(3, "_XROOTPMAP_ID pixmap %#010x\n", pixmap);
+	    xcb_kill_client(Connection, pixmap);
+	}
+	free(gp_reply);
+    }
     // load background data
-    SLIST_FOREACH(background, &Backgrounds, Next) {
+    for (background = Backgrounds; background < Backgrounds + BackgroundN;
+	++background) {
 	switch (background->Type) {
 	    case BACKGROUND_SOLID:
 		BackgroundLoadSolid(background);
@@ -364,8 +401,9 @@ void BackgroundInit(void)
 	    case BACKGROUND_COMMAND:
 		// nothing to do
 		break;
-	    case BACKGROUND_SCALE:
 	    case BACKGROUND_IMAGE:
+	    case BACKGROUND_SCALE:
+	    case BACKGROUND_ZOOM:
 #ifdef USE_ICON
 		BackgroundLoadImage(background);
 		break;
@@ -386,20 +424,23 @@ void BackgroundInit(void)
 */
 void BackgroundExit(void)
 {
-    while (!SLIST_EMPTY(&Backgrounds)) {	// list deletion
-	Background *background;
+    Background *background;
 
-	background = SLIST_FIRST(&Backgrounds);
+    for (background = Backgrounds; background < Backgrounds + BackgroundN;
+	++background) {
+
 	if (background->Pixmap) {
 	    xcb_free_pixmap(Connection, background->Pixmap);
 	}
 	free(background->Value);
-
-	SLIST_REMOVE_HEAD(&Backgrounds, Next);
-	free(background);
     }
 
+    free(Backgrounds);
+    Backgrounds = NULL;
+    BackgroundN = 0;
+
     BackgroundLast = NULL;
+    BackgroundDefault = NULL;
 }
 
 // ------------------------------------------------------------------------ //
@@ -414,7 +455,7 @@ void BackgroundExit(void)
 **	@param type	background type (solid, ....)
 **	@param value	argument for background type (color, ....)
 */
-static void BackgroundSet(int desktop, BackgroundType type, const char *value)
+static void BackgroundNew(int desktop, BackgroundType type, const char *value)
 {
     Background *background;
 
@@ -423,14 +464,14 @@ static void BackgroundSet(int desktop, BackgroundType type, const char *value)
 	Warning("no value specified for background\n");
 	return;
     }
-    // create background node
-    background = calloc(1, sizeof(*background));
+    Backgrounds = realloc(Backgrounds, ++BackgroundN * sizeof(*Backgrounds));
+
+    // create background
+    background = Backgrounds + BackgroundN - 1;
     background->Desktop = desktop;
     background->Type = type;
     background->Value = strdup(value);
-
-    // insert node into list
-    SLIST_INSERT_HEAD(&Backgrounds, background, Next);
+    background->Pixmap = XCB_NONE;
 }
 
 /**
@@ -461,7 +502,6 @@ void BackgroundConfig(const Config * config)
 
 	    if (ConfigCheckArray(value, &table)) {
 		ConfigCheckInteger(index, &ival);
-		Debug(3, "background %zd\n", ival);
 		// check for valid desktop numbers
 		if (ival != -1 && DesktopN) {
 		    if (ival < 0 || ival >= DesktopN) {
@@ -471,20 +511,17 @@ void BackgroundConfig(const Config * config)
 		}
 
 		if (ConfigGetString(table, &sval, "solid", NULL)) {
-		    Debug(3, "\tSolid %s\n", sval);
-		    BackgroundSet(ival, BACKGROUND_SOLID, sval);
+		    BackgroundNew(ival, BACKGROUND_SOLID, sval);
 		} else if (ConfigGetString(table, &sval, "gradient", NULL)) {
-		    Debug(3, "\tGradient %s\n", sval);
-		    BackgroundSet(ival, BACKGROUND_GRADIENT, sval);
+		    BackgroundNew(ival, BACKGROUND_GRADIENT, sval);
 		} else if (ConfigGetString(table, &sval, "execute", NULL)) {
-		    Debug(3, "\tExecute %s\n", sval);
-		    BackgroundSet(ival, BACKGROUND_COMMAND, sval);
+		    BackgroundNew(ival, BACKGROUND_COMMAND, sval);
 		} else if (ConfigGetString(table, &sval, "image", NULL)) {
-		    Debug(3, "\tImage %s\n", sval);
-		    BackgroundSet(ival, BACKGROUND_IMAGE, sval);
+		    BackgroundNew(ival, BACKGROUND_IMAGE, sval);
 		} else if (ConfigGetString(table, &sval, "scale", NULL)) {
-		    Debug(3, "\tScale %s\n", sval);
-		    BackgroundSet(ival, BACKGROUND_SCALE, sval);
+		    BackgroundNew(ival, BACKGROUND_SCALE, sval);
+		} else if (ConfigGetString(table, &sval, "zoom", NULL)) {
+		    BackgroundNew(ival, BACKGROUND_ZOOM, sval);
 		}
 	    } else {
 		Warning("value in background ignored\n");
