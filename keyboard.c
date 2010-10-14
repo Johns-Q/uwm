@@ -163,7 +163,6 @@ xcb_keysym_t KeyboardGet(xcb_keycode_t keycode, unsigned modifier)
     if (ks1 == XCB_NO_SYMBOL) {
 	ks1 = ks0;
     }
-
     // see xcb-util-0.3.6/keysyms/keysyms.c:
     if (!(modifier & XCB_MOD_MASK_SHIFT) && !(modifier & XCB_MOD_MASK_LOCK)) {
 	return ks0;
@@ -452,6 +451,9 @@ void KeyboardExit(void)
     for (i = 0; i < KeyboardBindingN; ++i) {
 	MenuCommandDel(&KeyboardBindings[i].Command);
     }
+    free(KeyboardBindings);
+    KeyboardBindings = NULL;
+    KeyboardBindingN = 0;
 }
 
 // ------------------------------------------------------------------------ //
