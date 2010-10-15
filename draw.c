@@ -245,37 +245,7 @@ ColorTable Colors = {
     .BorderActiveCorner = {"border-active-corner", NULL, 0UL, "white"}
     ,
 
-    .PanelFG = {"panel-fg", NULL, 0UL, "white"}
-    ,
-    .PanelBG = {"panel-bg", NULL, 0UL, "gray33"}
-    ,
-
-    .TaskFG = {"task-fg", NULL, 0UL, "gray55"}
-    ,
-    .TaskBG1 = {"task-bg1", NULL, 0UL, "gray22"}
-    ,
-    .TaskBG2 = {"task-bg2", NULL, 0UL, "black"}
-    ,
-    .TaskActiveFG = {"task-active-fg", NULL, 0UL, "white"}
-    ,
-    .TaskActiveBG1 = {"task-active-bg1", NULL, 0UL, "gray22"}
-    ,
-    .TaskActiveBG2 = {"task-active-bg2", NULL, 0UL, "gray55"}
-    ,
-
-    .PagerFG = {"pager-fg", NULL, 0UL, "gray33"}
-    ,
-    .PagerBG = {"pager-bg", NULL, 0UL, "gray22"}
-    ,
-    .PagerActiveFG = {"pager-active-fg", NULL, 0UL, "gray55"}
-    ,
-    .PagerActiveBG = {"pager-active-bg", NULL, 0UL, "gray66"}
-    ,
-    .PagerOutline = {"pager-outline", NULL, 0UL, "darkred"}
-    ,
-    .PagerText = {"pager-text", NULL, 0UL, "white"}
-    ,
-
+#ifdef USE_MENU
     .MenuFG = {"menu-fg", NULL, 0UL, "gray11"}
     ,
     .MenuBG = {"menu-bg", NULL, 0UL, "gray44"}
@@ -290,23 +260,78 @@ ColorTable Colors = {
     ,
     .MenuActiveOutline = {"menu-active-outline", NULL, 0UL, "black"}
     ,
+#endif
 
+#ifdef USE_TOOLTIP
     .TooltipFG = {"tooltip-fg", NULL, 0UL, "black"}
     ,
     .TooltipBG = {"tooltip-bg", NULL, 0UL, "gray55"}
     ,
     .TooltipOutline = {"tooltip-outline", NULL, 0UL, "darkred"}
     ,
+#endif
 
+#ifdef USE_PANEL
+    .PanelFG = {"panel-fg", NULL, 0UL, "white"}
+    ,
+    .PanelBG = {"panel-bg", NULL, 0UL, "gray33"}
+    ,
+#endif
+
+#ifdef USE_TASK
+    .TaskFG = {"task-fg", NULL, 0UL, "gray55"}
+    ,
+    .TaskBG1 = {"task-bg1", NULL, 0UL, "gray22"}
+    ,
+    .TaskBG2 = {"task-bg2", NULL, 0UL, "black"}
+    ,
+    .TaskActiveFG = {"task-active-fg", NULL, 0UL, "white"}
+    ,
+    .TaskActiveBG1 = {"task-active-bg1", NULL, 0UL, "gray22"}
+    ,
+    .TaskActiveBG2 = {"task-active-bg2", NULL, 0UL, "gray55"}
+    ,
+#endif
+
+#ifdef USE_PAGER
+    .PagerFG = {"pager-fg", NULL, 0UL, "gray33"}
+    ,
+    .PagerBG = {"pager-bg", NULL, 0UL, "gray22"}
+    ,
+    .PagerActiveFG = {"pager-active-fg", NULL, 0UL, "gray55"}
+    ,
+    .PagerActiveBG = {"pager-active-bg", NULL, 0UL, "gray66"}
+    ,
+    .PagerOutline = {"pager-outline", NULL, 0UL, "darkred"}
+    ,
+    .PagerText = {"pager-text", NULL, 0UL, "white"}
+    ,
+#endif
+
+#ifdef USE_BUTTON
     .PanelButtonFG = {"button-fg", NULL, 0UL, "gray55"}
     ,
     .PanelButtonBG = {"button-bg", NULL, 0UL, "gray22"}
     ,
+#endif
 
+#ifdef USE_CLOCK
     .ClockFG = {"clock-fg", NULL, 0UL, "gray55"}
     ,
     .ClockBG = {"clock-bg", NULL, 0UL, "gray22"}
     ,
+#endif
+
+#ifdef USE_NETLOAD
+    .NetloadFG = {"clock-fg", NULL, 0UL, "gray55"}
+    ,
+    .NetloadBG = {"clock-bg", NULL, 0UL, "gray22"}
+    ,
+    .NetloadTX = {"clock-fg", NULL, 0UL, "red"}
+    ,
+    .NetloadRX = {"clock-bg", NULL, 0UL, "green"}
+    ,
+#endif
 };
 
 static int RedShift;			///< red shift for x11 pixel
@@ -645,7 +670,8 @@ void ColorInit(void)
     }
 
     // allocate the colors
-    for (color = &Colors.TitleFG; color <= &Colors.MenuActiveDown; ++color) {
+    for (color = (Color *) & Colors;
+	color <= (Color *) ((char *)&Colors + sizeof(Colors)); ++color) {
 	if (color->Value) {
 	    ColorParse(color->Value, &c);
 	    color->Pixel = c.pixel;
@@ -656,46 +682,66 @@ void ColorInit(void)
     }
 
     // inherit unset colors from the panel for panel plugins
+#ifdef USE_PANEL
     if (Colors.PanelBG.Value || Colors.PanelBG.Default) {
+#ifdef USE_TASK
 	if (!Colors.TaskBG1.Value && !Colors.TaskBG1.Value) {
 	    Colors.TaskBG1.Pixel = Colors.PanelBG.Pixel;
 	}
 	if (!Colors.TaskBG2.Value && !Colors.TaskBG2.Value) {
 	    Colors.TaskBG2.Pixel = Colors.PanelBG.Pixel;
 	}
-
+#endif
+#ifdef USE_BUTTON
 	if (!Colors.PanelButtonBG.Value && !Colors.PanelButtonBG.Value) {
 	    Colors.PanelButtonBG.Pixel = Colors.PanelBG.Pixel;
 	}
+#endif
+#ifdef USE_CLOCK
 	if (!Colors.ClockBG.Value && !Colors.ClockBG.Value) {
 	    Colors.ClockBG.Pixel = Colors.PanelBG.Pixel;
 	}
+#endif
     }
     if (Colors.PanelFG.Value || Colors.PanelFG.Default) {
+#ifdef USE_TASK
 	if (!Colors.TaskFG.Value && !Colors.TaskFG.Value) {
 	    Colors.TaskFG.Pixel = Colors.PanelFG.Pixel;
 	}
+#endif
+#ifdef USE_BUTTON
 	if (!Colors.PanelButtonFG.Value && !Colors.PanelButtonFG.Value) {
 	    Colors.PanelButtonFG.Pixel = Colors.PanelFG.Pixel;
 	}
+#endif
+#ifdef USE_CLOCK
 	if (!Colors.ClockFG.Value && !Colors.ClockFG.Value) {
 	    Colors.ClockFG.Pixel = Colors.PanelFG.Pixel;
 	}
+#endif
     }
+#endif
 
-    ColorLighten(&Colors.PanelBG, &Colors.PanelUp);
-    ColorDarken(&Colors.PanelBG, &Colors.PanelDown);
-    ColorLighten(&Colors.TaskBG1, &Colors.TaskUp);
-    ColorDarken(&Colors.TaskBG1, &Colors.TaskDown);
-    ColorLighten(&Colors.TaskActiveBG1, &Colors.TaskActiveUp);
-    ColorDarken(&Colors.TaskActiveBG1, &Colors.TaskActiveDown);
+#ifdef USE_MENU
     ColorLighten(&Colors.MenuBG, &Colors.MenuUp);
     ColorDarken(&Colors.MenuBG, &Colors.MenuDown);
     ColorLighten(&Colors.MenuActiveBG1, &Colors.MenuActiveUp);
     ColorDarken(&Colors.MenuActiveBG1, &Colors.MenuActiveDown);
+#endif
+#ifdef USE_PANEL
+    ColorLighten(&Colors.PanelBG, &Colors.PanelUp);
+    ColorDarken(&Colors.PanelBG, &Colors.PanelDown);
+#ifdef USE_TASK
+    ColorLighten(&Colors.TaskBG1, &Colors.TaskUp);
+    ColorDarken(&Colors.TaskBG1, &Colors.TaskDown);
+    ColorLighten(&Colors.TaskActiveBG1, &Colors.TaskActiveUp);
+    ColorDarken(&Colors.TaskActiveBG1, &Colors.TaskActiveDown);
+#endif
+#endif
 
     // free the now unused color values
-    for (color = &Colors.TitleFG; color <= &Colors.MenuActiveDown; ++color) {
+    for (color = (Color *) & Colors;
+	color <= (Color *) ((char *)&Colors + sizeof(Colors)); ++color) {
 	free(color->Value);
 	color->Value = NULL;
     }
@@ -762,20 +808,35 @@ void ColorConfig(const Config * config)
 FontTable Fonts = {			///< contains all our used fonts
     .Titlebar = {.ModuleName = "titlebar"}
     ,
+#ifdef USE_MENU
     .Menu = {.ModuleName = "menu"}
     ,
-    .Task = {.ModuleName = "task"}
-    ,
+#endif
+#ifdef USE_TOOLTIP
     .Tooltip = {.ModuleName = "tooltip"}
     ,
-    .Clock = {.ModuleName = "clock"}
-    ,
+#endif
+
+#ifdef USE_PANEL
     .Panel = {.ModuleName = "panel"}
     ,
-    .PanelButton = {.ModuleName = "button"}
+#endif
+#ifdef USE_TASK
+    .Task = {.ModuleName = "task"}
     ,
+#endif
+#ifdef USE_PAGER
     .Pager = {.ModuleName = "pager"}
     ,
+#endif
+#ifdef USE_BUTTON
+    .PanelButton = {.ModuleName = "button"}
+    ,
+#endif
+#ifdef USE_CLOCK
+    .Clock = {.ModuleName = "clock"}
+    ,
+#endif
     .Fallback = {.ModuleName = "fallback"}
 };
 
@@ -1054,34 +1115,43 @@ void FontInit(void)
     uint32_t value[1];
     Font *font;
 
+    //
+    //	prepare default fonts, if not specified.
+    //
     if (!Fonts.Fallback.FontName) {
 	Fonts.Fallback.FontName = strdup(DEFAULT_FONT);
     }
+#ifdef USE_PANEL
     if (Fonts.Panel.FontName) {
 	// as default use panel font, for panel plugins
-	if (!Fonts.PanelButton.FontName) {
-	    Fonts.PanelButton.FontName = strdup(Fonts.Panel.FontName);
-	}
-	if (!Fonts.Pager.FontName) {
-	    Fonts.Pager.FontName = strdup(Fonts.Panel.FontName);
-	}
+#ifdef USE_TASK
 	if (!Fonts.Task.FontName) {
 	    Fonts.Task.FontName = strdup(Fonts.Panel.FontName);
 	}
+#endif
+#ifdef USE_PAGER
+	if (!Fonts.Pager.FontName) {
+	    Fonts.Pager.FontName = strdup(Fonts.Panel.FontName);
+	}
+#endif
+#ifdef USE_BUTTON
+	if (!Fonts.PanelButton.FontName) {
+	    Fonts.PanelButton.FontName = strdup(Fonts.Panel.FontName);
+	}
+#endif
+#ifdef USE_CLOCK
 	if (!Fonts.Clock.FontName) {
 	    Fonts.Clock.FontName = strdup(Fonts.Panel.FontName);
 	}
+#endif
     }
+#endif
+
     // dispatch requests
     FontInit0(&Fonts.Fallback);
-    FontInit0(&Fonts.Titlebar);
-    FontInit0(&Fonts.Menu);
-    FontInit0(&Fonts.Task);
-    FontInit0(&Fonts.Tooltip);
-    FontInit0(&Fonts.Clock);
-    FontInit0(&Fonts.Panel);
-    FontInit0(&Fonts.PanelButton);
-    FontInit0(&Fonts.Pager);
+    for (font = &Fonts.Titlebar; font < &Fonts.Fallback; ++font) {
+	FontInit0(font);
+    }
 
     // create graphics context
     FontGC = xcb_generate_id(Connection);
@@ -1090,24 +1160,13 @@ void FontInit(void)
 	XCB_GC_GRAPHICS_EXPOSURES, value);
 
     FontCheck1(&Fonts.Fallback);
-    FontCheck1(&Fonts.Titlebar);
-    FontCheck1(&Fonts.Menu);
-    FontCheck1(&Fonts.Task);
-    FontCheck1(&Fonts.Tooltip);
-    FontCheck1(&Fonts.Clock);
-    FontCheck1(&Fonts.Panel);
-    FontCheck1(&Fonts.PanelButton);
-    FontCheck1(&Fonts.Pager);
-
+    for (font = &Fonts.Titlebar; font < &Fonts.Fallback; ++font) {
+	FontCheck1(font);
+    }
     FontCheck2(&Fonts.Fallback);
-    FontCheck2(&Fonts.Titlebar);
-    FontCheck2(&Fonts.Menu);
-    FontCheck2(&Fonts.Task);
-    FontCheck2(&Fonts.Tooltip);
-    FontCheck2(&Fonts.Clock);
-    FontCheck2(&Fonts.Panel);
-    FontCheck2(&Fonts.PanelButton);
-    FontCheck2(&Fonts.Pager);
+    for (font = &Fonts.Titlebar; font < &Fonts.Fallback; ++font) {
+	FontCheck2(font);
+    }
 
     // font names are no longer needed
     for (font = &Fonts.Titlebar; font <= &Fonts.Fallback; ++font) {
