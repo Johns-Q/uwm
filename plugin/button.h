@@ -31,7 +31,7 @@
     /// Update desktop change.
 extern void PanelButtonDesktopUpdate(void);
 
-    /// Intialize button panel plugin.
+    /// Initialize button panel plugin.
 extern void PanelButtonInit(void);
 
     /// Cleanup button panel plugin.
@@ -44,9 +44,9 @@ Plugin *PanelButtonConfig(const ConfigObject *);
 
     /// Dummy for update desktop change.
 #define PanelButtonDesktopUpdate()
-    /// Dummy for initialize button(s).
+    /// Dummy for initialize button panel plugin.
 #define PanelButtonInit()
-    /// Dummy for cleanup button(s).
+    /// Dummy for cleanup button panel plugin.
 #define PanelButtonExit()
     /// Dummy for parse button panel plugin configuration.
 #define PanelButtonConfig(o)	NULL

@@ -37,7 +37,7 @@ extern void TaskFocusPrevious(void);
     /// Update all task plugin(s).
 extern void TaskUpdate(void);
 
-    /// Intialize task panel plugin.
+    /// Initialize task panel plugin.
 extern void TaskInit(void);
 
     /// Cleanup task panel plugin.
@@ -51,12 +51,11 @@ Plugin *TaskConfig(const ConfigObject *);
     /// Dummy for Update all task plugin(s).
 #define TaskUpdate()
 
-    /// Dummy for initialize task(s).
+    /// Dummy for initialize task panel plugin.
 #define TaskInit()
-    /// Dummy for cleanup task(s).
+    /// Dummy for cleanup task panel plugin.
 #define TaskExit()
-
-    /// Dummy for Parse task panel plugin configuration.
+    /// Dummy for parse task panel plugin configuration.
 #define TaskConfig(config)	NULL
 
 #endif // } USE_TASK

@@ -28,22 +28,22 @@
 //	Prototypes
 //////////////////////////////////////////////////////////////////////////////
 
-    /// Intialize clock panel plugin.
+    /// Initialize clock panel plugin.
 extern void ClockInit(void);
 
     /// Cleanup clock panel plugin.
 extern void ClockExit(void);
 
-    /// Parse clock panel plugin configuration
+    /// Parse clock panel plugin configuration.
 Plugin *ClockConfig(const ConfigObject *);
 
 #ifndef USE_CLOCK			// {
 
-    /// Dummy for initialize clock(s).
+    /// Dummy for initialize clock panel plugin.
 #define ClockInit()
-    /// Dummy for cleanup clock(s).
+    /// Dummy for cleanup clock panel plugin.
 #define ClockExit()
-    /// Dummy for parse clock panel plugin config
+    /// Dummy for parse clock panel plugin configuration.
 #define ClockConfig(o)	NULL
 
 #endif // } USE_CLOCK

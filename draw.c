@@ -572,7 +572,7 @@ static void ColorShiftMask(uint32_t mask, int *shift)
 }
 
 /**
-**	Intialize color module.
+**	Initialize color module.
 **
 **	@warning BugAlert: ColorTable.TitleFG must be the first color and
 **	ColorTable.MenuActiveDown the last color in #ColorTable.

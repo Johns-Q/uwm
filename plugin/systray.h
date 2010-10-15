@@ -32,7 +32,7 @@
 extern void SystrayHandleClientMessageEvent(const xcb_client_message_event_t
     *);
 
-    /// Intialize systray panel plugin.
+    /// Initialize systray panel plugin.
 extern void SystrayInit(void);
 
     /// Cleanup systray panel plugin.
@@ -45,9 +45,9 @@ Plugin *SystrayConfig(const ConfigObject *);
 
     /// Dummy for handle a client message sent to systray window.
 #define SystrayHandleClientMessageEvent(event)
-    /// Dummy for initialize systray(s).
+    /// Dummy for initialize systray panel plugin.
 #define SystrayInit()
-    /// Dummy for cleanup systray(s).
+    /// Dummy for cleanup systray panel plugin.
 #define SystrayExit()
     /// Dummy for parse systray panel plugin configuration.
 #define SystrayConfig(object)	NULL

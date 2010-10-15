@@ -43,7 +43,7 @@ int SwallowHandleConfigureNotify(const xcb_configure_notify_event_t *);
     /// Handle a resize request.
 int SwallowHandleResizeRequest(const xcb_resize_request_event_t *);
 
-    /// Intialize swallow panel plugin.
+    /// Initialize swallow panel plugin.
 extern void SwallowInit(void);
 
     /// Cleanup swallow panel plugin.
@@ -54,9 +54,9 @@ Plugin *SwallowConfig(const ConfigObject *);
 
 #ifndef USE_SWALLOW			// {
 
-    /// Dummy for initialize swallow(s).
+    /// Dummy for initialize swallow panel plugin.
 #define SwallowInit()
-    /// Dummy for cleanup swallow(s).
+    /// Dummy for cleanup swallow panel plugin.
 #define SwallowExit()
 
 #endif // } USE_SWALLOW

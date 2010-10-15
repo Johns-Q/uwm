@@ -149,7 +149,7 @@ extern void ColorGetFromPixel(xcb_coloritem_t *);
     /// Get a RGB pixel value from RGB components.
 extern void ColorGetIndex(xcb_coloritem_t *);
 
-    /// Intialize color module.
+    /// Initialize color module.
 extern void ColorInit(void);
 
     /// Cleanup color module.
