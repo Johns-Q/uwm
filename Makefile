@@ -75,11 +75,14 @@
 #		enable/disable panel systray plugin (needs panel)
 #CONFIG += -DUSE_SYSTRAY
 #CONFIG += -DNO_SYSTRAY
+#		enable/disable panel netload plugin (needs panel)
+#CONFIG += -DUSE_NETLOAD
+#CONFIG += -DNO_NETLOAD
 #
 #	enable/disable desktop background setting(s) (depends on ICON/JPEG/PNG)
 #CONFIG += -DUSE_BACKGROUND
 #CONFIG	+= -DNO_BACKGROUND
-#		enable/disable support for XSETROOT_ID property
+#		enable/disable support for XSETROOT_ID property (needs back..)
 #CONDIF += -DUSE_XSETROOT_ID
 #CONDIF += -DNO_XSETROOT_ID
 #
@@ -158,17 +161,17 @@ OBJS	= uwm.o command.o pointer.o keyboard.o draw.o image.o icon.o \
 	tooltip.o hints.o screen.o background.o desktop.o menu.o \
 	rule.o border.o client.o moveresize.o event.o property.o misc.o \
 	panel.o plugin/button.o plugin/pager.o plugin/task.o plugin/swallow.o \
-	plugin/systray.o plugin/clock.o \
+	plugin/systray.o plugin/clock.o plugin/netload.o \
 	dia.o td.o
 SRCS	= $(OBJS:.o=.c)
 HDRS	= uwm.h command.h pointer.h keyboard.h draw.h image.h icon.h \
 	tooltip.h hints.h screen.h background.h desktop.h menu.h \
 	rule.h border.h client.h moveresize.h event.h property.h misc.h \
 	panel.h plugin/button.h plugin/pager.h plugin/task.h plugin/swallow.h \
-	plugin/systray.h plugin/clock.h \
+	plugin/systray.h plugin/clock.h plugin/netload.h \
 	readable_bitmap.h dia.h td.h
 
-FILES=	Makefile u.xpm contrib/uwm-helper.sh.in uwm.1 \
+FILES=	Makefile u.xpm contrib/uwm-helper.sh.in uwm.1 uwmrc.5 \
 	contrib/uwm.doxyfile contrib/uwm16x16.xpm contrib/uwmrc.example
 
 all:	uwm #udm
@@ -226,7 +229,7 @@ indent:
 	done
 
 clean:
-	-rm *.o *~ plugin/*.o plugin/*~
+	-rm core *.o *~ plugin/*.o plugin/*~
 
 clobber:	clean
 	-rm -rf uwm udm doc/html
@@ -242,11 +245,13 @@ dist-git:
 
 DESTDIR=/usr/local
 
-install: all contrib/uwm-helper
+install: all contrib/uwm-helper uwm.1 uwmrc.5
 	mkdir -p $(DESTDIR)/bin
 	strip --strip-unneeded -R .comment uwm
 	install -s uwm $(DESTDIR)/bin/
 	chmod +x contrib/uwm-helper
 	install contrib/uwm-helper $(DESTDIR)/bin/
+	install -D uwm.1 $(DESTDIR)/share/man/man1/uwm.1
+	install -D uwmrc.5 $(DESTDIR)/share/man/man5/uwmrc.5
 	strip --strip-unneeded -R .comment udm
 	install -s udm $(DESTDIR)/bin/

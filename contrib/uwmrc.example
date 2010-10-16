@@ -93,6 +93,11 @@ color = [
 
     clock-fg = "gray55"
     clock-bg = "gray22"
+
+    netload-fg = "white"
+    netload-bg = "gray11"
+    netload-tx = "#2dfff4"
+    netload-rx = "#20B6AE"
 ]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -509,6 +514,19 @@ panel = [
 ;	There can only be one systray in one panel
 ;
 	[ type = `systray
+	]
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	Netload plugin
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;	Show the netload of an interface.
+;
+;	interface	eth0, eth1, br0, ... (unset use first)
+;
+	[ type = `netload
+	    width = 56 height = 16
+	    interface = nil
+	    [ button = 1 execute = "netstat | xmessage -file - -center"]
 	]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;	Clock plugin

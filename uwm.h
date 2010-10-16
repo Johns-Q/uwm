@@ -53,6 +53,9 @@
 #endif
 #endif
 
+#if !defined(NO_TOOLTIP) && !defined(USE_TOOLTIP)
+#define USE_TOOLTIP			///< include tooltip
+#endif
 #if !defined(NO_PANEL) && !defined(USE_PANEL)
 #define USE_PANEL			///< include panel
 #endif
@@ -75,6 +78,9 @@
 #endif
 #if !defined(NO_SYSTRAY) && !defined(USE_SYSTRAY)
 #define NO_SYSTRAY			///< include panel systray plugin
+#endif
+#if !defined(NO_NETLOAD) && !defined(USE_NETLOAD)
+#define USE_NETLOAD			///< include panel netload plugin
 #endif
 #endif
 

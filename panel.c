@@ -1507,6 +1507,8 @@ static void PanelConfigPanel(const ConfigObject * array)
 		    plugin = SystrayConfig(p_array);
 		} else if (!strcasecmp(sval, "clock")) {
 		    plugin = ClockConfig(p_array);
+		} else if (!strcasecmp(sval, "netload")) {
+		    plugin = NetloadConfig(p_array);
 		} else {
 		    Warning("panel plugin '%s' not supported\n", sval);
 		    plugin = NULL;

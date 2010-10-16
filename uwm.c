@@ -49,11 +49,12 @@
 **	- builtin menu(s)
 **	- builtin panel(s) (other names are slit/bar/dock) with:
 **		- button
+**		- clock
+**		- netload
 **		- pager
-**		- task-list
 **		- swallow (dock)
 **		- systray (planned)
-**		- clock
+**		- task-list
 **	- builtin tooltips
 **	- builtin background setter
 **	- composite support with xcompmgr (sample X compositing manager)
@@ -126,6 +127,7 @@
 #include "panel.h"
 #include "plugin/button.h"
 #include "plugin/clock.h"
+#include "plugin/netload.h"
 #include "plugin/pager.h"
 #include "plugin/swallow.h"
 #include "plugin/systray.h"
@@ -230,6 +232,7 @@ static void ModulesInit(void)
     PagerInit();			// need client
     TaskInit();				// need client
     SystrayInit();
+    NetloadInit();
     PanelInit();
     ClientInit();			// need task, pager
     SwallowInit();			// needs client
@@ -269,6 +272,7 @@ static void ModulesExit(void)
     TooltipExit();
 
     PanelExit();			// panel exit befor plugin exit
+    NetloadExit();
     SystrayExit();
     SwallowExit();
     TaskExit();
