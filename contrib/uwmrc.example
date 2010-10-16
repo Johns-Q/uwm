@@ -522,10 +522,13 @@ panel = [
 ;	Show the netload of an interface.
 ;
 ;	interface	eth0, eth1, br0, ... (unset use first)
+;	smooth = true, false [false]
+;		smooth the graph
 ;
 	[ type = `netload
 	    width = 56 height = 16
 	    interface = nil
+	    smooth = true
 	    [ button = 1 execute = "netstat | xmessage -file - -center"]
 	]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

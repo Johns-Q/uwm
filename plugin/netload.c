@@ -79,7 +79,7 @@ struct _netload_plugin_
     SLIST_ENTRY(_netload_plugin_) Next;	///< singly-linked netload list
     Plugin *Plugin;			///< common plugin data
 
-    const char *Interface;		///< network interface to monitor
+    char *Interface;			///< network interface to monitor
 
     uint32_t *History;			///< rx/tx bytes history
     uint32_t AverageTX;			///< average tx
@@ -88,6 +88,8 @@ struct _netload_plugin_
     uint32_t LastRX;			///< last rx
     uint32_t MaxTX;			///< max tx
     uint32_t MaxRX;			///< max rx
+
+    unsigned Smooth:1;			///< smooth values
 
     MenuButton *Buttons;		///< commands to run on click
 };
@@ -192,8 +194,18 @@ static void ProcReadNet(void)
 			NETLOAD_INNER_SPACE * 2;
 		    delta_rx = rx - netload_plugin->LastRX;
 		    delta_tx = tx - netload_plugin->LastTX;
-		    netload_plugin->History[size * 2 - 2] = delta_rx;
-		    netload_plugin->History[size * 2 - 1] = delta_tx;
+		    if (netload_plugin->Smooth) {
+			delta_rx += netload_plugin->History[size * 2 - 4];
+			delta_tx += netload_plugin->History[size * 2 - 3];
+
+			netload_plugin->History[size * 2 - 4] = delta_rx / 2;
+			netload_plugin->History[size * 2 - 3] = delta_tx / 2;
+			netload_plugin->History[size * 2 - 2] = delta_rx / 2;
+			netload_plugin->History[size * 2 - 1] = delta_tx / 2;
+		    } else {
+			netload_plugin->History[size * 2 - 2] = delta_rx;
+			netload_plugin->History[size * 2 - 1] = delta_tx;
+		    }
 
 		    // greatest seen value
 		    if (netload_plugin->MaxRX < delta_rx) {
@@ -329,10 +341,10 @@ static void NetloadCreate(Plugin * plugin)
 	netload_plugin->LastRX = UINT32_MAX;
 	netload_plugin->LastTX = UINT32_MAX;
     }
-    if (netload_plugin->MaxRX < size) {
+    if (netload_plugin->MaxRX < (unsigned)size) {
 	netload_plugin->MaxRX = size;
     }
-    if (netload_plugin->MaxTX < size) {
+    if (netload_plugin->MaxTX < (unsigned)size) {
 	netload_plugin->MaxTX = size;
     }
     // FIXME: is redraw needed?
@@ -532,6 +544,9 @@ Plugin *NetloadConfig(const ConfigObject * array)
     // user specified network interface
     if (ConfigGetString(array, &sval, "interface", NULL)) {
 	netload_plugin->Interface = strdup(sval);
+    }
+    if (ConfigGetBoolean(array, "smooth", NULL) > 0) {
+	netload_plugin->Smooth = 1;
     }
     // common config of pointer buttons to commands
     MenuButtonsConfig(array, &netload_plugin->Buttons);
