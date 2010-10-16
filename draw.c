@@ -323,13 +323,13 @@ ColorTable Colors = {
 #endif
 
 #ifdef USE_NETLOAD
-    .NetloadFG = {"clock-fg", NULL, 0UL, "gray55"}
+    .NetloadFG = {"netload-fg", NULL, 0UL, "gray55"}
     ,
-    .NetloadBG = {"clock-bg", NULL, 0UL, "gray22"}
+    .NetloadBG = {"netload-bg", NULL, 0UL, "gray22"}
     ,
-    .NetloadTX = {"clock-fg", NULL, 0UL, "red"}
+    .NetloadTX = {"netload-tx", NULL, 0UL, "red"}
     ,
-    .NetloadRX = {"clock-bg", NULL, 0UL, "green"}
+    .NetloadRX = {"netload-rx", NULL, 0UL, "green"}
     ,
 #endif
 };
@@ -671,7 +671,7 @@ void ColorInit(void)
 
     // allocate the colors
     for (color = (Color *) & Colors;
-	color <= (Color *) ((char *)&Colors + sizeof(Colors)); ++color) {
+	color < (Color *) ((char *)&Colors + sizeof(Colors)); ++color) {
 	if (color->Value) {
 	    ColorParse(color->Value, &c);
 	    color->Pixel = c.pixel;
@@ -741,7 +741,7 @@ void ColorInit(void)
 
     // free the now unused color values
     for (color = (Color *) & Colors;
-	color <= (Color *) ((char *)&Colors + sizeof(Colors)); ++color) {
+	color < (Color *) ((char *)&Colors + sizeof(Colors)); ++color) {
 	free(color->Value);
 	color->Value = NULL;
     }
@@ -777,7 +777,8 @@ void ColorConfig(const Config * config)
     Color *color;
 
     // FIXME: get errors here when unconfigured!
-    for (color = &Colors.TitleFG; color <= &Colors.MenuActiveDown; ++color) {
+    for (color = (Color *) & Colors;
+	color < (Color *) ((char *)&Colors + sizeof(Colors)); ++color) {
 	const char *value;
 
 	if (color->Name
