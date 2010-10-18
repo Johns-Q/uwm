@@ -712,7 +712,9 @@ int main(int argc, char *const argv[])
 		SendRestart();
 		return 0;
 	    case 'p':			// parse configuration only
+		ConnectionOpen();
 		ParseConfig(config_filename);
+		ConnectionClose();
 		return 0;
 
 	    case EOF:
