@@ -28,9 +28,26 @@
 //	Prototypes
 //////////////////////////////////////////////////////////////////////////////
 
+    /// Handle a resize request event.
+extern int SystrayHandleResizeRequest(const xcb_resize_request_event_t *);
+
+    /// Handle a configure request.
+extern int SystrayHandleConfigureRequest(const xcb_configure_request_event_t
+    *);
+
+    /// Handle a reparent notify event.
+extern int SystrayHandleReparentNotify(const xcb_reparent_notify_event_t *);
+
+    /// Handle a destroy event.
+extern int SystrayHandleDestroyNotify(xcb_window_t);
+
+    /// Handle a selection clear event.
+extern int SystrayHandleSelectionClear(const xcb_selection_clear_event_t *);
+
     /// Handle a client message sent to systray window.
 extern void SystrayHandleClientMessageEvent(const xcb_client_message_event_t
     *);
+    /// Handle a destroy event.
 
     /// Initialize systray panel plugin.
 extern void SystrayInit(void);

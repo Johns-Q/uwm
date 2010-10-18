@@ -611,9 +611,7 @@ static int HandleDestroyNotify( __attribute__ ((unused))
     } else if (SwallowHandleDestroyNotify(event)) {
 	return 1;
     }
-    Debug(2, "FIXME: return HandleSystrayDestroy(event->window);\n");
-
-    return 0;
+    return SystrayHandleDestroyNotify(event->window);
 }
 
 /**
@@ -680,7 +678,7 @@ static int HandleReparentNotify( __attribute__ ((unused))
     xcb_reparent_notify_event_t * event)
 {
     Debug(3, "reparent notify - window %x\n", event->event);
-    Debug(2, "FIXME: SystrayHandleReparentNotify(event);\n");
+    SystrayHandleReparentNotify(event);
 
     return 1;
 }
@@ -704,11 +702,9 @@ static int HandleConfigureRequest( __attribute__ ((unused))
 
     // FIXME: check if root window is reconfigured, need to redesign panels.
 
-    /*
-       if (SystrayHandleConfigureRequest(event)) {
-       return 1;
-       }
-     */
+    if (SystrayHandleConfigureRequest(event)) {
+	return 1;
+    }
 
     if ((client = ClientFindByChild(event->window))) {
 	int north;
@@ -838,6 +834,46 @@ static int HandleConfigureNotify( __attribute__ ((unused))
 }
 
 /**
+**	Handle resize request.
+**
+**	@param data	user data from xcb_event_handle
+**	@param conn	XCB x11 connection
+**	@param event	resize request event
+**
+**	@returns true if event was handled, false otherwise.
+*/
+static int HandleResizeRequest( __attribute__ ((unused))
+    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
+    xcb_resize_request_event_t * event)
+{
+    Debug(3, "resize request - window %x\n", event->window);
+
+    if (SystrayHandleResizeRequest(event)) {
+	return 1;
+    }
+
+    return 0;
+}
+
+/**
+**	Handle selection clear.
+**
+**	@param data	user data from xcb_event_handle
+**	@param conn	XCB x11 connection
+**	@param event	selection clear event
+**
+**	@returns true if event was handled, false otherwise.
+*/
+static int HandleSelectionClear( __attribute__ ((unused))
+    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
+    xcb_selection_clear_event_t * event)
+{
+    Debug(3, "selection clear - window %x\n", event->owner);
+
+    return SystrayHandleSelectionClear(event);
+}
+
+/**
 **	Handle client message.
 **
 **	@param data	user data from xcb_event_handle
@@ -869,7 +905,7 @@ static int HandleClientMessage( __attribute__ ((unused))
 	    int n;
 
 	    xcb_atom_get_name(Connection, event->type, &name, &n);
-	    Debug(2, "unsupported client messsage atom '%.*s'\n", n, name);
+	    Debug(2, "unsupported client message atom '%.*s'\n", n, name);
 #endif
 	}
 	return 1;
@@ -921,7 +957,7 @@ static int HandleClientMessage( __attribute__ ((unused))
 	    int n;
 
 	    xcb_atom_get_name(Connection, event->type, &name, &n);
-	    Debug(2, "unsupported client messsage atom '%.*s'\n", n, name);
+	    Debug(2, "unsupported client message atom '%.*s'\n", n, name);
 #endif
 	}
 	return 1;
@@ -1217,6 +1253,12 @@ void EventInit(void)
     // Configure notify = window resized or moved
     xcb_event_set_configure_notify_handler(&EventHandlers,
 	HandleConfigureNotify, NULL);
+    // Resize request = client wants to resize window
+    xcb_event_set_resize_request_handler(&EventHandlers, HandleResizeRequest,
+	NULL);
+    // Selection clear = somebody requests selection
+    xcb_event_set_selection_clear_handler(&EventHandlers, HandleSelectionClear,
+	NULL);
     // Client message = client requests something
     xcb_event_set_client_message_handler(&EventHandlers, HandleClientMessage,
 	NULL);

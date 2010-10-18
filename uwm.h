@@ -77,7 +77,7 @@
 #define USE_SWALLOW			///< include panel swallow plugin
 #endif
 #if !defined(NO_SYSTRAY) && !defined(USE_SYSTRAY)
-#define NO_SYSTRAY			///< include panel systray plugin
+#define USE_SYSTRAY			///< include panel systray plugin
 #endif
 #if !defined(NO_NETLOAD) && !defined(USE_NETLOAD)
 #define USE_NETLOAD			///< include panel netload plugin

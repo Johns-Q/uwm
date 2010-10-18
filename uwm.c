@@ -53,7 +53,7 @@
 **		- netload
 **		- pager
 **		- swallow (dock)
-**		- systray (planned)
+**		- systray
 **		- task-list
 **	- builtin tooltips
 **	- builtin background setter

@@ -180,9 +180,6 @@ all:	uwm #udm
 td.c:
 	touch td.c
 
-plugin/systray.c:
-	touch plugin/systray.c
-
 #----------------------------------------------------------------------------
 #	Modules
 #
