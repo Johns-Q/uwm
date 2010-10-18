@@ -70,11 +70,12 @@
 #include "menu.h"
 #include "panel.h"
 #include "plugin/button.h"
+#include "plugin/clock.h"
+#include "plugin/netload.h"
 #include "plugin/pager.h"
-#include "plugin/task.h"
 #include "plugin/swallow.h"
 #include "plugin/systray.h"
-#include "plugin/clock.h"
+#include "plugin/task.h"
 
 // ------------------------------------------------------------------------ //
 
@@ -232,7 +233,7 @@ void PanelsDraw(void)
 	Panel *panel;
 
 	SLIST_FOREACH(panel, &Panels, Next) {
-	    // FIXME: should hidden menus be drawn?
+	    // FIXME: should hidden panels be drawn?
 	    PanelDraw(panel);
 	}
     }
@@ -842,6 +843,7 @@ static void PanelComputeSize(Panel * panel)
     if (panel->Layout == PANEL_LAYOUT_HORIZONTAL) {
 	if (!panel->Width) {
 	    if (PanelCheckHorizontalFill(panel)) {
+		Debug(2, "FIXME: gravity error\n");
 		panel->Width = XcbScreen->width_in_pixels;
 	    } else {
 		panel->Width = PanelComputeTotalWidth(panel);
@@ -853,6 +855,7 @@ static void PanelComputeSize(Panel * panel)
     } else {
 	if (!panel->Height) {
 	    if (PanelCheckVerticalFill(panel)) {
+		Debug(2, "FIXME: gravity error\n");
 		panel->Height = XcbScreen->height_in_pixels;
 	    } else {
 		panel->Height = PanelComputeTotalHeight(panel);
