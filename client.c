@@ -1072,6 +1072,7 @@ void ClientRestack(void)
 
     // FIXME: only need to update _NET_CLIENT_LIST_STACKING
     HintSetNetClientList();
+    PagerUpdate();
 }
 
 /**

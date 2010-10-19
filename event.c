@@ -261,6 +261,7 @@ static int HandleButtonPress( __attribute__ ((unused))
 		// FIXME: Shade didn't update Pager!
 		break;
 	}
+	// not done by Shade/Unshade,...
 	PagerUpdate();
 	return 1;
     }
@@ -561,8 +562,8 @@ static int HandleMapRequest( __attribute__ ((unused))
 	    xcb_map_window(Connection, client->Parent);
 	    ClientRaise(client);
 	    ClientFocus(client);
-	    TaskUpdate();
-	    PagerUpdate();
+	    // Done by focus: TaskUpdate();
+	    // Done by focus: PagerUpdate();
 	}
     } else {
 	xcb_get_window_attributes_cookie_t cookie;
@@ -575,7 +576,7 @@ static int HandleMapRequest( __attribute__ ((unused))
 	    if (FocusModus == FOCUS_CLICK) {
 		ClientFocus(client);
 	    }
-	    PagerUpdate();
+	    // Done by restack: PagerUpdate();
 	} else {			// not managed just map it
 	    xcb_map_window(Connection, event->window);
 	}
