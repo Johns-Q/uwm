@@ -101,7 +101,7 @@ struct _background_
 {
     int16_t Desktop;			///< desktop
 
-    BackgroundType Type : 8;		///< type of background
+    BackgroundType Type:8;		///< type of background
     char *Value;			///< value for background type
 
     xcb_pixmap_t Pixmap;		///< background pixmap

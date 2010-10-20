@@ -144,6 +144,8 @@ typedef struct _rule_
     int PatternN;			///< number of patterns
     RuleOption *Options;		///< table of all options to apply
 
+    //unsigned Final:1;			///< final rule
+
     int Instances;			///< for how many windows to match
     int Matches;			///< how many matches for this rule
 } Rule;

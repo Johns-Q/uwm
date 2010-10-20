@@ -870,9 +870,9 @@ void DiaCreate(const char *name)
     DiaVars->SlideShowTick = GetMsTicks() + DiaVars->SlideShowDelay * 1000;
 }
 
-    /**
-    **	First dia image.
-    */
+/**
+**	First dia image.
+*/
 static void DiaFirst(void)
 {
     size_t index;
@@ -887,9 +887,9 @@ static void DiaFirst(void)
     }
 }
 
-    /**
-    **	Previous dia image.
-    */
+/**
+**	Previous dia image.
+*/
 static void DiaPrev(void)
 {
     size_t index;

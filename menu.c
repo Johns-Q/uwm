@@ -1781,15 +1781,11 @@ static int MenuLoop(Runtime * runtime)
 {
     int enter_x;
     int enter_y;
-    int press_x;
-    int press_y;
     int moved;
     xcb_generic_event_t *event;
     const xcb_button_press_event_t *bpe;
     const xcb_button_release_event_t *bre;
 
-    press_x = -100;
-    press_y = -100;
     PointerGetPosition(&enter_x, &enter_y);
     moved = 0;
 
@@ -1817,6 +1813,7 @@ static int MenuLoop(Runtime * runtime)
 		case XCB_BUTTON_RELEASE:
 		    bre = (const xcb_button_release_event_t *)event;
 		    // FIXME: buttons should be configurable
+		    // ignore wheel buttons
 		    if (bre->detail == XCB_BUTTON_INDEX_4) {
 			break;
 		    }

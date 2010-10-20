@@ -430,11 +430,6 @@ static void TaskDraw(TaskPlugin * task_plugin)
 	remainder = 0;
     }
 
-#if 0
-    // FIXME: global!
-    IconSize = task_plugin->ItemHeight - 2 * TASK_INNER_SPACE - 4;
-#endif
-
     LabelReset(&label, plugin->Pixmap, RootGC);
     label.Font = &Fonts.Task;
 
@@ -770,7 +765,10 @@ Plugin *TaskConfig(const ConfigObject * array)
     } else {
 	task_plugin->MaxItemWidth = UINT16_MAX;
     }
-    task_plugin->Layout = PANEL_LAYOUT_HORIZONTAL;
+    if (ConfigGetBoolean(array, "dynamic-size", NULL) > 0) {
+	task_plugin->DynamicSize = 1;
+    }
+    //task_plugin->Layout = PANEL_LAYOUT_HORIZONTAL;
 
     plugin = PanelPluginNew();
     plugin->Object = task_plugin;

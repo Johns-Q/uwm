@@ -198,16 +198,11 @@ static void StatusCreateWindow(const Client * client, StatusType type, int x,
     width = FontTextWidthReply(cookie);
     Status->Width = width;
 
-    xcb_create_window(Connection,	// connection
-	XCB_COPY_FROM_PARENT,		// depth (same as root)
-	Status->Window,			// window Id
-	XcbScreen->root,		// parent window
-	x, y,				// x, y
-	width, Status->Height,		// width, height
-	0,				// border_width
-	XCB_WINDOW_CLASS_INPUT_OUTPUT,	// class
-	XCB_COPY_FROM_PARENT,		// visual (same as root)
-	XCB_CW_BACK_PIXEL | XCB_CW_OVERRIDE_REDIRECT | XCB_CW_SAVE_UNDER, values);	// mask, values
+    xcb_create_window(Connection, XCB_COPY_FROM_PARENT, Status->Window,
+	XcbScreen->root, x, y, width, Status->Height, 0,
+	XCB_WINDOW_CLASS_INPUT_OUTPUT, XCB_COPY_FROM_PARENT,
+	XCB_CW_BACK_PIXEL | XCB_CW_OVERRIDE_REDIRECT | XCB_CW_SAVE_UNDER,
+	values);
 
     // raise window
     values[0] = XCB_STACK_MODE_ABOVE;

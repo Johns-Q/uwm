@@ -192,7 +192,7 @@ extern int ClientN;			///< number of clients managed
     /// table of double linkted tail queues of all clients in a layer
 extern ClientLayerHead ClientLayers[LAYER_MAX];
 
-extern void (*ClientController) (void); ///< callback to stop move/resize
+extern void (*ClientController) (void);	///< callback to stop move/resize
 extern Client *ClientControlled;	///< current controlled client
 
 //////////////////////////////////////////////////////////////////////////////
