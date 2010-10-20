@@ -1,0 +1,306 @@
+.\"
+.\"	@file uwmrc.5		@brief µwm runtime configuration man page
+.\"
+.\"	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+.\"
+.\"	Contributor(s):
+.\"
+.\"	License: AGPLv3
+.\"
+.\"	This program is free software: you can redistribute it and/or modify
+.\"	it under the terms of the GNU Affero General Public License as
+.\"	published by the Free Software Foundation, either version 3 of the
+.\"	License.
+.\"
+.\"	This program is distributed in the hope that it will be useful,
+.\"	but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\"	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\"	GNU Affero General Public License for more details.
+.\"
+.\"	$Id$
+.\" ------------------------------------------------------------------------
+.TH "µwmrc" 5 "2010-10-20" "5" "µwmrc Manual"
+
+.SH NAME
+uwmrc \- µwm µ window manager runtime configuration
+
+.SH SYNOPSIS
+.B /usr/local/etc/system.uwmrc
+and
+.B ~/.uwm/uwmrc
+
+.SH DESCRIPTION
+This file contains the runtime configuration of the µwm window manager.
+
+This manual is still incomplete and unsorted.
+
+The global structure looks like this:
+.nf
+<variable> = <value>
+module.submodule.variable = 1
+module = [
+    submodule.variable = 1
+]
+module = [
+    submodule = [
+	variable = 1
+    ]
+]
+.fi
+
+.SS COMMENTS
+.TP
+.B ; ...
+Is an end to line comment.
+.TP
+.B ;{ ... ;}
+Is a block comment.
+
+.SS CONSTANTS
+You can define your own constants by writing.
+
+.TP
+.B <constant> = <value>
+Assign <value> to <constant>
+
+.SS VARIABLES
+You can configure the variables by writing.
+
+.TP
+.B <variable> = <value>
+Assign <value> to <variable>
+
+.SH MODULE
+Each module has its own configuration.
+
+.SS COLOR
+This configures the colors of the different parts in µwm.  A color
+can be specified by "#RRGGBB" ("#FF0000" is red) or using its color name
+"red" (see /usr/share/X11/rgb.txt).
+
+.nf
+color = [
+    <section> = <color-name>
+    ...
+]
+.fi
+
+.TP
+.B title-fg
+Unfocused window title foreground color.
+.TP
+.B title-bg1 title-bg2
+Unfocused window title background color.  When there are two different colors
+given, a gradient is drawn.
+.TP
+.B title-active-fg
+Active focused window title foreground color.
+.TP
+.B title-active-bg1 title-active-bg2
+Active focused window title background color.  When there are two different
+colors given, a gradient is drawn.
+.TP
+.B border-line
+Color of the unfocused window border.
+.TP
+.B border-corner
+Color of the unfocused window corners.
+.TP
+.B border-active-line
+Color of the active focused window border.
+.TP
+.B border-active-corner
+Color of the active focused window corners.
+.TP
+.B menu-fg
+Menu foreground color of unselected items.
+.TP
+.B menu-bg
+Menu background color of unselected items.
+.TP
+.B menu-outline
+Menu outline color of unselected items.
+.TP
+.B menu-active-fg
+Menu foreground color of active selected items.
+.TP
+.B menu-active-bg1 menu-active-bg2
+Menu background color of active selected items.  When there are two different
+color given, a gradient is drawn.
+.TP
+.B menu-active-outline
+Menu outline color of active selected items.
+.TP
+.B tooltip-fg
+Tooltip foreground color.
+.TP
+.B tooltip-bg
+Tooltip background color.
+.TP
+.B tooltip-outline
+Tooltip border outline color.
+.TP
+.B panel-fg
+Panel foreground color.
+.TP
+.B panel-bg
+Panel background color.  Also used as backgound color of the plugins.
+.TP
+.B task-fg
+Panel task plugin foreground color of unfocused windows.
+.TP
+.B task-bg1 task-bg2
+Panel task plugin foreground color of unfocused windows.  When there are two
+different color given, a gradient is drawn.
+.TP
+.B task-active-fg
+Panel task plugin foreground color of active focused windows.
+.TP
+.B task-active-bg1 task-active-bg2
+Panel task plugin foreground color of active focused windows.  When there are
+two different color given, a gradient is drawn.
+.TP
+.B pager-fg
+Panel pager plugin foreground color of inactive desktop and inactive windows.
+.TP
+.B pager-bg
+Panel pager plugin background color of inactive desktop and inactive windows.
+.TP
+.B pager-active-fg
+Panel pager plugin foreground color of active desktop and active windows.
+.TP
+.B pager-active-bg
+Panel pager plugin background color of active desktop and active windows.
+.TP
+.B pager-outline
+Panel pager plugin window outlines color.
+.TP
+.B pager-text
+Panel pager plugin desktop name color.
+.TP
+.B button-fg
+Panel button plugin foreground color.
+.TP
+.B button-bg
+Panel button plugin background color.
+.TP
+.B clock-fg
+Panel clock plugin foreground color.
+.TP
+.B clock-bg
+Panel clock plugin background color.
+.TP
+.B netload-fg
+Panel netload plugin foreground color.
+.TP
+.B netload-bg
+Panel netload plugin background color.
+.TP
+.B netload-tx
+Panel netload plugin color for the transfer rate graph.
+.TP
+.B netload-rx
+Panel netload plugin color for the receive rate graph.
+
+.SS FONT
+This configures the fonts of the different parts in µwm.
+
+.nf
+font = [
+    <module> = "<fontspec>"
+]
+.fi
+See X Logical Font Description Conventions for fontspec.
+
+.TP
+.B titlebar
+Font for the text in the window title bar.
+.TP
+.B menu
+Font for the text in the menus.
+.TP
+.B tooltip
+Tooltip font.
+.TP
+.B panel
+Default font for the panel plugins.
+.TP
+.B task
+Font for the client name in the task panel plugin.
+.TP
+.B clock
+Font for the panel clock plugin time string.
+.TP
+.B button
+Font for the panel button plugin label text.
+.TP
+.B pager
+Font for the panel pager plugin desktop names.
+.TP
+.B fallback
+If any font fails to load, this font is used.
+
+.SS DESKTOP
+
+.SS BACKGROUND
+This configures the backgrounds of the desktops.
+
+.nf
+background = [
+    [-1] [ <value> ]
+    [<desktop>] [ <value> ]
+    [ <value> ]
+]
+.fi
+
+.TP
+.B solid = color
+Set the background to the solid 'color'.
+.TP
+.B gradient = \*(lqfrom_color|to_color\*(rq
+Set the background to a gradient from 'from_color' to 'to_color'.
+.TP
+.B image = \*(lqfilename\*(rq
+Show the image 'filename' in the top-left corner of the desktop in original
+size.
+.TP
+.B scale = \*(lqfilename\*(rq
+Show the image 'filename' maximized on the desktop.  The image is scaled that
+it fits on the desktop, but keeping its aspect ratio. This can lead to black
+bars left and right or above and below the image.
+.TP
+.B zoom = \*(lqfilename\*(rq
+Show the image 'filename' filling the entire desktop.  The image is zoomed that
+it fills the entire desktop, but keeping its aspect ratio.  Parts of the image
+can be cut.
+
+.SS TOOLTIP
+
+.SS DOUBLE-CLICK
+
+.SS PANEL
+
+.SS NETLOAD
+The Netload panel plugim shows a graph of the network traffic of the past few
+minutes.  The tooltip shows the average and maximal transfer and receive rates.
+Additional commands (external and internal) can be executed with mouse clicks.
+
+.TP
+.B width = <pixel>
+Width of the netload graph area.
+.TP
+.B height = <pixel>
+Height of the netload graph area.
+.TP
+.B interface = <device>
+The name of the interface.  This is usually a driver name followed by a unit
+number, for example eth0 for the first ethernet interface.  Without setting
+this value, the first found useful interface is used for the first plugin,
+the next interface for the next plugin, ... .
+
+.SH SEE ALSO
+.TP
+uwm(1)
+
+.SH AUTHOR
+Copyright (C) 2009, 2010 Lutz Sammer.  License: AGPLv3.
