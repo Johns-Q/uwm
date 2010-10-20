@@ -169,7 +169,7 @@ HDRS	= uwm.h command.h pointer.h keyboard.h draw.h image.h icon.h \
 	rule.h border.h client.h moveresize.h event.h property.h misc.h \
 	panel.h plugin/button.h plugin/pager.h plugin/task.h plugin/swallow.h \
 	plugin/systray.h plugin/clock.h plugin/netload.h \
-	readable_bitmap.h dia.h td.h
+	readable_bitmap.h dia.h td.h uwm-config.h
 
 FILES=	Makefile u.xpm contrib/uwm-helper.sh.in uwm.1 uwmrc.5 \
 	contrib/uwm.doxyfile contrib/uwm16x16.xpm contrib/uwmrc.example
@@ -179,6 +179,9 @@ all:	uwm #udm
 #	fix missing files
 td.c:
 	touch td.c
+
+uwm-config.h:
+	touch uwm-config.h
 
 #----------------------------------------------------------------------------
 #	Modules
