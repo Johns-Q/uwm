@@ -45,8 +45,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <sys/queue.h>
-
 #include <xcb/xcb_icccm.h>
 #include <xcb/xcb_atom.h>
 #include <xcb/xcb_event.h>
@@ -55,6 +53,7 @@
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 
+#include "queue.h"
 #include "draw.h"
 #include "tooltip.h"
 #include "pointer.h"

@@ -36,7 +36,6 @@
 
 #ifdef USE_BUTTON			// {
 
-#include <sys/queue.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,6 +43,7 @@
 #include <xcb/xcb_atom.h>
 #include <xcb/xcb_icccm.h>
 
+#include "queue.h"
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 

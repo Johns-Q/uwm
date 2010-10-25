@@ -62,7 +62,6 @@
 
 #ifdef USE_DIA				// {
 
-#include <sys/queue.h>
 #include <sys/types.h>
 
 #include <stdio.h>
@@ -76,6 +75,7 @@
 #include <xcb/xcb_pixel.h>
 #include <xcb/xcb_image.h>
 
+#include "queue.h"
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 

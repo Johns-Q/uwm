@@ -47,12 +47,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <sys/queue.h>
+#include <alloca.h>
 
 #include <xcb/xcb_icccm.h>
 #include <xcb/xcb_atom.h>
 
+#include "queue.h"
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 
@@ -1070,11 +1070,12 @@ void HintGetClientProtocols(Client * client)
 void HintSetNetWorkarea(void)
 {
     int i;
-    uint32_t values[DesktopN * 4];
+    uint32_t *values;
 
     Debug(2, "%s: FIXME: only dummy function written\n", __FUNCTION__);
 
     // _NET_WORKAREA
+    values = alloca(sizeof(*values) * 4 * DesktopN);
     for (i = 0; i < DesktopN; i++) {
 	values[i * 4 + 0] = 0;
 	values[i * 4 + 1] = 0;

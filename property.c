@@ -34,13 +34,12 @@
 #include <xcb/xcb.h>
 #include "uwm.h"
 
-#include <sys/queue.h>
-
 #include <stdio.h>
 
 #include <xcb/xcb_atom.h>
 #include <xcb/xcb_icccm.h>
 
+#include "queue.h"
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 

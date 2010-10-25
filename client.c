@@ -23,8 +23,6 @@
 #include <xcb/xcb.h>
 #include "uwm.h"
 
-#include <sys/queue.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,6 +33,7 @@
 #include <xcb/shape.h>
 #endif
 
+#include "queue.h"
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 

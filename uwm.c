@@ -80,7 +80,6 @@
 #include <xcb/xcb.h>
 #include "uwm.h"
 
-#include <sys/queue.h>
 #include <sys/wait.h>
 
 #include <stdio.h>
@@ -101,6 +100,7 @@
 #endif
 #include <xcb/bigreq.h>
 
+#include "queue.h"
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 

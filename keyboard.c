@@ -32,8 +32,6 @@
 #include <xcb/xcb.h>
 #include "uwm.h"
 
-#include <sys/queue.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,6 +40,7 @@
 #include <xcb/xcb_keysyms.h>
 #include <X11/keysym.h>			// keysym XK_
 
+#include "queue.h"
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 

@@ -139,7 +139,7 @@ DEFS = $(CONFIG) #### $(addprefix -D, $(CONFIG))
 
 #----------------------------------------------------------------------------
 
-VERSION	=	"0.24"
+VERSION	=	"0.25"
 GIT_REV =	$(shell git describe --always 2>/dev/null)
 
 CC=	gcc
@@ -151,8 +151,8 @@ OPTIM=	-U_FORTIFY_SOURCE -D__OPTIMIZE__ -O0 -Os -fomit-frame-pointer
 CFLAGS= $(MARCH) $(OPTIM) -W -Wall -Wextra -g -pipe \
 	-I. $(DEFS) -DVERSION='$(VERSION)' \
 	$(if $(GIT_REV), -DGIT_REV='"$(GIT_REV)"') \
-	$(if $(findstring -DDEBUG,$(CONFIG)), -Werror) \
-	-Wl,--sort-common,--gc-sections,--as-needed
+	$(if $(findstring -DDEBUG,$(CONFIG)), -Werror)
+LDFLAGS	= -Wl,--sort-common,--gc-sections,--as-needed
 LIBS=	`pkg-config --static --libs xcb-keysyms xcb-aux xcb-atom xcb-property \
 	xcb-event xcb-icccm xcb-shape xcb-renderutil xcb-render xcb-image \
 	xcb-shm xcb` `pkg-config --static --libs libpng` -ljpeg -ltiff -lpthread
@@ -169,7 +169,7 @@ HDRS	= uwm.h command.h pointer.h keyboard.h draw.h image.h icon.h \
 	rule.h border.h client.h moveresize.h event.h property.h misc.h \
 	panel.h plugin/button.h plugin/pager.h plugin/task.h plugin/swallow.h \
 	plugin/systray.h plugin/clock.h plugin/netload.h \
-	readable_bitmap.h dia.h td.h uwm-config.h
+	readable_bitmap.h dia.h td.h uwm-config.h queue.h
 
 FILES=	Makefile u.xpm contrib/uwm-helper.sh.in uwm.1 uwmrc.5 \
 	contrib/uwm.doxyfile contrib/uwm16x16.xpm contrib/uwmrc.example
