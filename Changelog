@@ -1,4 +1,9 @@
 User johns
+Date:	Wed Nov 10 21:42:44 CET 2010
+
+    Release 0.25.
+    Fix outdated glibc queue.h.
+
 Date:   Fri Jul 10 15:49:12 2009 +0200
 
     Initial version
