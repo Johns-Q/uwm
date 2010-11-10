@@ -32,8 +32,10 @@
 FONTS="`xset q | grep usr/share`"
 
 # this didn't work (left is Super_R and up PRINT)
-#KB="-keybd ephyr,,,xkbmodel=evdev,xkblayout=de"
 #KB="-keybd ephyr,,,xkbmodel=evdev"
+# seems to work (replaces below xmodmap trick)
+#KB="-keybd ephyr,,xkbrules=evdev,xkbmodel=evdev,xkblayout=de,xkbvariant=nodeadkeys"
+KB="-keybd ephyr,,xkbrules=evdev,xkbmodel=evdev"
 
 # fix keyboard of Xephyr part 1
 xmodmap -pke >/tmp/xephyr.xmodmap.$$
