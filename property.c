@@ -1,7 +1,7 @@
 ///
 ///	@file property.c	@brief x11 property handler functions
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -51,6 +51,7 @@
 #include "hints.h"
 #include "icon.h"
 #include "menu.h"
+#include "desktop.h"
 
 #include "panel.h"
 #include "plugin/task.h"
@@ -76,7 +77,7 @@ static xcb_property_handlers_t PropertyHandlers;
 **	@param atom	atom of changed property
 **	@param property	get property request of changed property
 */
-int HandlePropertyDefault( __attribute__ ((unused))
+static int HandlePropertyDefault( __attribute__ ((unused))
     void *data, __attribute__ ((unused)) xcb_connection_t * conn,
     __attribute__ ((unused)) uint8_t state,
     __attribute__ ((unused)) xcb_window_t window, xcb_atom_t atom,
@@ -105,6 +106,75 @@ int HandlePropertyDefault( __attribute__ ((unused))
 #endif
 
 /**
+**	Handle WM hints property change.
+**
+**	@param data	user data (unused).
+**	@param conn	xcb connection
+**	@param state	property state
+**	@param window	window which property was changed
+**	@param atom	atom of changed property
+**	@param property	get property request of changed property
+**
+**	@returns always true.
+*/
+static int HandlePropertyWMHints( __attribute__ ((unused))
+    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
+    __attribute__ ((unused)) uint8_t state, xcb_window_t window,
+    xcb_atom_t atom, xcb_get_property_reply_t * property)
+{
+    Client *client;
+
+    Debug(3, "%s: atom %x\n", __FUNCTION__, atom);
+
+    if ((client = ClientFindByChild(window))) {
+	xcb_wm_hints_t wm_hints;
+
+	if (xcb_get_wm_hints_from_reply(&wm_hints, property)
+		&& wm_hints.flags & XCB_WM_HINT_STATE) {
+	    switch (wm_hints.initial_state) {
+		case XCB_WM_STATE_WITHDRAWN:
+		case XCB_WM_STATE_NORMAL:
+		    Debug(3, "%s: client %x mapped\n", __FUNCTION__, window);
+		    //FIXME: see map request
+#if 0
+		    xcb_map_window(Connection, client->Window);
+		    if (!(client->State & WM_STATE_MAPPED)) {
+			client->State |= WM_STATE_MAPPED;
+			client->State &= ~(WM_STATE_MINIMIZED
+			    | WM_STATE_SHOW_DESKTOP | WM_STATE_HIDDEN
+			    | WM_STATE_SHADED);
+			if (!(client->State & WM_STATE_STICKY)) {
+			    client->Desktop = DesktopCurrent;
+			}
+			xcb_map_window(Connection, client->Window);
+			xcb_map_window(Connection, client->Parent);
+			ClientRaise(client);
+			ClientFocus(client);
+			// Done by focus: TaskUpdate();
+			// Done by focus: PagerUpdate();
+		    }
+		    ClientRestack();
+#endif
+		    break;
+		case XCB_WM_STATE_ICONIC:
+		    Debug(3, "%s: client %x minimized\n", __FUNCTION__, window);
+		    //FIXME:
+		    // client->State |= WM_STATE_MINIMIZED;
+		    break;
+	    }
+	} else {			// defaults to mapped
+	    Debug(3, "%s: client %x no state\n", __FUNCTION__, window);
+	    //FIXME:
+	}
+
+	BorderDraw(client, NULL);
+	TaskUpdate();
+    }
+
+    return 1;
+}
+
+/**
 **	Handle normal hints property change.
 **
 **	@param data	user data (unused).
@@ -116,7 +186,7 @@ int HandlePropertyDefault( __attribute__ ((unused))
 **
 **	@returns always true.
 */
-int HandlePropertyNormalHints( __attribute__ ((unused))
+static int HandlePropertyWMNormalHints( __attribute__ ((unused))
     void *data, __attribute__ ((unused)) xcb_connection_t * conn,
     __attribute__ ((unused)) uint8_t state,
     __attribute__ ((unused)) xcb_window_t window, xcb_atom_t atom,
@@ -141,7 +211,7 @@ int HandlePropertyNormalHints( __attribute__ ((unused))
 **
 **	@todo property argument isn't used.
 */
-int HandlePropertyWMName( __attribute__ ((unused))
+static int HandlePropertyWMName( __attribute__ ((unused))
     void *data, __attribute__ ((unused)) xcb_connection_t * conn,
     __attribute__ ((unused)) uint8_t state, xcb_window_t window,
     xcb_atom_t atom,
@@ -172,32 +242,33 @@ void PropertyInit(void)
     // ICCCM atoms
     xcb_property_set_handler(&PropertyHandlers, WM_NAME, UINT32_MAX,
 	HandlePropertyWMName, NULL);
+    xcb_property_set_handler(&PropertyHandlers, WM_HINTS, UINT32_MAX,
+	HandlePropertyWMHints, NULL);
+    xcb_property_set_handler(&PropertyHandlers, WM_NORMAL_HINTS, UINT32_MAX,
+	HandlePropertyWMNormalHints, NULL);
     // EWMH atoms
     xcb_property_set_handler(&PropertyHandlers, Atoms.NET_WM_NAME.Atom,
 	UINT32_MAX, HandlePropertyWMName, NULL);
 #if 0
-    xcb_property_set_handler(&PropertyHandlers, WM_TRANSIENT_FOR, UINT32_MAX,
-	property_handle_wm_transient_for, NULL);
-    xcb_property_set_handler(&PropertyHandlers, WM_CLIENT_LEADER, UINT32_MAX,
-	property_handle_wm_client_leader, NULL);
-    xcb_property_set_handler(&PropertyHandlers, WM_NORMAL_HINTS, UINT32_MAX,
-	property_handle_wm_normal_hints, NULL);
-    xcb_property_set_handler(&PropertyHandlers, WM_HINTS, UINT32_MAX,
-	property_handle_wm_hints, NULL);
-    xcb_property_set_handler(&PropertyHandlers, WM_ICON_NAME, UINT32_MAX,
-	property_handle_wm_icon_name, NULL);
+    xcb_property_set_handler(&PropertyHandlers, Atoms.WM_TRANSIENT_FOR.Atom,
+	UINT32_MAX, HandleProperty_wm_transient_for, NULL);
+    xcb_property_set_handler(&PropertyHandlers, Atoms.WM_CLIENT_LEADER.Atom,
+	UINT32_MAX, HandleProperty_wm_client_leader, NULL);
+    xcb_property_set_handler(&PropertyHandlers, Atoms.WM_ICON_NAME.Atom,
+	UINT32_MAX, HandleProperty_wm_icon_name, NULL);
     // ATOM_WM_COLORMAP_WINDOWS
 
-    xcb_property_set_handler(&PropertyHandlers, _NET_WM_ICON_NAME, UINT32_MAX,
-	property_handle_wm_icon_name, NULL);
-    xcb_property_set_handler(&PropertyHandlers, _NET_WM_STRUT_PARTIAL,
-	UINT32_MAX, property_handle_net_wm_strut_partial, NULL);
-    xcb_property_set_handler(&PropertyHandlers, _NET_WM_ICON, UINT32_MAX,
-	property_handle_net_wm_icon, NULL);
+    xcb_property_set_handler(&PropertyHandlers, Atoms._NET_WM_ICON_NAME.Atom,
+	UINT32_MAX, HandleProperty_wm_icon_name, NULL);
+    xcb_property_set_handler(&PropertyHandlers,
+	Atoms._NET_WM_STRUT_PARTIAL.Atom, UINT32_MAX,
+	HandleProperty_net_wm_strut_partial, NULL);
+    xcb_property_set_handler(&PropertyHandlers, Atoms._NET_WM_ICON.Atom,
+	UINT32_MAX, HandleProperty_net_wm_icon, NULL);
 
     // background change
-    xcb_property_set_handler(&PropertyHandlers, _XROOTPMAP_ID, 1,
-	property_handle_xrootpmap_id, NULL);
+    xcb_property_set_handler(&PropertyHandlers, Atoms._XROOTPMAP_ID.Atom, 1,
+	HandleProperty_xrootpmap_id, NULL);
 #endif
 #ifdef DEBUG
     xcb_property_set_default_handler(&PropertyHandlers, UINT32_MAX,

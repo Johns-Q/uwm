@@ -1,7 +1,7 @@
 ///
 ///	@file menu.c	@brief menu functions
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -94,6 +94,8 @@ extern const char *xcb_event_get_label(uint8_t);
 ///
 ///	These functions and all dependencies are only available if compiled
 ///	widh #USE_DIALOG.
+///
+///	@todo add support for keyboard
 ///
 /// @{
 
