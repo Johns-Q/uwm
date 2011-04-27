@@ -1,7 +1,7 @@
 ///
 ///	@file uwm.c	@brief µwm µ window manager main file
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///		based on jwm from Joe Wingbermuehle
@@ -662,7 +662,7 @@ static void PrintVersion(void)
 #ifdef GIT_REV
 	"(GIT-" GIT_REV ")"
 #endif
-	", (c) 2009, 2010 by Lutz Sammer\n"
+	", (c) 2009 - 2011 by Lutz Sammer\n"
 	"\tLicense AGPLv3: GNU Affero General Public License version 3\n");
 }
 
@@ -677,6 +677,9 @@ static void PrintUsage(void)
 	"\t-e\texit µWM (send _UWM_EXIT to the root window)\n"
 	"\t-r\trestart µWM (send _UWM_RESTART to the root window)\n"
 	"\t-p\tparse the configuration file and exit\n"
+#ifdef DEBUG
+	"\t-D\tincrease debug level (more and verbose output)\n"
+#endif
 	"\t-? -h\tdisplay this message\n" "\t-v\tdisplay version information\n"
 	"Only idiots print usage on stderr!\n");
 }
@@ -698,7 +701,7 @@ int main(int argc, char *const argv[])
     //	Parse command line arguments
     //
     for (;;) {
-	switch (getopt(argc, argv, "hv?-c:d:epr")) {
+	switch (getopt(argc, argv, "hv?-c:d:eprD")) {
 	    case 'c':			// config file
 		config_filename = optarg;
 		continue;
@@ -716,6 +719,15 @@ int main(int argc, char *const argv[])
 		ParseConfig(config_filename);
 		ConnectionClose();
 		return 0;
+
+	    case 'D':			// increase debug level
+#ifdef DEBUG
+		++DebugLevel;
+		continue;
+#else
+		fprintf(stderr, "\nCompiled without debug support\n");
+		return -1;
+#endif
 
 	    case EOF:
 		break;

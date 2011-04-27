@@ -1,7 +1,7 @@
 ///
 ///	@file client.c		@brief client functions
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -1508,6 +1508,7 @@ void ClientSetWithdrawn(Client * client)
 	WM_STATE_SHOW_DESKTOP);
 
     // FIXME: need only to update WM_STATE_MAPPED!
+    // FIXME: HintSetWMState
     HintSetAllStates(client);
 
     TaskUpdate();

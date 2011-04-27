@@ -1,7 +1,7 @@
 #
 #	@file Makefile	@brief	make file
 #
-#	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+#	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 #
 #	Contributor(s):
 #
@@ -139,15 +139,16 @@ DEFS = $(CONFIG) #### $(addprefix -D, $(CONFIG))
 
 #----------------------------------------------------------------------------
 
-VERSION	=	"0.25"
+VERSION	=	"0.26"
 GIT_REV =	$(shell git describe --always 2>/dev/null)
 
 CC=	gcc
+#CC=	clang
 
 #MARCH=	-march=armv6j -mtune=arm1136jf-s -mfpu=vfp -mfloat-abi=softfp
 #MARCH=	-march=native
 #MARCH=	-muclibc
-OPTIM=	-U_FORTIFY_SOURCE -D__OPTIMIZE__ -O0 -Os -fomit-frame-pointer
+OPTIM=	-U_FORTIFY_SOURCE -D__OPTIMIZE__ -Os -fomit-frame-pointer
 CFLAGS= $(MARCH) $(OPTIM) -W -Wall -Wextra -g -pipe \
 	-I. $(DEFS) -DVERSION='$(VERSION)' \
 	$(if $(GIT_REV), -DGIT_REV='"$(GIT_REV)"') \

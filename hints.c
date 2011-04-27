@@ -1,7 +1,7 @@
 ///
 ///	@file hints.c	@brief window manager hints functions.
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -1141,7 +1141,7 @@ static void HintSetWMState(const Client * client)
     } else {
 	Debug(3, "set withdrawn %x\n", client->Window);
 	values[0] = XCB_WM_STATE_WITHDRAWN;
-	values[0] = XCB_WM_STATE_NORMAL;
+	//values[0] = XCB_WM_STATE_NORMAL;
     }
     values[1] = XCB_NONE;
 
