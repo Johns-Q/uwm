@@ -1,7 +1,7 @@
 ///
 ///	@file border.c		@brief client window border functions
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -541,10 +541,10 @@ static void BorderDrawButtons(const Client * client, xcb_drawable_t window,
     // maximize button
     if (client->Border & BORDER_MAXIMIZE) {
 	BorderDrawTitleButton(window, gc, pixel,
-	    (client->State & (WM_STATE_MAXIMIZED_HORZ |
-		    WM_STATE_MAXIMIZED_VERT))
-	    ? BorderButtons.MaximizeActive.Pixmap : BorderButtons.
-	    Maximize.Pixmap, xoffset, yoffset);
+	    (client->
+		State & (WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT))
+	    ? BorderButtons.MaximizeActive.Pixmap : BorderButtons.Maximize.
+	    Pixmap, xoffset, yoffset);
 
 	xoffset -= BorderButtonWidth;
 	if (xoffset <= BorderButtonWidth) {

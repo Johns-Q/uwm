@@ -139,7 +139,7 @@ DEFS = $(CONFIG) #### $(addprefix -D, $(CONFIG))
 
 #----------------------------------------------------------------------------
 
-VERSION	=	"0.26"
+VERSION	=	"0.30"
 GIT_REV =	$(shell git describe --always 2>/dev/null)
 
 CC=	gcc
@@ -152,9 +152,9 @@ OPTIM=	-U_FORTIFY_SOURCE -D__OPTIMIZE__ -Os -fomit-frame-pointer
 CFLAGS= $(MARCH) $(OPTIM) -W -Wall -Wextra -g -pipe \
 	-I. $(DEFS) -DVERSION='$(VERSION)' \
 	$(if $(GIT_REV), -DGIT_REV='"$(GIT_REV)"') \
-	$(if $(findstring -DDEBUG,$(CONFIG)), -Werror)
+	$(if $(findstring DDEBUG,$(CONFIG)), -Werror)
 LDFLAGS	= -Wl,--sort-common,--gc-sections,--as-needed
-LIBS=	`pkg-config --static --libs xcb-keysyms xcb-aux xcb-atom xcb-property \
+LIBS=	`pkg-config --static --libs xcb-keysyms xcb-aux xcb-atom xcb-util \
 	xcb-event xcb-icccm xcb-shape xcb-renderutil xcb-render xcb-image \
 	xcb-shm xcb` `pkg-config --static --libs libpng` -ljpeg -ltiff -lpthread
 

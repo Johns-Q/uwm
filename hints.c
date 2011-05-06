@@ -38,6 +38,7 @@
 ///	@todo
 ///		- _NET_WM_STATE_MODAL isn't supported
 ///		- _NET_WM_STATE_DEMANDS_ATTENTION isn't supported
+///		- can use functions, types from xcb_ewmh.h
 ///
 /// @{
 
@@ -78,7 +79,9 @@
 
 /**
 **	Table of all atom used in the windowmanger, which are not defined in
-**	/usr/include/xcb/xcb_atom.h.
+**	/usr/include/xcb/xproto.h enum xcb_atom_enum_t.
+**
+**	@todo xcb contains ewmh atoms in /usr/include/xcb/xcb_ewmh.h.
 */
 AtomTable Atoms = {
 // *INDENT-OFF*	indent didn't support GNU dot syntax
@@ -210,7 +213,7 @@ xcb_get_property_cookie_t AtomCardinalRequest(xcb_window_t window,
     const Atom * atom)
 {
     return xcb_get_property_unchecked(Connection, 0, window, atom->Atom,
-	CARDINAL, 0, UINT32_MAX);
+	XCB_ATOM_CARDINAL, 0, UINT32_MAX);
 }
 
 /**
@@ -247,7 +250,7 @@ int AtomGetCardinal(xcb_get_property_cookie_t cookie, uint32_t * value)
 void AtomSetCardinal(xcb_window_t window, const Atom * atom, uint32_t value)
 {
     xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, window, atom->Atom,
-	CARDINAL, 32, 1, &value);
+	XCB_ATOM_CARDINAL, 32, 1, &value);
 }
 
 /**
@@ -260,7 +263,7 @@ void AtomSetCardinal(xcb_window_t window, const Atom * atom, uint32_t value)
 void AtomSetWindow(xcb_window_t window, const Atom * atom, uint32_t value)
 {
     xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, window, atom->Atom,
-	WINDOW, 32, 1, &value);
+	XCB_ATOM_WINDOW, 32, 1, &value);
 }
 
 /**
@@ -273,15 +276,15 @@ void AtomSetWindow(xcb_window_t window, const Atom * atom, uint32_t value)
 void AtomSetPixmap(xcb_window_t window, const Atom * atom, xcb_pixmap_t value)
 {
     xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, window, atom->Atom,
-	PIXMAP, 32, 1, &value);
+	XCB_ATOM_PIXMAP, 32, 1, &value);
 }
 
 /**
 **
 **	Prepare initialize atoms.
 **
-**	@warning BugAlert: AtomTable.COMPOUND_TEXT must be first atom and
-**	AtomTable.UWM_EXIT last atom in #AtomTable.
+**	@warning BugAlert: _atoms_.COMPOUND_TEXT must be first atom and
+**	_atoms_.UWM_EXIT last atom in _atoms_.
 */
 void AtomPreInit(void)
 {
@@ -303,8 +306,8 @@ void AtomPreInit(void)
 /**
 **	Initialize atoms.
 **
-**	@warning BugAlert: AtomTable.COMPOUND_TEXT must be first atom and
-**	AtomTable.UWM_EXIT last atom in #AtomTable.
+**	@warning BugAlert: _atoms_.COMPOUND_TEXT must be first atom and
+**	_atoms_.UWM_EXIT last atom in ::_atoms_.
 */
 void AtomInit(void)
 {
@@ -337,7 +340,7 @@ void AtomInit(void)
 	values[i] = atom->Atom;
     }
     xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, XcbScreen->root,
-	Atoms.NET_SUPPORTED.Atom, ATOM, 32, i, values);
+	Atoms.NET_SUPPORTED.Atom, XCB_ATOM_ATOM, 32, i, values);
 
     //
     //	_NET_SUPPORTING_WM_CHECK
@@ -353,10 +356,10 @@ void AtomInit(void)
 	XCB_COPY_FROM_PARENT, XCB_CW_BACK_PIXEL, &Colors.PanelBG.Pixel);
 
     xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, XcbScreen->root,
-	Atoms.NET_SUPPORTING_WM_CHECK.Atom, WINDOW, 32, 1, &father);
+	Atoms.NET_SUPPORTING_WM_CHECK.Atom, XCB_ATOM_WINDOW, 32, 1, &father);
 
     xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, father,
-	Atoms.NET_SUPPORTING_WM_CHECK.Atom, WINDOW, 32, 1, &father);
+	Atoms.NET_SUPPORTING_WM_CHECK.Atom, XCB_ATOM_WINDOW, 32, 1, &father);
 
     // set window manager name
     xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, father,
@@ -367,13 +370,13 @@ void AtomInit(void)
     values[0] = XcbScreen->width_in_pixels;
     values[1] = XcbScreen->height_in_pixels;
     xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, XcbScreen->root,
-	Atoms.NET_DESKTOP_GEOMETRY.Atom, CARDINAL, 32, 2, values);
+	Atoms.NET_DESKTOP_GEOMETRY.Atom, XCB_ATOM_CARDINAL, 32, 2, values);
 
     // _NET_DESKTOP_VIEWPORT
     values[0] = 0;
     values[1] = 0;
     xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, XcbScreen->root,
-	Atoms.NET_DESKTOP_VIEWPORT.Atom, CARDINAL, 32, 2, values);
+	Atoms.NET_DESKTOP_VIEWPORT.Atom, XCB_ATOM_CARDINAL, 32, 2, values);
 
     // _NET_CLIENT_LIST and _NET_CLIENT_LIST_STACKING set later.
 
@@ -496,12 +499,12 @@ void HintGetWMName(Client * client)
 {
     xcb_get_property_cookie_t cookie;
     xcb_get_property_reply_t *reply;
-    xcb_get_text_property_reply_t prop;
+    xcb_icccm_get_text_property_reply_t prop;
     int n;
 
     cookie =
-	xcb_get_any_property_unchecked(Connection, 0, client->Window,
-	Atoms.NET_WM_NAME.Atom, UINT32_MAX);
+	xcb_get_property_unchecked(Connection, 0, client->Window,
+	Atoms.NET_WM_NAME.Atom, XCB_GET_PROPERTY_TYPE_ANY, 0, UINT32_MAX);
 
     free(client->Name);
     client->Name = NULL;
@@ -521,12 +524,12 @@ void HintGetWMName(Client * client)
     }
     Debug(3, "NET_WM_NAME failed\n");
 
-    cookie = xcb_get_wm_name_unchecked(Connection, client->Window);
-    if (xcb_get_wm_name_reply(Connection, cookie, &prop, NULL)) {
+    cookie = xcb_icccm_get_wm_name_unchecked(Connection, client->Window);
+    if (xcb_icccm_get_wm_name_reply(Connection, cookie, &prop, NULL)) {
 	client->Name = malloc(prop.name_len + 1);
 	memcpy(client->Name, prop.name, prop.name_len);
 	client->Name[prop.name_len] = '\0';
-	xcb_get_text_property_reply_wipe(&prop);
+	xcb_icccm_get_text_property_reply_wipe(&prop);
 	return;
     }
     Debug(3, "WM_NAME failed\n");
@@ -544,13 +547,13 @@ void HintGetWMName(Client * client)
 static void HintGetWMClass(Client * client)
 {
     xcb_get_property_cookie_t cookie;
-    xcb_get_wm_class_reply_t prop;
+    xcb_icccm_get_wm_class_reply_t prop;
 
-    cookie = xcb_get_wm_class_unchecked(Connection, client->Window);
-    if (xcb_get_wm_class_reply(Connection, cookie, &prop, NULL)) {
+    cookie = xcb_icccm_get_wm_class_unchecked(Connection, client->Window);
+    if (xcb_icccm_get_wm_class_reply(Connection, cookie, &prop, NULL)) {
 	client->InstanceName = strdup(prop.instance_name);
 	client->ClassName = strdup(prop.class_name);
-	xcb_get_wm_class_reply_wipe(&prop);
+	xcb_icccm_get_wm_class_reply_wipe(&prop);
 	Debug(3, "Class %s.%s\n", client->InstanceName, client->ClassName);
     }
 }
@@ -566,7 +569,7 @@ static void HintGetWMClass(Client * client)
 */
 static xcb_get_property_cookie_t HintRequestWMNormal(Client * client)
 {
-    return xcb_get_wm_normal_hints_unchecked(Connection, client->Window);
+    return xcb_icccm_get_wm_normal_hints_unchecked(Connection, client->Window);
 }
 
 /**
@@ -579,51 +582,51 @@ static xcb_get_property_cookie_t HintRequestWMNormal(Client * client)
 */
 static void HintGetWMNormal(xcb_get_property_cookie_t cookie, Client * client)
 {
-    if (!xcb_get_wm_normal_hints_reply(Connection, cookie, &client->SizeHints,
-	    NULL)) {
+    if (!xcb_icccm_get_wm_normal_hints_reply(Connection, cookie,
+	    &client->SizeHints, NULL)) {
 	Debug(3, "no normal size hints\n");
 	client->SizeHints.flags = 0;
     }
     // setup default values for missing hints
-    if (!(client->SizeHints.flags & XCB_SIZE_HINT_P_RESIZE_INC)) {
+    if (!(client->SizeHints.flags & XCB_ICCCM_SIZE_HINT_P_RESIZE_INC)) {
 	client->SizeHints.width_inc = 1;
 	client->SizeHints.height_inc = 1;
     }
-    if (!(client->SizeHints.flags & XCB_SIZE_HINT_P_MIN_SIZE)) {
+    if (!(client->SizeHints.flags & XCB_ICCCM_SIZE_HINT_P_MIN_SIZE)) {
 	client->SizeHints.min_width = 1;
 	client->SizeHints.min_height = 1;
     }
-    if (!(client->SizeHints.flags & XCB_SIZE_HINT_P_MAX_SIZE)) {
+    if (!(client->SizeHints.flags & XCB_ICCCM_SIZE_HINT_P_MAX_SIZE)) {
 	client->SizeHints.max_width = XcbScreen->width_in_pixels;
 	client->SizeHints.max_height = XcbScreen->height_in_pixels;
     }
-    if (!(client->SizeHints.flags & XCB_SIZE_HINT_BASE_SIZE)) {
+    if (!(client->SizeHints.flags & XCB_ICCCM_SIZE_HINT_BASE_SIZE)) {
 	client->SizeHints.base_width = client->SizeHints.min_width;
 	client->SizeHints.base_height = client->SizeHints.min_height;
     }
-    if (!(client->SizeHints.flags & XCB_SIZE_HINT_P_ASPECT)) {
+    if (!(client->SizeHints.flags & XCB_ICCCM_SIZE_HINT_P_ASPECT)) {
 	client->SizeHints.min_aspect_num = 0;
 	client->SizeHints.min_aspect_den = 1;
 	client->SizeHints.max_aspect_num = 0;
 	client->SizeHints.max_aspect_den = 1;
     }
-    if (!(client->SizeHints.flags & XCB_SIZE_HINT_P_WIN_GRAVITY)) {
+    if (!(client->SizeHints.flags & XCB_ICCCM_SIZE_HINT_P_WIN_GRAVITY)) {
 	client->SizeHints.win_gravity = XCB_GRAVITY_NORTH_WEST;
     }
     // FIXME: p/us size/position aren't used yet
-    if (client->SizeHints.flags & XCB_SIZE_HINT_US_SIZE) {
+    if (client->SizeHints.flags & XCB_ICCCM_SIZE_HINT_US_SIZE) {
 	Debug(3, "us_position %+d%+d\n", client->SizeHints.x,
 	    client->SizeHints.y);
     }
-    if (client->SizeHints.flags & XCB_SIZE_HINT_US_POSITION) {
+    if (client->SizeHints.flags & XCB_ICCCM_SIZE_HINT_US_POSITION) {
 	Debug(3, "us_size %dx%d\n", client->SizeHints.width,
 	    client->SizeHints.height);
     }
-    if (client->SizeHints.flags & XCB_SIZE_HINT_P_POSITION) {
+    if (client->SizeHints.flags & XCB_ICCCM_SIZE_HINT_P_POSITION) {
 	Debug(3, "p_size %dx%d\n", client->SizeHints.width,
 	    client->SizeHints.height);
     }
-    if (client->SizeHints.flags & XCB_SIZE_HINT_P_SIZE) {
+    if (client->SizeHints.flags & XCB_ICCCM_SIZE_HINT_P_SIZE) {
 	Debug(3, "p_position %+d%+d\n", client->SizeHints.x,
 	    client->SizeHints.y);
     }
@@ -663,7 +666,7 @@ static void HintGetWMColormaps(Client * client)
 */
 static xcb_get_property_cookie_t HintWMHintsRequest(Client * client)
 {
-    return xcb_get_wm_hints_unchecked(Connection, client->Window);
+    return xcb_icccm_get_wm_hints_unchecked(Connection, client->Window);
 }
 
 /**
@@ -680,18 +683,18 @@ static xcb_get_property_cookie_t HintWMHintsRequest(Client * client)
 */
 static void HintGetWMHints(xcb_get_property_cookie_t cookie, Client * client)
 {
-    xcb_wm_hints_t wm_hints;
+    xcb_icccm_wm_hints_t wm_hints;
 
-    if (xcb_get_wm_hints_reply(Connection, cookie, &wm_hints, NULL)
-	&& wm_hints.flags & XCB_WM_HINT_STATE) {
+    if (xcb_icccm_get_wm_hints_reply(Connection, cookie, &wm_hints, NULL)
+	&& wm_hints.flags & XCB_ICCCM_WM_HINT_STATE) {
 	switch (wm_hints.initial_state) {
-	    case XCB_WM_STATE_WITHDRAWN:
-	    case XCB_WM_STATE_NORMAL:
+	    case XCB_ICCCM_WM_STATE_WITHDRAWN:
+	    case XCB_ICCCM_WM_STATE_NORMAL:
 		if (!(client->State & WM_STATE_MINIMIZED)) {
 		    client->State |= WM_STATE_MAPPED;
 		}
 		break;
-	    case XCB_WM_STATE_ICONIC:
+	    case XCB_ICCCM_WM_STATE_ICONIC:
 		client->State |= WM_STATE_MINIMIZED;
 		break;
 	}
@@ -711,9 +714,10 @@ static void HintGetWMTransientFor(Client * client)
 {
     xcb_get_property_cookie_t cookie;
 
-    cookie = xcb_get_wm_transient_for_unchecked(Connection, client->Window);
-    if (xcb_get_wm_transient_for_reply(Connection, cookie, &client->Owner,
-	    NULL)) {
+    cookie =
+	xcb_icccm_get_wm_transient_for_unchecked(Connection, client->Window);
+    if (xcb_icccm_get_wm_transient_for_reply(Connection, cookie,
+	    &client->Owner, NULL)) {
 	return;
     }
     client->Owner = XCB_NONE;
@@ -996,11 +1000,11 @@ void HintGetState(Client * client)
     // _NET_WM_WINDOW_TYPE
     cookie3 =
 	xcb_get_property_unchecked(Connection, 0, client->Window,
-	Atoms.NET_WM_WINDOW_TYPE.Atom, ATOM, 0, UINT32_MAX);
+	Atoms.NET_WM_WINDOW_TYPE.Atom, XCB_ATOM_ATOM, 0, UINT32_MAX);
     // _NET_WM_STATE
     cookie4 =
 	xcb_get_property_unchecked(Connection, 0, client->Window,
-	Atoms.NET_WM_STATE.Atom, ATOM, 0, UINT32_MAX);
+	Atoms.NET_WM_STATE.Atom, XCB_ATOM_ATOM, 0, UINT32_MAX);
     // _NET_WM_WINDOW_OPACITY
     cookie5 =
 	AtomCardinalRequest(client->Window, &Atoms.NET_WM_WINDOW_OPACITY);
@@ -1083,7 +1087,7 @@ void HintSetNetWorkarea(void)
 	values[i * 4 + 3] = XcbScreen->height_in_pixels;
     }
     xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, XcbScreen->root,
-	Atoms.NET_WORKAREA.Atom, CARDINAL, 32, DesktopN * 4, values);
+	Atoms.NET_WORKAREA.Atom, XCB_ATOM_CARDINAL, 32, DesktopN * 4, values);
 }
 
 /**
@@ -1108,7 +1112,7 @@ void HintSetNetClientList(void)
 	Debug(0, "lost windows\n");}
     ) ;
     xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, XcbScreen->root,
-	Atoms.NET_CLIENT_LIST.Atom, WINDOW, 32, count, window);
+	Atoms.NET_CLIENT_LIST.Atom, XCB_ATOM_WINDOW, 32, count, window);
 
     // set _NET_CLIENT_LIST_STACKING
     // has bottom-to-top stacking order
@@ -1122,7 +1126,8 @@ void HintSetNetClientList(void)
 	Debug(0, "lost windows\n");}
     ) ;
     xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, XcbScreen->root,
-	Atoms.NET_CLIENT_LIST_STACKING.Atom, WINDOW, 32, count, window);
+	Atoms.NET_CLIENT_LIST_STACKING.Atom, XCB_ATOM_WINDOW, 32, count,
+	window);
 }
 
 /**
@@ -1135,13 +1140,12 @@ static void HintSetWMState(const Client * client)
     uint32_t values[2];
 
     if (client->State & WM_STATE_MAPPED) {
-	values[0] = XCB_WM_STATE_NORMAL;
+	values[0] = XCB_ICCCM_WM_STATE_NORMAL;
     } else if (client->State & WM_STATE_MINIMIZED) {
-	values[0] = XCB_WM_STATE_ICONIC;
+	values[0] = XCB_ICCCM_WM_STATE_ICONIC;
     } else {
 	Debug(3, "set withdrawn %x\n", client->Window);
-	values[0] = XCB_WM_STATE_WITHDRAWN;
-	//values[0] = XCB_WM_STATE_NORMAL;
+	values[0] = XCB_ICCCM_WM_STATE_WITHDRAWN;
     }
     values[1] = XCB_NONE;
 
@@ -1194,7 +1198,7 @@ static void HintSetNetWMState(const Client * client)
     // _NET_WM_STATE_DEMANDS_ATTENTION
 
     xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, client->Window,
-	Atoms.NET_WM_STATE.Atom, ATOM, 32, i, &values);
+	Atoms.NET_WM_STATE.Atom, XCB_ATOM_ATOM, 32, i, &values);
 }
 
 /**
@@ -1219,7 +1223,7 @@ static void HintSetNetFrameExtents(const Client * client)
     values[3] = south;
 
     xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, client->Window,
-	Atoms.NET_FRAME_EXTENTS.Atom, CARDINAL, 32, 4, &values);
+	Atoms.NET_FRAME_EXTENTS.Atom, XCB_ATOM_CARDINAL, 32, 4, &values);
 }
 
 /**
@@ -1265,7 +1269,7 @@ static void HintSetNetAllowed(const Client * client)
     values[i++] = Atoms.NET_WM_ACTION_BELOW.Atom;
 
     xcb_change_property(Connection, XCB_PROP_MODE_REPLACE, client->Window,
-	Atoms.NET_WM_ALLOWED_ACTIONS.Atom, ATOM, 32, i, &values);
+	Atoms.NET_WM_ALLOWED_ACTIONS.Atom, XCB_ATOM_ATOM, 32, i, &values);
 }
 
 /**
@@ -1330,7 +1334,7 @@ void HintNetMoveResizeWindow(Client * client,
 **	@param client	client getting the event.
 **	@param event	xcb client message event.
 **
-**	@todo FIXME: combine with #GetNetWmState.
+**	@todo FIXME: combine with #HintGetNetWmState.
 */
 void HintNetWmState(Client * client, const xcb_client_message_event_t * event)
 {
@@ -1362,7 +1366,8 @@ void HintNetWmState(Client * client, const xcb_client_message_event_t * event)
 	    }
 	    if (state & (WM_STATE_MAXIMIZED_VERT | WM_STATE_MAXIMIZED_HORZ)) {
 		// ignore if not maximized
-		if (client->State & (WM_STATE_MAXIMIZED_HORZ |
+		if (client->
+		    State & (WM_STATE_MAXIMIZED_HORZ |
 			WM_STATE_MAXIMIZED_VERT)) {
 		    ClientMaximize(client, 0, 0);
 		}
@@ -1380,8 +1385,7 @@ void HintNetWmState(Client * client, const xcb_client_message_event_t * event)
 	    }
 	    if (state & (WM_STATE_MAXIMIZED_VERT | WM_STATE_MAXIMIZED_HORZ)) {
 		// ignore if already maximized
-		if (!(client->
-			State & (WM_STATE_MAXIMIZED_VERT |
+		if (!(client->State & (WM_STATE_MAXIMIZED_VERT |
 			    WM_STATE_MAXIMIZED_HORZ))) {
 		    ClientMaximize(client, state & WM_STATE_MAXIMIZED_HORZ,
 			state & WM_STATE_MAXIMIZED_VERT);

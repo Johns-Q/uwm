@@ -1,7 +1,7 @@
 ///
 ///	@file property.h	@brief x11 property handler header file
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -26,6 +26,9 @@
 //////////////////////////////////////////////////////////////////////////////
 //	Prototypes
 //////////////////////////////////////////////////////////////////////////////
+
+    /// Handle property changes
+extern void PropertyHandler(int, xcb_window_t, xcb_atom_t);
 
     /// Initialize the property module.
 extern void PropertyInit(void);

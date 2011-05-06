@@ -1,7 +1,7 @@
 ///
 ///	@file draw.h	@brief drawing function header file
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -220,8 +220,8 @@ struct _font_
 /**
 **	This structure contains all fonts.
 **
-**	@warning #Fonts.Titlebar must be first font.
-**	@warning #Fonts.Fallback must be last font.
+**	@warning #FontTable.Titlebar must be first font.
+**	@warning #FontTable.Fallback must be last font.
 */
 typedef struct _fonts_
 {

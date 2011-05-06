@@ -1,4 +1,9 @@
 User johns
+Data:	Fri May  6 14:10:20 CEST 2011
+
+    Fix xcb 1.7 compatiblity.
+    Doxygen documentation cleaned up.
+
 Date:	Wed Nov 10 21:42:44 CET 2010
 
     Release 0.25.

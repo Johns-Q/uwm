@@ -1,7 +1,7 @@
 ///
 ///	@file swallow.c		@brief swallow panel plugin functions.
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -96,7 +96,7 @@ static void SwallowDelete(Plugin * plugin)
     // destroy window if there is one
     if (plugin->Window) {
 	xcb_get_property_cookie_t cookie;
-	xcb_get_wm_protocols_reply_t protocols;
+	xcb_icccm_get_wm_protocols_reply_t protocols;
 	SwallowPlugin *swallow_plugin;
 
 	xcb_reparent_window(Connection, plugin->Window, XcbScreen->root, 0, 0);
@@ -109,22 +109,23 @@ static void SwallowDelete(Plugin * plugin)
 	}
 
 	cookie =
-	    xcb_get_wm_protocols_unchecked(Connection, plugin->Window,
+	    xcb_icccm_get_wm_protocols_unchecked(Connection, plugin->Window,
 	    Atoms.WM_PROTOCOLS.Atom);
 
 	// FIXME: move into functions...
 	// check if client supports WM_DELETE_WINDOW
-	if (xcb_get_wm_protocols_reply(Connection, cookie, &protocols, NULL)) {
+	if (xcb_icccm_get_wm_protocols_reply(Connection, cookie, &protocols,
+		NULL)) {
 	    unsigned u;
 
 	    for (u = 0; u < protocols.atoms_len; ++u) {
 		if (protocols.atoms[u] == Atoms.WM_DELETE_WINDOW.Atom) {
 		    ClientSendDeleteWindow(plugin->Window);
-		    xcb_get_wm_protocols_reply_wipe(&protocols);
+		    xcb_icccm_get_wm_protocols_reply_wipe(&protocols);
 		    return;
 		}
 	    }
-	    xcb_get_wm_protocols_reply_wipe(&protocols);
+	    xcb_icccm_get_wm_protocols_reply_wipe(&protocols);
 	}
 	xcb_kill_client(Connection, plugin->Window);
     }
@@ -172,7 +173,7 @@ int SwallowTryWindow(int already_mapped, xcb_window_t window)
 {
     SwallowPlugin *swallow_plugin;
     xcb_get_property_cookie_t cookie;
-    xcb_get_wm_class_reply_t prop;
+    xcb_icccm_get_wm_class_reply_t prop;
 
     cookie.sequence = 0;
     SLIST_FOREACH(swallow_plugin, &Swallows, Next) {
@@ -189,8 +190,8 @@ int SwallowTryWindow(int already_mapped, xcb_window_t window)
 	}
 	// request class hints, if not already done
 	if (!cookie.sequence) {
-	    cookie = xcb_get_wm_class_unchecked(Connection, window);
-	    if (!xcb_get_wm_class_reply(Connection, cookie, &prop, NULL)) {
+	    cookie = xcb_icccm_get_wm_class_unchecked(Connection, window);
+	    if (!xcb_icccm_get_wm_class_reply(Connection, cookie, &prop, NULL)) {
 		return 0;		// can't get hints, give up
 	    }
 	    // not null terminated class is a xcb bug!
@@ -249,12 +250,12 @@ int SwallowTryWindow(int already_mapped, xcb_window_t window)
 	    }
 	    PanelResize(plugin->Panel);
 
-	    xcb_get_wm_class_reply_wipe(&prop);
+	    xcb_icccm_get_wm_class_reply_wipe(&prop);
 	    return 1;
 	}
     }
     if (cookie.sequence) {
-	xcb_get_wm_class_reply_wipe(&prop);
+	xcb_icccm_get_wm_class_reply_wipe(&prop);
     }
     return 0;
 }

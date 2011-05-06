@@ -1,7 +1,7 @@
 ///
 ///	@file panel.c	@brief panel functions
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -1348,7 +1348,8 @@ Panel *PanelNew(void)
 /**
 **	Parse a panel plugin size configuration.
 **
-**	@param array	configuration array for panel plugin
+**	@param array		configuration array for panel plugin
+**	@param[out] plugin	panel plugin
 */
 void PanelPluginConfigSize(const ConfigObject * array, Plugin * plugin)
 {

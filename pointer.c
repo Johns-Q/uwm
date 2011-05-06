@@ -1,7 +1,7 @@
 ///
 ///	@file pointer.c		@brief Pointer/Cursor functions
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -70,6 +70,8 @@ void PointerGetPosition(int *x, int *y)
 
 /**
 **	Get current button mask.
+**
+**	@returns current pointer button mask.
 **
 **	@todo FIXME: split into request / reply.
 */

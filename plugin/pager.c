@@ -1,7 +1,7 @@
 ///
 ///	@file pager.c	@brief pager panel plugin functions.
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -63,8 +63,6 @@
 #include "desktop.h"
 #include "panel.h"
 #include "plugin/pager.h"
-
-extern xcb_event_handlers_t EventHandlers;	///< xcb event handlers
 
 /**
 **	Pager plugin typedef.
@@ -425,7 +423,7 @@ int PagerMoveLoop(Plugin * plugin, int startx, int starty)
 		    PagerUpdate();
 		    break;
 		default:
-		    xcb_event_handle(&EventHandlers, event);
+		    EventHandleEvent(event);
 		    break;
 	    }
 	    free(event);

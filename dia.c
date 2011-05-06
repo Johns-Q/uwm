@@ -1,7 +1,7 @@
 ///
 ///	@file dia.c	@brief dia show application functions
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -199,7 +199,7 @@ static Dia DiaVars[1];			///< dia-show globals
 **
 **	@param dirent	current directory entry
 **
-**	@returns true if the #dirent is an image.
+**	@returns true if the @p dirent is an image.
 */
 static int DiaIsImage(const struct dirent *dirent)
 {

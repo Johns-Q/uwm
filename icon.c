@@ -1,7 +1,7 @@
 ///
 ///	@file icon.c		@brief icon handling functions.
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -666,6 +666,8 @@ void IconDraw(Icon * icon, xcb_drawable_t drawable, int x, int y,
 **	Compute hash value for given string.
 **
 **	@param str	0 terminated string to hash
+**
+**	@returns hash value (0 .. #ICON_HASH_SIZE).
 */
 static int IconHash(const char *str)
 {
@@ -688,6 +690,8 @@ static int IconHash(const char *str)
 **	Find an icon in icon hash table.
 **
 **	@param name	file name of icon to find
+**
+**	@returns icon for name, NULL if nothing found.
 */
 static Icon *IconLookup(const char *name)
 {
@@ -889,6 +893,8 @@ static Icon *IconGetDefault(void)
 **	@param path	path to file name
 **	@param name	file name of icon to load
 **	@param suffix	suffix of file name
+**
+**	@returns icon if any file exists, NULL if not.
 */
 Icon *IconLoadSuffixed(const char *path, const char *name, const char *suffix)
 {
@@ -939,6 +945,8 @@ Icon *IconLoadNamed(const char *name)
 **
 **	@param input	[width, height, argb-data * width * height]
 **	@param length	length of input data
+**
+**	@returns icon created from input data, NULL if failure.
 */
 static Icon *IconNewFromEWMH(const uint32_t * input, unsigned length)
 {
@@ -1003,8 +1011,8 @@ static void IconReadNetWMIcon(Client * client)
 	count = xcb_get_property_value_length(reply) / sizeof(uint32_t);
 	data = xcb_get_property_value(reply);
 	// validate icon data
-	if (reply->type == CARDINAL && reply->format == 32 && count > 2
-	    && data) {
+	if (reply->type == XCB_ATOM_CARDINAL && reply->format == 32
+	    && count > 2 && data) {
 	    client->Icon = IconNewFromEWMH(data, count);
 	} else {
 	    // this application has wrong _NET_WM_ICON

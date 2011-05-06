@@ -1,7 +1,7 @@
 ///
 ///	@file background.c	@brief desktop background control.
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -322,7 +322,7 @@ void BackgroundPreInit(void)
 {
     Cookie =
 	xcb_get_property_unchecked(Connection, 0, XcbScreen->root,
-	Atoms.XROOTPMAP_ID.Atom, PIXMAP, 0, UINT32_MAX);
+	Atoms.XROOTPMAP_ID.Atom, XCB_ATOM_PIXMAP, 0, UINT32_MAX);
 }
 
 /**
@@ -355,7 +355,7 @@ void BackgroundInit(void)
 	    Debug(3, "found XSETROOT_ID atom %d\n", ia_reply->atom);
 	    gp_cookie =
 		xcb_get_property_unchecked(Connection, 1, XcbScreen->root,
-		ia_reply->atom, PIXMAP, 0, UINT32_MAX);
+		ia_reply->atom, XCB_ATOM_PIXMAP, 0, UINT32_MAX);
 
 	    gp_reply = xcb_get_property_reply(Connection, gp_cookie, NULL);
 	    if (gp_reply) {

@@ -1,7 +1,7 @@
 ///
 ///	@file misc.c	@brief misc functions
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -207,6 +207,16 @@ char *ExpandPath(const char *path)
 **	Draw rounded rectangle.  Where @a x, @a y, @a w, @a h are
 **	dimensions of overall rectangle, and @a ew and @a eh are sizes of
 **	bounding box that corners are drawn inside of.
+**
+**	@param c	xcb x11 connection
+**	@param draw	x11 drawable
+**	@param gc	graphic context to draw rectangle
+**	@param x	x-coordinate
+**	@param y	y-coordinate
+**	@param w	rectangle width
+**	@param h	rectangle height
+**	@param ew	corner width
+**	@param eh	corner height
 */
 void xmu_draw_rounded_rectangle(xcb_connection_t * c, xcb_drawable_t draw,
     xcb_gcontext_t gc, int x, int y, int w, int h, int ew, int eh)
@@ -285,6 +295,16 @@ void xmu_draw_rounded_rectangle(xcb_connection_t * c, xcb_drawable_t draw,
 **	Fill rounded rectangle.  Where @a x, @a y, @a w, @a h are
 **	dimensions of overall rectangle, and @a ew and @a eh are sizes of
 **	bounding box that corners are drawn inside of.
+**
+**	@param c	xcb x11 connection
+**	@param draw	x11 drawable
+**	@param gc	graphic context to fill rectangle
+**	@param x	x-coordinate
+**	@param y	y-coordinate
+**	@param w	rectangle width
+**	@param h	rectangle height
+**	@param ew	corner width
+**	@param eh	corner height
 **
 **	@todo change gc and restore it to original
 */

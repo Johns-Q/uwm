@@ -1,7 +1,7 @@
 ///
 ///	@file moveresize.c	@brief move/resize window functions.
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <xcb/xcb_event.h>
 #include <xcb/xcb_icccm.h>
 #include <xcb/xcb_aux.h>
 
@@ -1337,13 +1338,13 @@ int ClientMoveLoop(Client * client, int button, int startx, int starty)
 			    free(event);
 			    return do_move;
 		    }
-		    if (((xcb_key_press_event_t *) event)->state &
-			XCB_MOD_MASK_CONTROL) {
+		    if (((xcb_key_press_event_t *) event)->
+			state & XCB_MOD_MASK_CONTROL) {
 			delta_x /= 10;
 			delta_y /= 10;
 		    }
-		    if (((xcb_key_press_event_t *) event)->state &
-			XCB_MOD_MASK_SHIFT) {
+		    if (((xcb_key_press_event_t *) event)->
+			state & XCB_MOD_MASK_SHIFT) {
 			delta_x *= 3;
 			delta_y *= 3;
 		    }
@@ -1584,7 +1585,7 @@ static void ClientFixWidth(Client * client)
     int_fast32_t ratio;
     int_fast32_t goal;
 
-    if ((client->SizeHints.flags & XCB_SIZE_HINT_P_ASPECT)
+    if ((client->SizeHints.flags & XCB_ICCCM_SIZE_HINT_P_ASPECT)
 	&& client->Height > 0) {
 
 	ratio = (65536 * client->Width) / client->Height;
@@ -1615,7 +1616,7 @@ static void ClientFixHeight(Client * client)
     int_fast32_t ratio;
     int_fast32_t goal;
 
-    if ((client->SizeHints.flags & XCB_SIZE_HINT_P_ASPECT)
+    if ((client->SizeHints.flags & XCB_ICCCM_SIZE_HINT_P_ASPECT)
 	&& client->Height > 0) {
 
 	ratio = (65536 * client->Width) / client->Height;
@@ -1782,13 +1783,13 @@ void ClientResizeLoop(Client * client, int button, int action, int startx,
 			    free(event);
 			    return;
 		    }
-		    if (((xcb_key_press_event_t *) event)->state &
-			XCB_MOD_MASK_CONTROL) {
+		    if (((xcb_key_press_event_t *) event)->
+			state & XCB_MOD_MASK_CONTROL) {
 			delta_x /= 10;
 			delta_y /= 10;
 		    }
-		    if (((xcb_key_press_event_t *) event)->state &
-			XCB_MOD_MASK_SHIFT) {
+		    if (((xcb_key_press_event_t *) event)->
+			state & XCB_MOD_MASK_SHIFT) {
 			delta_x *= 2;
 			delta_y *= 2;
 		    }
@@ -1867,7 +1868,8 @@ void ClientResizeLoop(Client * client, int button, int action, int startx,
 			}
 		    }
 
-		    if ((client->SizeHints.flags & XCB_SIZE_HINT_P_ASPECT)
+		    if ((client->SizeHints.
+			    flags & XCB_ICCCM_SIZE_HINT_P_ASPECT)
 			&& (action & (BORDER_ACTION_RESIZE_N |
 				BORDER_ACTION_RESIZE_S))
 			&& (action & (BORDER_ACTION_RESIZE_E |
@@ -1913,7 +1915,8 @@ void ClientResizeLoop(Client * client, int button, int action, int startx,
 			client->SizeHints.height_inc;
 
 		    if (lastheight != height || lastwidth != width) {
-			if (client->State & (WM_STATE_MAXIMIZED_HORZ |
+			if (client->
+			    State & (WM_STATE_MAXIMIZED_HORZ |
 				WM_STATE_MAXIMIZED_VERT)) {
 			    client->State &=
 				~(WM_STATE_MAXIMIZED_HORZ |

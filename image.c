@@ -1,7 +1,7 @@
 ///
 ///	@file image.c	@brief image loading functions.
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -750,6 +750,8 @@ static Image *ImageLoadXPM(const char *name)
 **	@param width	width of ARGB data
 **	@param height	height of ARGB data
 **	@param data	ARGB data [width * height]
+**
+**	@returns image from the ARGB data.
 */
 Image *ImageFromARGB(unsigned width, unsigned height, const uint32_t * data)
 {

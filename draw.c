@@ -1,7 +1,7 @@
 ///
 ///	@file draw.c	@brief drawing functions
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -413,6 +413,8 @@ void ColorGetPixel(xcb_coloritem_t * c)
 **	@param color_name	color name
 **	@param c		X11 color item (rgb + pixel)
 **
+**	@returns true if the color name was found, false if not.
+**
 **	@todo split request and reply
 */
 static int ColorGetByName(const char *color_name, xcb_coloritem_t * c)
@@ -442,6 +444,9 @@ static int ColorGetByName(const char *color_name, xcb_coloritem_t * c)
 **
 **	@param value	color name or \#hex triple
 **	@param[out] c	xcb color item
+**
+**	@retval true	color string could be converted into color item
+**	@retval false	any failure
 **
 **	@todo ColorGetByName is used syncron.
 */
@@ -599,8 +604,8 @@ static void ColorShiftMask(uint32_t mask, int *shift)
 /**
 **	Initialize color module.
 **
-**	@warning BugAlert: ColorTable.TitleFG must be the first color and
-**	ColorTable.MenuActiveDown the last color in #ColorTable.
+**	@warning BugAlert: _color_table_.TitleFG must be the first color and
+**	_color_table_.MenuActiveDown the last color in _color_table_.
 **
 **	@todo use xcb unsync!
 */

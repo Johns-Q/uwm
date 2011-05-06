@@ -42,8 +42,10 @@
 
 #include <dirent.h>
 
+#include <xcb/xcb_event.h>
 #include <xcb/xcb_icccm.h>
 #include <xcb/xcb_atom.h>
+#include <xcb/xcb_icccm.h>
 #include <xcb/xcb_image.h>
 #include <xcb/xcb_bitops.h>
 #include <X11/keysym.h>			// keysym XK_
@@ -356,10 +358,11 @@ void DialogShowConfirm(Client * client, void (*action) (Client *), ...)
 	XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK, values);
 
     size_hints.flags = 0;
-    xcb_size_hints_set_position(&size_hints, 0, dialog->X, dialog->Y);
-    xcb_set_wm_size_hints(Connection, window, WM_NORMAL_HINTS, &size_hints);
-    xcb_set_wm_name(Connection, window, STRING, sizeof("Confirm") - 1,
-	"Confirm");
+    xcb_icccm_size_hints_set_position(&size_hints, 0, dialog->X, dialog->Y);
+    xcb_icccm_set_wm_size_hints(Connection, window, XCB_ATOM_WM_NORMAL_HINTS,
+	&size_hints);
+    xcb_icccm_set_wm_name(Connection, window, XCB_ATOM_STRING, 8,
+	sizeof("Confirm") - 1, "Confirm");
 
     dialog->Self =
 	ClientAddWindow(window, xcb_get_window_attributes_unchecked(Connection,
@@ -3326,6 +3329,8 @@ static Menu *WindowMenuCreateLayer(int on_layer)
 **
 **	@param client	menu for this client
 **
+**	@returns new window menu.
+**
 **	@todo add icons to menu
 **	@todo use configuration for window menu
 */
@@ -3339,20 +3344,20 @@ static Menu *WindowMenuCreate(const Client * client)
     if ((client->Border & BORDER_MAXIMIZE)
 	&& (client->State & WM_STATE_MAPPED)) {
 
-	if (!(client->State & (WM_STATE_MAXIMIZED_HORZ |
-		    WM_STATE_MAXIMIZED_VERT))) {
+	if (!(client->
+		State & (WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT))) {
 	    WindowMenuAppend(menu, NULL, "Maximize-y",
 		MENU_ACTION_MAXIMIZE_VERT, 0);
 	}
 
-	if (!(client->State & (WM_STATE_MAXIMIZED_HORZ |
-		    WM_STATE_MAXIMIZED_VERT))) {
+	if (!(client->
+		State & (WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT))) {
 	    WindowMenuAppend(menu, NULL, "Maximize-x",
 		MENU_ACTION_MAXIMIZE_HORZ, 0);
 	}
 
-	if ((client->State & (WM_STATE_MAXIMIZED_HORZ |
-		    WM_STATE_MAXIMIZED_VERT))) {
+	if ((client->
+		State & (WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT))) {
 	    WindowMenuAppend(menu, NULL, "Unmaximize",
 		MENU_ACTION_TOGGLE_MAXIMIZE, 0);
 	} else {

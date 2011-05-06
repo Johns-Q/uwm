@@ -1,6 +1,6 @@
 @file README.txt		@brief µ window manager
 
-Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 
 Contributor(s):
 
@@ -46,7 +46,7 @@ Install:
 	Download latest version from:
 	    http://sourceforge.net/projects/uwm/files/
 
-	tar vxf uwm-2010-*.tar.bz2
+	tar vxf uwm-2011-*.tar.bz2
 	cd uwm
 	# the tarball contains the submodules
 	make
@@ -54,9 +54,16 @@ Install:
 
 Requires:
 ---------
-	x11-libs/libxcb and x11-libs/xcb-util
+	x11-libs/libxcb,
 		X C-language Bindings library
 		http://xcb.freedesktop.org/
+	x11-libs/xcb-util,
+	x11-libs/xcb-util-wm,
+	x11-libs/xcb-util-image,
+	x11-libs/xcb-util-keysyms
+		X C-language Bindings library
+		http://xcb.freedesktop.org/
+		Only versions >= 0.3.8 are supported
 
 	x11-libs/libX11 (for header files missing in xcb)
 		X.Org X11 library

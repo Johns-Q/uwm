@@ -571,9 +571,9 @@ void ClientPlace(Client * client, int already_mapped)
     //
     if ((!overflow && already_mapped)
 	|| (!(client->State & WM_STATE_PIGNORE)
-	    && (client->SizeHints.
-		flags & (XCB_SIZE_HINT_P_POSITION |
-		    XCB_SIZE_HINT_US_POSITION)))) {
+	    && (client->
+		SizeHints.flags & (XCB_ICCCM_SIZE_HINT_P_POSITION |
+		    XCB_ICCCM_SIZE_HINT_US_POSITION)))) {
 	ClientGravitate(client, 0);
     } else {
 	Rectangle rectangle;
@@ -695,7 +695,7 @@ void ClientPlaceMaximized(Client * client, int horz, int vert)
 	rectangle.Height = client->SizeHints.max_height;
     }
 
-    if (client->SizeHints.flags & XCB_SIZE_HINT_P_ASPECT) {
+    if (client->SizeHints.flags & XCB_ICCCM_SIZE_HINT_P_ASPECT) {
 	double ratio;
 	double minr;
 	double maxr;
@@ -774,7 +774,7 @@ void ClientConstrainSize(Client * client)
 	rectangle.Height = client->SizeHints.max_height;
     }
 
-    if (client->SizeHints.flags & XCB_SIZE_HINT_P_ASPECT) {
+    if (client->SizeHints.flags & XCB_ICCCM_SIZE_HINT_P_ASPECT) {
 	double ratio;
 	double minr;
 	double maxr;
@@ -980,6 +980,8 @@ void ClientSendConfigureEvent(const Client * client)
 **	Call to this function indicates that colormap(s) for given
 **	client changed. This will change active colormap(s) if given
 **	client is active.
+**
+**	@param client	client with changed colormaps
 */
 static void ClientUpdateColormap(Client * client)
 {
@@ -2206,8 +2208,8 @@ void ClientDelWindow(Client * client)
     //	If window manager is exiting (ie, not client), then reparent etc.
     //
     if (!KeepLooping && !(client->State & WM_STATE_WMDIALOG)) {
-	if (client->State & (WM_STATE_MAXIMIZED_VERT |
-		WM_STATE_MAXIMIZED_HORZ)) {
+	if (client->
+	    State & (WM_STATE_MAXIMIZED_VERT | WM_STATE_MAXIMIZED_HORZ)) {
 	    uint32_t values[4];
 
 	    client->X = client->OldX;
@@ -2319,25 +2321,25 @@ void ClientKill(Client * client)
 void ClientDelete(Client * client)
 {
     xcb_get_property_cookie_t cookie;
-    xcb_get_wm_protocols_reply_t protocols;
+    xcb_icccm_get_wm_protocols_reply_t protocols;
 
     cookie =
-	xcb_get_wm_protocols_unchecked(Connection, client->Window,
+	xcb_icccm_get_wm_protocols_unchecked(Connection, client->Window,
 	Atoms.WM_PROTOCOLS.Atom);
 
     // FIXME: move into functions...
     // check if client supports WM_DELETE_WINDOW
-    if (xcb_get_wm_protocols_reply(Connection, cookie, &protocols, NULL)) {
+    if (xcb_icccm_get_wm_protocols_reply(Connection, cookie, &protocols, NULL)) {
 	unsigned u;
 
 	for (u = 0; u < protocols.atoms_len; ++u) {
 	    if (protocols.atoms[u] == Atoms.WM_DELETE_WINDOW.Atom) {
 		ClientSendDeleteWindow(client->Window);
-		xcb_get_wm_protocols_reply_wipe(&protocols);
+		xcb_icccm_get_wm_protocols_reply_wipe(&protocols);
 		return;
 	    }
 	}
-	xcb_get_wm_protocols_reply_wipe(&protocols);
+	xcb_icccm_get_wm_protocols_reply_wipe(&protocols);
     }
     // do hard way:
     ClientKill(client);

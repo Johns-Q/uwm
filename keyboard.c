@@ -1,7 +1,7 @@
 ///
 ///	@file keyboard.c	@brief keyboard functions.
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -356,17 +356,10 @@ void KeyboardInit(void)
     //
     //	find lock mask for NUM-LOCK, SHIFT-LOCK, CAPS-LOCK, MODE-SWITCH
     //
-#ifndef XCB_EVENT_ERROR_SUCESS
-    num_lock = NULL;
-    shift_lock = NULL;
-    caps_lock = NULL;
-#else
-    // xcb-utils changed xcb_keycode_t to xcb_keycode_t*
     num_lock = xcb_key_symbols_get_keycode(XcbKeySymbols, XK_Num_Lock);
     shift_lock = xcb_key_symbols_get_keycode(XcbKeySymbols, XK_Shift_Lock);
     caps_lock = xcb_key_symbols_get_keycode(XcbKeySymbols, XK_Caps_Lock);
     mode_switch = xcb_key_symbols_get_keycode(XcbKeySymbols, XK_Mode_switch);
-#endif
 
     NumLockMask = ShiftLockMask = CapsLockMask = ModeSwitchMask = 0;
 
@@ -516,7 +509,7 @@ static void KeyboardKeylistConfig(const ConfigObject * keylist,
 /**
 **	Parse keyboard binding configuration.
 **
-**	@param bindings	keyboard bindings array
+**	@param binding	keyboard bindings array
 */
 static void KeyboardBindingConfig(const ConfigObject * binding)
 {

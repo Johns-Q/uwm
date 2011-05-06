@@ -1,7 +1,7 @@
 ///
 ///	@file rule.c	@brief client/window rule functions
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -260,7 +260,7 @@ static void RuleApplyOptions(Client * client, int already_mapped,
 	Debug(3, "   x %d\n", options->Values[i].Integer);
 	if (!already_mapped) {
 	    client->X = options->Values[i].Integer;
-	    client->SizeHints.flags |= XCB_SIZE_HINT_US_POSITION;
+	    client->SizeHints.flags |= XCB_ICCCM_SIZE_HINT_US_POSITION;
 	}
 	++i;
     }
@@ -268,7 +268,7 @@ static void RuleApplyOptions(Client * client, int already_mapped,
 	Debug(3, "   y %d\n", options->Values[i].Integer);
 	if (!already_mapped) {
 	    client->Y = options->Values[i].Integer;
-	    client->SizeHints.flags |= XCB_SIZE_HINT_US_POSITION;
+	    client->SizeHints.flags |= XCB_ICCCM_SIZE_HINT_US_POSITION;
 	}
 	++i;
     }
@@ -282,7 +282,7 @@ static void RuleApplyOptions(Client * client, int already_mapped,
 	    } else {
 		client->Width = options->Values[i].Integer;
 	    }
-	    client->SizeHints.flags |= XCB_SIZE_HINT_US_SIZE;
+	    client->SizeHints.flags |= XCB_ICCCM_SIZE_HINT_US_SIZE;
 	}
 	// FIXME: update dimensions of client
 	++i;
@@ -297,7 +297,7 @@ static void RuleApplyOptions(Client * client, int already_mapped,
 	    } else {
 		client->Height = options->Values[i].Integer;
 	    }
-	    client->SizeHints.flags |= XCB_SIZE_HINT_US_SIZE;
+	    client->SizeHints.flags |= XCB_ICCCM_SIZE_HINT_US_SIZE;
 	    // FIXME: update dimensions of client
 	}
 	++i;
@@ -366,7 +366,7 @@ static void RuleApplyOptions(Client * client, int already_mapped,
 	    Debug(3, "	 gravity: %dx%d%+d%+d\n", client->Width,
 		client->Height, client->X, client->Y);
 	    // disable automatic window placement
-	    client->SizeHints.flags |= XCB_SIZE_HINT_US_POSITION;
+	    client->SizeHints.flags |= XCB_ICCCM_SIZE_HINT_US_POSITION;
 	}
     }
 }

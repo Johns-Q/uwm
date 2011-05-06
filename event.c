@@ -1,7 +1,7 @@
 ///
 ///	@file event.c		@brief x11 event handler functions
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -54,6 +54,7 @@
 
 #include "misc.h"
 #include "event.h"
+#include "property.h"
 #include "client.h"
 #include "moveresize.h"
 #include "border.h"
@@ -81,7 +82,6 @@
 
 //////////////////////////////////////////////////////////////////////////////
 
-xcb_event_handlers_t EventHandlers;	///< xcb event handlers
 static xcb_generic_event_t *PushedEvent;	///< one event look ahead
 
     /// maximal movement to detect double click
@@ -107,51 +107,14 @@ static int8_t DoubleClickActive;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#ifdef DEBUG
-
-/**
-**	Debug print event
-**
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
-**	@param event	generic event
-*/
-static int HandleEvent( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    xcb_generic_event_t * event)
-{
-    int send_event;
-    int type;
-
-    send_event = XCB_EVENT_SENT(event);
-    type = XCB_EVENT_RESPONSE_TYPE(event);
-    if (type) {
-	Debug(3, "Event %s following sequence number %d%s\n",
-	    xcb_event_get_label(type), event->sequence,
-	    send_event ? " (from sent_event)" : "");
-    } else {
-	Debug(2, "Error %s on sequence number %d (%s)\n",
-	    xcb_event_get_error_label(((xcb_request_error_t *)
-		    event)->error_code), event->sequence,
-	    xcb_event_get_request_label(((xcb_request_error_t *)
-		    event)->major_opcode));
-    }
-    return 1;
-}
-#endif
-
 /**
 **	Handle key press event.
 **
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
 **	@param event	key press event
 **
 **	@returns true if event was handled, false otherwise.
 */
-static int HandleKeyPress( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    xcb_key_press_event_t * event)
+static inline int HandleKeyPress(const xcb_key_press_event_t * event)
 {
     Debug(4, "key press state=%x, detail=%d child %x event %x\n", event->state,
 	event->detail, event->child, event->event);
@@ -164,15 +127,11 @@ static int HandleKeyPress( __attribute__ ((unused))
 /**
 **	Handle key release event.
 **
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
 **	@param event	key release event
 **
 **	@returns true if event was handled, false otherwise.
 */
-static int HandleKeyRelease( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    xcb_key_release_event_t * event)
+static inline int HandleKeyRelease(const xcb_key_release_event_t * event)
 {
     Debug(4, "key release state=%x, detail=%d child %x event %x\n",
 	event->state, event->detail, event->child, event->event);
@@ -185,8 +144,6 @@ static int HandleKeyRelease( __attribute__ ((unused))
 /**
 **	Handle button press event.
 **
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
 **	@param event	button press event
 **
 **	@returns true if event was handled, false otherwise.
@@ -194,9 +151,7 @@ static int HandleKeyRelease( __attribute__ ((unused))
 **	@todo make button click on frame configurable
 **	@todo rewrite the double-click handling with delay/timeout
 */
-static int HandleButtonPress( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    xcb_button_press_event_t * event)
+static inline int HandleButtonPress(xcb_button_press_event_t * event)
 {
     Client *client;
 
@@ -349,18 +304,15 @@ static int HandleButtonPress( __attribute__ ((unused))
 /**
 **	Handle release button event.
 **
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
 **	@param event	button release event
 **
 **	@returns true if event was handled, false otherwise.
 */
-static int HandleButtonRelease( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    xcb_button_release_event_t * event)
+static inline int HandleButtonRelease(const xcb_button_release_event_t * event)
 {
     Debug(3, "button release detail = %d state = %d\n", event->detail,
 	event->state);
+
     PointerSetPosition(event->root_x, event->root_y);
 
     if (DialogHandleButtonRelease(event)) {
@@ -383,15 +335,11 @@ static int HandleButtonRelease( __attribute__ ((unused))
 /**
 **	Handle motion notify.
 **
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
 **	@param event	X11 motion notify event
 **
 **	@returns true if event was handled, false otherwise.
 */
-static int HandleMotionNotify( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    xcb_motion_notify_event_t * event)
+static int HandleMotionNotify(const xcb_motion_notify_event_t * event)
 {
     Client *client;
 
@@ -433,15 +381,11 @@ static int HandleMotionNotify( __attribute__ ((unused))
 /**
 **	Handle enter notify.
 **
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
 **	@param event	enter notify event
 **
 **	@returns true if event was handled, false otherwise.
 */
-static int HandleEnterNotify( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    xcb_enter_notify_event_t * event)
+static inline int HandleEnterNotify(const xcb_enter_notify_event_t * event)
 {
     Client *client;
 
@@ -477,15 +421,11 @@ static int HandleEnterNotify( __attribute__ ((unused))
 /**
 **	Handle an expose.
 **
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
 **	@param event	X11 expose event
 **
 **	@returns true if event was handled, false otherwise.
 */
-static int HandleExpose( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    xcb_expose_event_t * event)
+static inline int HandleExpose(const xcb_expose_event_t * event)
 {
     Client *client;
 
@@ -526,17 +466,85 @@ static int HandleExpose( __attribute__ ((unused))
 }
 
 /**
+**	Handle destroy notify.
+**
+**	@param event	destroy notify event
+**
+**	@returns true if event was handled, false otherwise.
+*/
+static inline int HandleDestroyNotify(const xcb_destroy_notify_event_t * event)
+{
+    Client *client;
+
+    Debug(3, "destroy notify - window %x\n", event->window);
+
+    if ((client = ClientFindByChild(event->window))) {
+	Debug(3, "destroy client %s\n", client->Name);
+	if (client == ClientControlled) {
+	    ClientController();		// stop, if move/resize
+	}
+	ClientDelWindow(client);
+	return 1;
+    } else if (SwallowHandleDestroyNotify(event)) {
+	return 1;
+    }
+    return SystrayHandleDestroyNotify(event->window);
+}
+
+/**
+**	Handle unmap notify.
+**
+**	@param event	unmap notify event
+**
+**	@returns true if event was handled, false otherwise.
+*/
+static inline int HandleUnmapNotify(const xcb_unmap_notify_event_t * event)
+{
+    Client *client;
+
+    Debug(3, "unmap notify - event %x window %x %s\n", event->event,
+	event->window, event->from_configure ? "(from configure)" : "");
+
+    if ((client = ClientFindByChild(event->window))) {
+	xcb_generic_event_t *peek;
+
+	if ((peek = PeekWindowEvent(client->Window, XCB_DESTROY_NOTIFY))) {
+	    Debug(3, "peek destory notify\n");
+	    HandleDestroyNotify((xcb_destroy_notify_event_t *) peek);
+	    free(peek);
+	    return 1;
+	}
+	// ignore this unmap, produces only problems!!!!
+	if (!XCB_EVENT_SENT(event)) {
+	    return 1;
+	}
+
+	if (client == ClientControlled) {
+	    ClientController();		// stop, if move/resize
+	}
+
+	if (client->State & WM_STATE_MAPPED) {
+	    client->State &= ~WM_STATE_MAPPED;
+	    xcb_unmap_window(Connection, client->Parent);
+
+	    // FIXME: need only to set what has changed!
+	    HintSetAllStates(client);
+	    TaskUpdate();
+	    PagerUpdate();
+	}
+    }
+
+    return 1;
+}
+
+/**
 **	Handle map request.
 **
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
 **	@param event	map request event
 **
 **	@returns true if event was handled, false otherwise.
 */
-static int HandleMapRequest( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    xcb_map_request_event_t * event)
+static inline int HandleMapRequest(const xcb_map_request_event_t * event)
 {
     Client *client;
 
@@ -585,97 +593,14 @@ static int HandleMapRequest( __attribute__ ((unused))
 }
 
 /**
-**	Handle destroy notify.
-**
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
-**	@param event	destroy notify event
-**
-**	@returns true if event was handled, false otherwise.
-*/
-static int HandleDestroyNotify( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    xcb_destroy_notify_event_t * event)
-{
-    Client *client;
-
-    Debug(3, "destroy notify - window %x\n", event->window);
-
-    if ((client = ClientFindByChild(event->window))) {
-	Debug(3, "destroy client %s\n", client->Name);
-	if (client == ClientControlled) {
-	    ClientController();		// stop, if move/resize
-	}
-	ClientDelWindow(client);
-	return 1;
-    } else if (SwallowHandleDestroyNotify(event)) {
-	return 1;
-    }
-    return SystrayHandleDestroyNotify(event->window);
-}
-
-/**
-**	Handle unmap notify.
-**
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
-**	@param event	unmap notify event
-**
-**	@returns true if event was handled, false otherwise.
-*/
-static int HandleUnmapNotify(void *data, xcb_connection_t * conn,
-    xcb_unmap_notify_event_t * event)
-{
-    Client *client;
-
-    Debug(3, "unmap notify - event %x window %x %s\n", event->event,
-	event->window, event->from_configure ? "(from configure)" : "");
-
-    if ((client = ClientFindByChild(event->window))) {
-	xcb_generic_event_t *peek;
-
-	if ((peek = PeekWindowEvent(client->Window, XCB_DESTROY_NOTIFY))) {
-	    Debug(3, "peek destory notify\n");
-	    HandleDestroyNotify(data, conn,
-		(xcb_destroy_notify_event_t *) peek);
-	    free(peek);
-	    return 1;
-	}
-	// ignore this unmap, produces only problems!!!!
-	if (!XCB_EVENT_SENT(event)) {
-	    return 1;
-	}
-
-	if (client == ClientControlled) {
-	    ClientController();		// stop, if move/resize
-	}
-
-	if (client->State & WM_STATE_MAPPED) {
-	    client->State &= ~WM_STATE_MAPPED;
-	    xcb_unmap_window(Connection, client->Parent);
-
-	    // FIXME: need only to set what has changed!
-	    HintSetAllStates(client);
-	    TaskUpdate();
-	    PagerUpdate();
-	}
-    }
-
-    return 1;
-}
-
-/**
 **	Handle reparent notify.
 **
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
 **	@param event	reparent notify event
 **
 **	@returns true if event was handled, false otherwise.
 */
-static int HandleReparentNotify( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    xcb_reparent_notify_event_t * event)
+static inline int HandleReparentNotify(const xcb_reparent_notify_event_t *
+    event)
 {
     Debug(3, "reparent notify - window %x\n", event->event);
     SystrayHandleReparentNotify(event);
@@ -684,17 +609,35 @@ static int HandleReparentNotify( __attribute__ ((unused))
 }
 
 /**
+**	Handle configure notify.
+**
+**	@param event	configure notify event
+**
+**	@returns true if event was handled, false otherwise.
+*/
+static inline int HandleConfigureNotify(const xcb_configure_notify_event_t *
+    event)
+{
+    Debug(4, "configure notify - window %x\n", event->event);
+
+    // FIXME: check if root window is reconfigured, need to redesign panels.
+
+    if (SwallowHandleConfigureNotify(event)) {
+	return 1;
+    }
+
+    return 0;
+}
+
+/**
 **	Handle configure request.
 **
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
 **	@param event	configure request event
 **
 **	@returns true if event was handled, false otherwise.
 */
-static int HandleConfigureRequest( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    xcb_configure_request_event_t * event)
+static inline int HandleConfigureRequest(const xcb_configure_request_event_t *
+    event)
 {
     Client *client;
 
@@ -810,41 +753,13 @@ static int HandleConfigureRequest( __attribute__ ((unused))
 }
 
 /**
-**	Handle configure notify.
-**
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
-**	@param event	configure notify event
-**
-**	@returns true if event was handled, false otherwise.
-*/
-static int HandleConfigureNotify( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    xcb_configure_notify_event_t * event)
-{
-    Debug(4, "configure notify - window %x\n", event->event);
-
-    // FIXME: check if root window is reconfigured, need to redesign panels.
-
-    if (SwallowHandleConfigureNotify(event)) {
-	return 1;
-    }
-
-    return 0;
-}
-
-/**
 **	Handle resize request.
 **
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
 **	@param event	resize request event
 **
 **	@returns true if event was handled, false otherwise.
 */
-static int HandleResizeRequest( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    xcb_resize_request_event_t * event)
+static inline int HandleResizeRequest(const xcb_resize_request_event_t * event)
 {
     Debug(3, "resize request - window %x\n", event->window);
 
@@ -856,35 +771,69 @@ static int HandleResizeRequest( __attribute__ ((unused))
 }
 
 /**
-**	Handle selection clear.
+**	Handle property notify.
 **
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
 **	@param event	selection clear event
 **
 **	@returns true if event was handled, false otherwise.
 */
-static int HandleSelectionClear( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    xcb_selection_clear_event_t * event)
+static inline int HandlePropertyNotify(const xcb_property_notify_event_t *
+    event)
+{
+    PropertyHandler(event->state, event->window, event->atom);
+
+    return 1;
+}
+
+/**
+**	Handle selection clear.
+**
+**	@param event	selection clear event
+**
+**	@returns true if event was handled, false otherwise.
+*/
+static inline int HandleSelectionClear(const xcb_selection_clear_event_t *
+    event)
 {
     Debug(3, "selection clear - window %x\n", event->owner);
 
     return SystrayHandleSelectionClear(event);
 }
 
+#ifdef DEBUG
+/**
+**	Debug atom name.
+**
+**	@param atom	client messsage type atom
+*/
+static void DebugAtomName(uint32_t atom)
+{
+    xcb_get_atom_name_cookie_t cookie;
+    xcb_get_atom_name_reply_t *reply;
+    const char *name;
+    int n;
+
+    cookie = xcb_get_atom_name_unchecked(Connection, atom);
+    reply = xcb_get_atom_name_reply(Connection, cookie, NULL);
+    if (reply) {
+	n = xcb_get_atom_name_name_length(reply);
+	name = xcb_get_atom_name_name(reply);
+	Debug(2, "unsupported client message atom '%.*s'\n", n, name);
+	free(reply);
+    } else {
+	Debug(2, "unsupported client message atom #%d\n", atom);
+    }
+}
+#endif
+
 /**
 **	Handle client message.
 **
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
 **	@param event	client message event
 **
 **	@returns true if event was handled, false otherwise.
 */
-static int HandleClientMessage( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    xcb_client_message_event_t * event)
+static inline int HandleClientMessage(const xcb_client_message_event_t * event)
 {
     Client *client;
 
@@ -901,11 +850,7 @@ static int HandleClientMessage( __attribute__ ((unused))
 	    DesktopChange(event->data.data32[0]);
 	} else {
 #ifdef DEBUG
-	    const char *name;
-	    int n;
-
-	    xcb_atom_get_name(Connection, event->type, &name, &n);
-	    Debug(2, "unsupported client message atom '%.*s'\n", n, name);
+	    DebugAtomName(event->type);
 #endif
 	}
 	return 1;
@@ -918,13 +863,13 @@ static int HandleClientMessage( __attribute__ ((unused))
 	    }
 
 	    switch (event->data.data32[0]) {
-		case XCB_WM_STATE_WITHDRAWN:
+		case XCB_ICCCM_WM_STATE_WITHDRAWN:
 		    ClientSetWithdrawn(client);
 		    break;
-		case XCB_WM_STATE_NORMAL:
+		case XCB_ICCCM_WM_STATE_NORMAL:
 		    ClientRestore(client, 1);
 		    break;
-		case XCB_WM_STATE_ICONIC:
+		case XCB_ICCCM_WM_STATE_ICONIC:
 		    ClientMinimize(client);
 		    break;
 		default:
@@ -953,11 +898,7 @@ static int HandleClientMessage( __attribute__ ((unused))
 	    HintNetWmState(client, event);
 	} else {
 #ifdef DEBUG
-	    const char *name;
-	    int n;
-
-	    xcb_atom_get_name(Connection, event->type, &name, &n);
-	    Debug(2, "unsupported client message atom '%.*s'\n", n, name);
+	    DebugAtomName(event->type);
 #endif
 	}
 	return 1;
@@ -973,21 +914,14 @@ static int HandleClientMessage( __attribute__ ((unused))
 
 #ifdef USE_SHAPE			// {
 
-    /// Set an event handler for ShapeEvent
-XCB_EVENT_MAKE_EVENT_HANDLER(shape_notify, SHAPE_NOTIFY + ShapeEvent);
-
 /**
 **	Handle shape notify.
 **
-**	@param data	user data from xcb_event_handle
-**	@param conn	XCB x11 connection
 **	@param event	shape notify event
 **
 **	@returns true if event was handled, false otherwise.
 */
-static int HandleShapeNotify( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    xcb_shape_notify_event_t * event)
+static inline int HandleShapeNotify(const xcb_shape_notify_event_t * event)
 {
     Client *client;
 
@@ -998,8 +932,40 @@ static int HandleShapeNotify( __attribute__ ((unused))
     }
     return 1;
 }
-
 #endif // } USE_SHAPE
+
+#ifdef DEBUG
+
+/**
+**	Debug print event
+**
+**	@param event	generic event
+*/
+static inline int HandleDebugEvent(const xcb_generic_event_t * event)
+{
+    int send_event;
+    int type;
+
+    send_event = XCB_EVENT_SENT(event);
+    if ((type = XCB_EVENT_RESPONSE_TYPE(event))) {
+	Debug(3, "Event %s following sequence number %d%s\n",
+	    xcb_event_get_label(type), event->sequence,
+	    send_event ? " (from sent_event)" : "");
+    } else {
+	Debug(2, "Error %s on sequence number %d (%s)\n",
+	    xcb_event_get_error_label(((xcb_request_error_t *)
+		    event)->error_code), event->sequence,
+	    xcb_event_get_request_label(((xcb_request_error_t *)
+		    event)->major_opcode));
+    }
+    return 1;
+}
+#else
+///	Dunmy debug print event
+#define HandleDebugEvent(x) /* x */
+#endif
+
+//////////////////////////////////////////////////////////////////////////////
 
 /**
 **	Handle timeout
@@ -1014,6 +980,8 @@ static void HandleTimeout(void)
     int y;
 
     tick = GetMsTicks();
+    // handle double-click timeout
+
     // only every 50ms
     if (last_tick <= tick && tick < last_tick + 50) {
 	return;
@@ -1048,8 +1016,6 @@ void WaitForEvent(void)
     while (KeepLooping) {
 	// flush before blocking (and waiting for new events)
 	xcb_flush(Connection);
-	// FIXME: 2* flush required?
-	// xcb_flush(Connection);
 #ifdef DEBUG
 	fflush(NULL);
 #endif
@@ -1094,8 +1060,12 @@ xcb_generic_event_t *PollNextEvent(void)
     return xcb_poll_for_event(Connection);
 }
 
+#if 0
+
 /**
-**	Look if there is event.
+**	Look if there is an event available.
+**
+**	@todo FIXME: remove
 */
 int IsNextEventAvail(void)
 {
@@ -1106,6 +1076,7 @@ int IsNextEventAvail(void)
 
     return PushedEvent != NULL;
 }
+#endif
 
 /**
 **	Peek window event.
@@ -1167,7 +1138,72 @@ void DiscardMotionEvents(xcb_motion_notify_event_t ** event,
 */
 void EventHandleEvent(xcb_generic_event_t * event)
 {
-    xcb_event_handle(&EventHandlers, event);
+    switch (XCB_EVENT_RESPONSE_TYPE(event)) {
+	case 0:			// error code
+	    HandleDebugEvent(event);
+	    break;
+	case XCB_KEY_PRESS:		// keyboard press
+	    HandleKeyPress((xcb_key_press_event_t *) event);
+	    break;
+	case XCB_KEY_RELEASE:		// keyboard release
+	    HandleKeyRelease((xcb_key_press_event_t *) event);
+	    break;
+	case XCB_BUTTON_PRESS:		// pointer button press
+	    HandleButtonPress((xcb_button_press_event_t *) event);
+	    break;
+	case XCB_BUTTON_RELEASE:	// pointer button release
+	    HandleButtonRelease((xcb_button_press_event_t *) event);
+	    break;
+	case XCB_MOTION_NOTIFY:	// pointer motion notify
+	    HandleMotionNotify((xcb_motion_notify_event_t *) event);
+	    break;
+	case XCB_ENTER_NOTIFY:		// pointer enter notify
+	    HandleEnterNotify((xcb_enter_notify_event_t *) event);
+	    break;
+	case XCB_EXPOSE:		// window redraw
+	    HandleExpose((xcb_expose_event_t *) event);
+	    break;
+	case XCB_DESTROY_NOTIFY:	// window destroy notify
+	    HandleDestroyNotify((xcb_destroy_notify_event_t *) event);
+	    break;
+	case XCB_UNMAP_NOTIFY:		// window unmap notify
+	    HandleUnmapNotify((xcb_unmap_notify_event_t *) event);
+	    break;
+	case XCB_MAP_REQUEST:		// window map request
+	    HandleMapRequest((xcb_map_request_event_t *) event);
+	    break;
+	case XCB_REPARENT_NOTIFY:	// window reparent notify
+	    HandleReparentNotify((xcb_reparent_notify_event_t *) event);
+	    break;
+	case XCB_CONFIGURE_NOTIFY:	// window configure notify
+	    HandleConfigureNotify((xcb_configure_notify_event_t *) event);
+	    break;
+	case XCB_CONFIGURE_REQUEST:	// window configure request
+	    HandleConfigureRequest((xcb_configure_request_event_t *) event);
+	    break;
+	case XCB_RESIZE_REQUEST:	// window resize request
+	    HandleResizeRequest((xcb_resize_request_event_t *) event);
+	    break;
+	case XCB_PROPERTY_NOTIFY:	// property change notify
+	    HandlePropertyNotify((xcb_property_notify_event_t *) event);
+	    break;
+	case XCB_SELECTION_CLEAR:	// selection clear
+	    HandleSelectionClear((xcb_selection_clear_event_t *) event);
+	    break;
+	case XCB_CLIENT_MESSAGE:	// client message
+	    HandleClientMessage((xcb_client_message_event_t *) event);
+	    break;
+	default:
+#ifdef USE_SHAPE
+	    if (XCB_EVENT_RESPONSE_TYPE(event)
+		== ShapeEvent + XCB_SHAPE_NOTIFY) {
+		HandleShapeNotify((xcb_shape_notify_event_t *) event);
+		break;
+	    }
+#endif
+	    HandleDebugEvent(event);
+	    break;
+    }
 }
 
 /**
@@ -1189,7 +1225,7 @@ void EventLoop(void)
     // give windows (swallow windows especially) time to map
     usleep(RESTART_DELAY);
 
-    // process events one last time
+    // process events and ignore them, one last time
     while ((event = PollNextEvent())) {
 	free(event);
     }
@@ -1201,75 +1237,6 @@ void EventLoop(void)
 */
 void EventInit(void)
 {
-    xcb_event_handlers_init(Connection, &EventHandlers);
-
-#ifdef DEBUG
-    if (1) {
-	int i;
-
-	// DEBUG: Trap all events and print them
-	for (i = 2; i < 128; ++i) {
-	    xcb_event_set_handler(&EventHandlers, i, HandleEvent, 0);
-	}
-	for (i = 0; i < 256; ++i) {
-	    xcb_event_set_error_handler(&EventHandlers, i,
-		(xcb_generic_error_handler_t) HandleEvent, 0);
-	}
-    }
-#endif
-
-    // Key press = user pushed key on keyboard over one of our windows
-    xcb_event_set_key_press_handler(&EventHandlers, HandleKeyPress, NULL);
-    // Key release = user released key over one of our windows
-    xcb_event_set_key_release_handler(&EventHandlers, HandleKeyRelease, NULL);
-    // Button press = user pushed mouse button over one of our windows
-    xcb_event_set_button_press_handler(&EventHandlers, HandleButtonPress,
-	NULL);
-    // Button release = user released mouse button over one of our windows
-    xcb_event_set_button_release_handler(&EventHandlers, HandleButtonRelease,
-	NULL);
-    // Pointer moved = mouse moved
-    xcb_event_set_motion_notify_handler(&EventHandlers, HandleMotionNotify,
-	NULL);
-    // Enter window = user moved his mouse over window
-    xcb_event_set_enter_notify_handler(&EventHandlers, HandleEnterNotify,
-	NULL);
-    // Expose = an application should redraw itself
-    xcb_event_set_expose_handler(&EventHandlers, HandleExpose, NULL);
-    // Map notify = there is new window
-    xcb_event_set_map_request_handler(&EventHandlers, HandleMapRequest, NULL);
-    // Unmap notify = window disappears
-    xcb_event_set_unmap_notify_handler(&EventHandlers, HandleUnmapNotify,
-	NULL);
-    // Destroy notify = window is destroyed
-    xcb_event_set_destroy_notify_handler(&EventHandlers, HandleDestroyNotify,
-	NULL);
-    // Reparent notify = there is new parent
-    xcb_event_set_reparent_notify_handler(&EventHandlers, HandleReparentNotify,
-	NULL);
-    // Configure request = someone wants to resize or move window
-    xcb_event_set_configure_request_handler(&EventHandlers,
-	HandleConfigureRequest, NULL);
-    // Configure notify = window resized or moved
-    xcb_event_set_configure_notify_handler(&EventHandlers,
-	HandleConfigureNotify, NULL);
-    // Resize request = client wants to resize window
-    xcb_event_set_resize_request_handler(&EventHandlers, HandleResizeRequest,
-	NULL);
-    // Selection clear = somebody requests selection
-    xcb_event_set_selection_clear_handler(&EventHandlers, HandleSelectionClear,
-	NULL);
-    // Client message = client requests something
-    xcb_event_set_client_message_handler(&EventHandlers, HandleClientMessage,
-	NULL);
-
-#ifdef USE_SHAPE
-    if (HaveShape) {
-	//xcb_event_set_handler(&EventHandlers, HandleShapeNotify, NULL);
-	xcb_event_set_shape_notify_handler(&EventHandlers, HandleShapeNotify,
-	    NULL);
-    }
-#endif
 }
 
 /// @}

@@ -35,6 +35,7 @@
 #include "uwm.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <xcb/xcb_atom.h>
 #include <xcb/xcb_icccm.h>
@@ -56,60 +57,45 @@
 #include "panel.h"
 #include "plugin/task.h"
 
-extern xcb_event_handlers_t EventHandlers;	///< xcb event handlers
-
 // ------------------------------------------------------------------------ //
 // Property
 // ------------------------------------------------------------------------ //
 
-    /// xcb property handlers
-static xcb_property_handlers_t PropertyHandlers;
-
-#ifdef DEBUG
-
 /**
-**	Handle default property change.
+**	Handle WM_NAME/_NET_WM_NAME hints property change.
 **
-**	@param data	user data (unused).
-**	@param conn	xcb connection
 **	@param state	property state
 **	@param window	window which property was changed
 **	@param atom	atom of changed property
 **	@param property	get property request of changed property
+**
+**	@returns always true.
+**
+**	@todo property argument isn't used.
 */
-static int HandlePropertyDefault( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    __attribute__ ((unused)) uint8_t state,
-    __attribute__ ((unused)) xcb_window_t window, xcb_atom_t atom,
+static int HandlePropertyWMName(
+    __attribute__ ((unused)) uint8_t state, xcb_window_t window,
+    xcb_atom_t atom,
     __attribute__ ((unused)) xcb_get_property_reply_t * property)
 {
-    Atom *temp;
-    const char *name;
-    int n;
+    Client *client;
 
-    Debug(3, "%s: atom %x - ", __FUNCTION__, atom);
+    Debug(3, "%s: atom %x %p\n", __FUNCTION__, atom, property);
 
-    // one of our atoms?
-    for (temp = &Atoms.COMPOUND_TEXT; temp <= &Atoms.UWM_EXIT; ++temp) {
-	if (temp->Atom == atom) {
-	    Debug(3, "%s\n", temp->Name);
-	    return 1;
-	}
+    if ((client = ClientFindByChild(window))) {
+	HintGetWMName(client);
+	BorderDraw(client, NULL);
+	TaskUpdate();
     }
 
-    // xcb_get_atom_name_unchecked
-    xcb_atom_get_name(Connection, atom, &name, &n);
-
-    Debug(3, "%.*s\n", n, name);
     return 1;
 }
-#endif
+
+#ifdef DEBUG
 
 /**
 **	Handle WM hints property change.
 **
-**	@param data	user data (unused).
-**	@param conn	xcb connection
 **	@param state	property state
 **	@param window	window which property was changed
 **	@param atom	atom of changed property
@@ -117,32 +103,31 @@ static int HandlePropertyDefault( __attribute__ ((unused))
 **
 **	@returns always true.
 */
-static int HandlePropertyWMHints( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
+static int HandlePropertyWMHints(
     __attribute__ ((unused)) uint8_t state, xcb_window_t window,
     xcb_atom_t atom, xcb_get_property_reply_t * property)
 {
     Client *client;
 
-    Debug(3, "%s: atom %x\n", __FUNCTION__, atom);
+    Debug(3, "%s: atom #%x\n", __FUNCTION__, atom);
 
     if ((client = ClientFindByChild(window))) {
-	xcb_wm_hints_t wm_hints;
+	xcb_icccm_wm_hints_t wm_hints;
 
-	if (xcb_get_wm_hints_from_reply(&wm_hints, property)
-		&& wm_hints.flags & XCB_WM_HINT_STATE) {
+	if (xcb_icccm_get_wm_hints_from_reply(&wm_hints, property)
+	    && wm_hints.flags & XCB_ICCCM_WM_HINT_STATE) {
 	    switch (wm_hints.initial_state) {
-		case XCB_WM_STATE_WITHDRAWN:
-		case XCB_WM_STATE_NORMAL:
+		case XCB_ICCCM_WM_STATE_WITHDRAWN:
+		case XCB_ICCCM_WM_STATE_NORMAL:
 		    Debug(3, "%s: client %x mapped\n", __FUNCTION__, window);
 		    //FIXME: see map request
 #if 0
 		    xcb_map_window(Connection, client->Window);
 		    if (!(client->State & WM_STATE_MAPPED)) {
 			client->State |= WM_STATE_MAPPED;
-			client->State &= ~(WM_STATE_MINIMIZED
-			    | WM_STATE_SHOW_DESKTOP | WM_STATE_HIDDEN
-			    | WM_STATE_SHADED);
+			client->State &=
+			    ~(WM_STATE_MINIMIZED | WM_STATE_SHOW_DESKTOP |
+			    WM_STATE_HIDDEN | WM_STATE_SHADED);
 			if (!(client->State & WM_STATE_STICKY)) {
 			    client->Desktop = DesktopCurrent;
 			}
@@ -156,8 +141,9 @@ static int HandlePropertyWMHints( __attribute__ ((unused))
 		    ClientRestack();
 #endif
 		    break;
-		case XCB_WM_STATE_ICONIC:
-		    Debug(3, "%s: client %x minimized\n", __FUNCTION__, window);
+		case XCB_ICCCM_WM_STATE_ICONIC:
+		    Debug(3, "%s: client %x minimized\n", __FUNCTION__,
+			window);
 		    //FIXME:
 		    // client->State |= WM_STATE_MINIMIZED;
 		    break;
@@ -177,8 +163,6 @@ static int HandlePropertyWMHints( __attribute__ ((unused))
 /**
 **	Handle normal hints property change.
 **
-**	@param data	user data (unused).
-**	@param conn	xcb connection
 **	@param state	property state
 **	@param window	window which property was changed
 **	@param atom	atom of changed property
@@ -186,8 +170,7 @@ static int HandlePropertyWMHints( __attribute__ ((unused))
 **
 **	@returns always true.
 */
-static int HandlePropertyWMNormalHints( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
+static int HandlePropertyWMNormalHints(
     __attribute__ ((unused)) uint8_t state,
     __attribute__ ((unused)) xcb_window_t window, xcb_atom_t atom,
     __attribute__ ((unused)) xcb_get_property_reply_t * property)
@@ -197,37 +180,144 @@ static int HandlePropertyWMNormalHints( __attribute__ ((unused))
     return 1;
 }
 
+#endif
+
+#ifdef DEBUG
+
 /**
-**	Handle WM_NAME/_NET_WM_NAME hints property change.
+**	Handle debug property change.
 **
-**	@param data	user data (unused).
-**	@param conn	xcb connection
 **	@param state	property state
 **	@param window	window which property was changed
 **	@param atom	atom of changed property
 **	@param property	get property request of changed property
-**
-**	@returns always true.
-**
-**	@todo property argument isn't used.
 */
-static int HandlePropertyWMName( __attribute__ ((unused))
-    void *data, __attribute__ ((unused)) xcb_connection_t * conn,
-    __attribute__ ((unused)) uint8_t state, xcb_window_t window,
+static int HandlePropertyDebug(uint8_t state, xcb_window_t window,
     xcb_atom_t atom,
     __attribute__ ((unused)) xcb_get_property_reply_t * property)
 {
-    Client *client;
+    Atom *temp;
+    const char *name;
+    int n;
+    xcb_get_atom_name_cookie_t cookie;
+    xcb_get_atom_name_reply_t *reply;
 
-    Debug(3, "%s: atom %x %p\n", __FUNCTION__, atom, property);
+    Debug(3, "%s: state %d window %x atom %x - ", __FUNCTION__, state, window,
+	atom);
 
-    if ((client = ClientFindByChild(window))) {
-	HintGetWMName(client);
-	BorderDraw(client, NULL);
-	TaskUpdate();
+    // predefined atom?
+    if ((name = xcb_atom_get_name_predefined(atom))) {
+	Debug(3, "'%s'\n", name);
+	return 1;
+    }
+    // one of our atoms?
+    for (temp = &Atoms.COMPOUND_TEXT; temp <= &Atoms.UWM_EXIT; ++temp) {
+	if (temp->Atom == atom) {
+	    Debug(3, "'%s'\n", temp->Name);
+	    return 1;
+	}
+    }
+
+    cookie = xcb_get_atom_name_unchecked(Connection, atom);
+    reply = xcb_get_atom_name_reply(Connection, cookie, NULL);
+    if (reply) {
+	n = xcb_get_atom_name_name_length(reply);
+	name = xcb_get_atom_name_name(reply);
+	Debug(3, "atom '%.*s'\n", n, name);
+	free(reply);
+    } else {
+	Debug(3, "atom #%d\n", atom);
     }
 
     return 1;
+}
+
+#endif
+
+/**
+**	Get property value.
+**
+**	@param state	property state
+**	@param window	window which property was changed
+**	@param atom	atom of changed property
+**	@param len	supported length of value
+**
+**	@returns reply of get any property, NULL if property was deleted
+*/
+static xcb_get_property_reply_t *PropertyGet(uint8_t state,
+    xcb_window_t window, xcb_atom_t atom, uint32_t len)
+{
+    xcb_get_property_cookie_t cookie;
+    xcb_get_property_reply_t *reply;
+
+    if (state != XCB_PROPERTY_DELETE) {
+	cookie =
+	    xcb_get_property_unchecked(Connection, 0, window, atom,
+	    XCB_GET_PROPERTY_TYPE_ANY, 0U, len);
+	reply = xcb_get_property_reply(Connection, cookie, NULL);
+
+	return reply;
+    }
+    return NULL;
+}
+
+/**
+**	Property change handler.
+**
+**	@param state	property state
+**	@param window	window which property was changed
+**	@param atom	atom of changed property
+*/
+void PropertyHandler(int state, xcb_window_t window, xcb_atom_t atom)
+{
+    Debug(4, "%s: %d window %x atom %x\n", __FUNCTION__, state, window, atom);
+    xcb_get_property_reply_t *reply;
+
+    reply = NULL;
+    switch (atom) {			// handle predefined atoms
+#ifdef DEBUG
+	case XCB_ATOM_WM_HINTS:
+	    reply = PropertyGet(state, window, atom, UINT32_MAX);
+	    HandlePropertyWMHints(state, window, atom, reply);
+	    break;
+#endif
+	case XCB_ATOM_WM_NAME:
+	    reply = PropertyGet(state, window, atom, UINT32_MAX);
+	    HandlePropertyWMName(state, window, atom, reply);
+	    break;
+#ifdef DEBUG
+	case XCB_ATOM_WM_NORMAL_HINTS:
+	    reply = PropertyGet(state, window, atom, UINT32_MAX);
+	    HandlePropertyWMNormalHints(state, window, atom, reply);
+	    break;
+#endif
+	default:			// handle own/ewmh atoms
+	    if (atom == Atoms.NET_WM_NAME.Atom) {
+		reply = PropertyGet(state, window, atom, UINT32_MAX);
+		// FIXME: use NetWmName
+		HandlePropertyWMName(state, window, atom, reply);
+		break;
+	    }
+#ifdef DEBUG
+	    HandlePropertyDebug(state, window, atom, NULL);
+#endif
+	    break;
+    }
+#if 0
+    // FIXME:
+    Atoms.WM_TRANSIENT_FOR.Atom,
+	HandleProperty_wm_transient_for Atoms.WM_CLIENT_LEADER.Atom,
+	HandleProperty_wm_client_leader Atoms.WM_ICON_NAME.Atom,
+	HandleProperty_wm_icon_name
+	// ATOM_WM_COLORMAP_WINDOWS
+	Atoms._NET_WM_ICON_NAME.Atom,
+	HandleProperty_wm_icon_name Atoms._NET_WM_STRUT_PARTIAL.Atom,
+	HandleProperty_net_wm_strut_partial Atoms._NET_WM_ICON.Atom,
+	HandleProperty_net_wm_icon
+	// background change
+	Atoms._XROOTPMAP_ID.Atom, 1, HandleProperty_xrootpmap_id
+#endif
+	free(reply);
 }
 
 /**
@@ -237,43 +327,6 @@ static int HandlePropertyWMName( __attribute__ ((unused))
 */
 void PropertyInit(void)
 {
-    xcb_property_handlers_init(&PropertyHandlers, &EventHandlers);
-
-    // ICCCM atoms
-    xcb_property_set_handler(&PropertyHandlers, WM_NAME, UINT32_MAX,
-	HandlePropertyWMName, NULL);
-    xcb_property_set_handler(&PropertyHandlers, WM_HINTS, UINT32_MAX,
-	HandlePropertyWMHints, NULL);
-    xcb_property_set_handler(&PropertyHandlers, WM_NORMAL_HINTS, UINT32_MAX,
-	HandlePropertyWMNormalHints, NULL);
-    // EWMH atoms
-    xcb_property_set_handler(&PropertyHandlers, Atoms.NET_WM_NAME.Atom,
-	UINT32_MAX, HandlePropertyWMName, NULL);
-#if 0
-    xcb_property_set_handler(&PropertyHandlers, Atoms.WM_TRANSIENT_FOR.Atom,
-	UINT32_MAX, HandleProperty_wm_transient_for, NULL);
-    xcb_property_set_handler(&PropertyHandlers, Atoms.WM_CLIENT_LEADER.Atom,
-	UINT32_MAX, HandleProperty_wm_client_leader, NULL);
-    xcb_property_set_handler(&PropertyHandlers, Atoms.WM_ICON_NAME.Atom,
-	UINT32_MAX, HandleProperty_wm_icon_name, NULL);
-    // ATOM_WM_COLORMAP_WINDOWS
-
-    xcb_property_set_handler(&PropertyHandlers, Atoms._NET_WM_ICON_NAME.Atom,
-	UINT32_MAX, HandleProperty_wm_icon_name, NULL);
-    xcb_property_set_handler(&PropertyHandlers,
-	Atoms._NET_WM_STRUT_PARTIAL.Atom, UINT32_MAX,
-	HandleProperty_net_wm_strut_partial, NULL);
-    xcb_property_set_handler(&PropertyHandlers, Atoms._NET_WM_ICON.Atom,
-	UINT32_MAX, HandleProperty_net_wm_icon, NULL);
-
-    // background change
-    xcb_property_set_handler(&PropertyHandlers, Atoms._XROOTPMAP_ID.Atom, 1,
-	HandleProperty_xrootpmap_id, NULL);
-#endif
-#ifdef DEBUG
-    xcb_property_set_default_handler(&PropertyHandlers, UINT32_MAX,
-	HandlePropertyDefault, NULL);
-#endif
 }
 
 /**
@@ -281,7 +334,6 @@ void PropertyInit(void)
 */
 void PropertyExit(void)
 {
-    xcb_property_handlers_wipe(&PropertyHandlers);
 }
 
 /// @}

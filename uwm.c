@@ -620,17 +620,26 @@ static void ParseConfig(const char *filename)
 static void SendClientMessage(const char *string)
 {
     xcb_client_message_event_t event;
+    xcb_intern_atom_cookie_t cookies;
+    xcb_intern_atom_reply_t *reply;
 
     ConnectionOpen();
+    cookies = xcb_intern_atom_unchecked(Connection, 0, strlen(string), string);
 
     memset(&event, 0, sizeof(event));
     event.response_type = XCB_CLIENT_MESSAGE;
     event.format = 32;
     event.window = XcbScreen->root;
-    event.type = xcb_atom_get(Connection, string);
+    if ((reply = xcb_intern_atom_reply(Connection, cookies, NULL))) {
+	event.type = reply->atom;
+	free(reply);
 
-    xcb_send_event(Connection, XCB_SEND_EVENT_DEST_POINTER_WINDOW,
-	XcbScreen->root, XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT, (void *)&event);
+	xcb_send_event(Connection, XCB_SEND_EVENT_DEST_POINTER_WINDOW,
+	    XcbScreen->root, XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT,
+	    (void *)&event);
+    } else {
+	FatalError("Can't send client message '%s'\n", string);
+    }
 
     ConnectionClose();
 }

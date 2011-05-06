@@ -1,7 +1,7 @@
 ///
 ///	@file uwm.h	@brief uwm main header file
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///		based on jwm from Joe Wingbermuehle
@@ -28,124 +28,124 @@
 //
 //	Which modules to build.
 //
-#if !defined(NO_RC) && !defined(USE_RC)
+#if defined(DOXYGEN) || !defined(NO_RC) && !defined(USE_RC)
 #define USE_RC				///< include runtime configuration
 #endif
-#if !defined(NO_OUTLINE) && !defined(USE_OUTLINE)
+#if defined(DOXYGEN) || !defined(NO_OUTLINE) && !defined(USE_OUTLINE)
 #define USE_OUTLINE			///< include outline window move/resize
 #endif
-#if !defined(NO_STATUS) && !defined(USE_STATUS)
+#if defined(DOXYGEN) || !defined(NO_STATUS) && !defined(USE_STATUS)
 #define USE_STATUS			///< include move/resize status window
 #endif
-#if !defined(NO_SNAP) && !defined(USE_SNAP)
+#if defined(DOXYGEN) || !defined(NO_SNAP) && !defined(USE_SNAP)
 #define USE_SNAP			///< include snap for move/resize
 #endif
-#if !defined(NO_DIALOG) && !defined(USE_DIALOG)
+#if defined(DOXYGEN) || !defined(NO_DIALOG) && !defined(USE_DIALOG)
 #define USE_DIALOG			///< include confirm dialog window
 #endif
-#if !defined(NO_MENU) && !defined(USE_MENU)
+#if defined(DOXYGEN) || !defined(NO_MENU) && !defined(USE_MENU)
 #define USE_MENU			///< include menu
 #endif
 
 #ifdef USE_MENU				// only possible if menu enabled
-#if !defined(NO_MENU_DIR) && !defined(USE_MENU_DIR)
+#if defined(DOXYGEN) || !defined(NO_MENU_DIR) && !defined(USE_MENU_DIR)
 #define USE_MENU_DIR			///< include directory menu
 #endif
 #endif
 
-#if !defined(NO_TOOLTIP) && !defined(USE_TOOLTIP)
+#if defined(DOXYGEN) || !defined(NO_TOOLTIP) && !defined(USE_TOOLTIP)
 #define USE_TOOLTIP			///< include tooltip
 #endif
-#if !defined(NO_PANEL) && !defined(USE_PANEL)
+#if defined(DOXYGEN) || !defined(NO_PANEL) && !defined(USE_PANEL)
 #define USE_PANEL			///< include panel
 #endif
 
 #ifdef USE_PANEL			// only possible if panel enabled
-#if !defined(NO_BUTTON) && !defined(USE_BUTTON)
+#if defined(DOXYGEN) || !defined(NO_BUTTON) && !defined(USE_BUTTON)
 #define USE_BUTTON			///< include panel button plugin
 #endif
-#if !defined(NO_CLOCK) && !defined(USE_CLOCK)
+#if defined(DOXYGEN) || !defined(NO_CLOCK) && !defined(USE_CLOCK)
 #define USE_CLOCK			///< include panel clock plugin
 #endif
-#if !defined(NO_PAGER) && !defined(USE_PAGER)
+#if defined(DOXYGEN) || !defined(NO_PAGER) && !defined(USE_PAGER)
 #define USE_PAGER			///< include panel pager plugin
 #endif
-#if !defined(NO_TASK) && !defined(USE_TASK)
+#if defined(DOXYGEN) || !defined(NO_TASK) && !defined(USE_TASK)
 #define USE_TASK			///< include panel task plugin
 #endif
-#if !defined(NO_SWALLOW) && !defined(USE_SWALLOW)
+#if defined(DOXYGEN) || !defined(NO_SWALLOW) && !defined(USE_SWALLOW)
 #define USE_SWALLOW			///< include panel swallow plugin
 #endif
-#if !defined(NO_SYSTRAY) && !defined(USE_SYSTRAY)
+#if defined(DOXYGEN) || !defined(NO_SYSTRAY) && !defined(USE_SYSTRAY)
 #define USE_SYSTRAY			///< include panel systray plugin
 #endif
-#if !defined(NO_NETLOAD) && !defined(USE_NETLOAD)
+#if defined(DOXYGEN) || !defined(NO_NETLOAD) && !defined(USE_NETLOAD)
 #define USE_NETLOAD			///< include panel netload plugin
 #endif
 #endif
 
-#if !defined(NO_BACKGROUND) && !defined(USE_BACKGROUND)
+#if defined(DOXYGEN) || !defined(NO_BACKGROUND) && !defined(USE_BACKGROUND)
 #define USE_BACKGROUND			///< include background support
 #endif
 #ifdef USE_BACKGROUND
-#if !defined(NO_XSETROOT_ID) && !defined(USE_XSETROOT_ID)
+#if defined(DOXYGEN) || !defined(NO_XSETROOT_ID) && !defined(USE_XSETROOT_ID)
 #define NO_XSETROOT_ID			///< support XSETROOT_ID property
 #endif
 #endif
 
-#if !defined(NO_ICON) && !defined(USE_ICON)
+#if defined(DOXYGEN) || !defined(NO_ICON) && !defined(USE_ICON)
 #define USE_ICON			///< include icon support
 #endif
 
 #ifdef USE_ICON				// loading icons are supported for:
-#if !defined(NO_JPEG) && !defined(USE_JPEG)
+#if defined(DOXYGEN) || !defined(NO_JPEG) && !defined(USE_JPEG)
 #define USE_JPEG			///< include external jpeg support
 #endif
-#if !defined(NO_PNG) && !defined(USE_PNG)
+#if defined(DOXYGEN) || !defined(NO_PNG) && !defined(USE_PNG)
 #define USE_PNG				///< include external png support
 #endif
-#if !defined(NO_TIFF) && !defined(USE_TIFF)
+#if defined(DOXYGEN) || !defined(NO_TIFF) && !defined(USE_TIFF)
 #define USE_TIFF			///< include external tiff support
 #endif
-#if !defined(NO_XPM) && !defined(USE_XPM)
+#if defined(DOXYGEN) || !defined(NO_XPM) && !defined(USE_XPM)
 #define USE_XPM				///< include internal xpm support
 #endif
 #endif
 
-#if !defined(NO_RULE) && !defined(USE_RULE)
+#if defined(DOXYGEN) || !defined(NO_RULE) && !defined(USE_RULE)
 #define USE_RULE			///< include window rules
 #endif
 
-#if !defined(NO_DIA) && !defined(USE_DIA)
+#if defined(DOXYGEN) || !defined(NO_DIA) && !defined(USE_DIA)
 #define NO_DIA				///< include dia-show application
 #endif
 
-#if !defined(NO_TD) && !defined(USE_TD)
+#if defined(DOXYGEN) || !defined(NO_TD) && !defined(USE_TD)
 #define NO_TD				///< include tower-defense application
 #endif
 
 	// x11/xcb features
-#if !defined(NO_XINERMA) && !defined(USE_XINERMA)
+#if defined(DOXYGEN) || !defined(NO_XINERMA) && !defined(USE_XINERMA)
 #define USE_XINERMA			///< xinerama support
 #endif
-#if !defined(NO_SHAPE) && !defined(USE_SHAPE)
+#if defined(DOXYGEN) || !defined(NO_SHAPE) && !defined(USE_SHAPE)
 #define USE_SHAPE			///< shape support
 #endif
-#if !defined(NO_RENDER) && !defined(USE_RENDER)
+#if defined(DOXYGEN) || !defined(NO_RENDER) && !defined(USE_RENDER)
 #define USE_RENDER			///< render support
 #endif
-#if !defined(NO_XMU) && !defined(USE_XMU)
+#if defined(DOXYGEN) || !defined(NO_XMU) && !defined(USE_XMU)
 #define USE_XMU				///< xmu emulation support
 #endif
-#if !defined(NO_COLORMAPS) && !defined(USE_COLORMAPS)
+#if defined(DOXYGEN) || !defined(NO_COLORMAPS) && !defined(USE_COLORMAPS)
 #define NO_COLORMAPS			///< x11 colormaps support
 #endif
 
-#if !defined(NO_MOTIF_HINTS) && !defined(USE_MOTIF_HINTS)
+#if defined(DOXYGEN) || !defined(NO_MOTIF_HINTS) && !defined(USE_MOTIF_HINTS)
 #define NO_MOTIF_HINTS			///< support motif hints
 #endif
 
-#if !defined(NO_DEBUG) && !defined(USE_DEBUG)
+#if defined(DOXYGEN) || !defined(NO_DEBUG) && !defined(USE_DEBUG)
 #define NO_DEBUG			///< generate debug code
 #endif
 
