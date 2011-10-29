@@ -89,7 +89,8 @@
 #endif
 #ifdef USE_BACKGROUND
 #if defined(DOXYGEN) || !defined(NO_XSETROOT_ID) && !defined(USE_XSETROOT_ID)
-#define NO_XSETROOT_ID			///< support XSETROOT_ID property
+#define USE_XSETROOT_ID			///< support XSETROOT_ID property
+#undef USE_XSETROOT_ID
 #endif
 #endif
 
@@ -117,11 +118,13 @@
 #endif
 
 #if defined(DOXYGEN) || !defined(NO_DIA) && !defined(USE_DIA)
-#define NO_DIA				///< include dia-show application
+#define USE_DIA				///< include dia-show application
+#undef USE_DIA
 #endif
 
 #if defined(DOXYGEN) || !defined(NO_TD) && !defined(USE_TD)
-#define NO_TD				///< include tower-defense application
+#define USE_TD				///< include tower-defense application
+#undef USE_TD
 #endif
 
 	// x11/xcb features
@@ -138,15 +141,18 @@
 #define USE_XMU				///< xmu emulation support
 #endif
 #if defined(DOXYGEN) || !defined(NO_COLORMAPS) && !defined(USE_COLORMAPS)
-#define NO_COLORMAPS			///< x11 colormaps support
+#define USE_COLORMAPS			///< x11 colormaps support
+#undef USE_COLORMAPS
 #endif
 
 #if defined(DOXYGEN) || !defined(NO_MOTIF_HINTS) && !defined(USE_MOTIF_HINTS)
-#define NO_MOTIF_HINTS			///< support motif hints
+#define USE_MOTIF_HINTS			///< support motif hints
+#undef USE_MOTIF_HINTS
 #endif
 
 #if defined(DOXYGEN) || !defined(NO_DEBUG) && !defined(USE_DEBUG)
-#define NO_DEBUG			///< generate debug code
+#define USE_DEBUG			///< generate debug code
+#undef USE_DEBUG
 #endif
 
 //

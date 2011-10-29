@@ -1474,7 +1474,7 @@ PREDEFINED             = "__attribute__(x)=" \
                          USE_SYSTRAY \
                          USE_NETLOAD \
                          USE_BACKGROUND \
-                         USE_USE_XSETROOT_ID \
+                         USE_XSETROOT_ID \
                          USE_ICON \
                          USE_JPEG \
                          USE_PNG \
@@ -1490,7 +1490,7 @@ PREDEFINED             = "__attribute__(x)=" \
                          USE_COLORMAPS \
                          USE_MOTIF_HINTS \
                          USE_DEBUG \
-			 DOXYGEN
+                         DOXYGEN
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then
 # this tag can be used to specify a list of macro names that should be expanded.
