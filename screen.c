@@ -1,7 +1,7 @@
 ///
 ///	@file screen.c	@brief physical screen management functions
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -85,8 +85,8 @@ const Screen *ScreenGetByXY(int x, int y)
 	}
     }
 #else
-    x = x;
-    y = y;
+    (void)x;
+    (void)y;
 #endif
     // not found use 0 as default
     return &Screens[0];

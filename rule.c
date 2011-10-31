@@ -243,7 +243,8 @@ static void RuleApplyOptions(Client * client, int already_mapped,
     if (options->Actions & RULE_ACTION_OPACITY) {
 	Debug(3, "   opacity %d\n", options->Values[i].Integer);
 	if (!options->Values[i].Integer) {
-	    client->State &= ~WM_STATE_OPACITY;
+	    // wired code to remove C-compiler warning
+	    client->State = client->State & ~WM_STATE_OPACITY;
 	} else {
 	    client->Opacity = options->Values[i].Integer;
 	    client->State |= WM_STATE_OPACITY;

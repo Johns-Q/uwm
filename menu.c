@@ -644,7 +644,7 @@ static void LabelScaledIconSize(const Icon * icon, int maxsize,
 **	|				|
 **	| .------.			|
 **	| |	 |			|
-**	| | Icon | Text 		|
+**	| | Icon | Text			|
 **	| |	 |			|
 **	| `------'			|
 **	|				|
@@ -2229,6 +2229,8 @@ static void MenuCommandPrepare(MenuCommand * command)
 	    break;
 #endif
 	    // FIXME: must generate other menus
+	default:			// keep clang happy
+	    break;
     }
 }
 
@@ -2255,6 +2257,8 @@ static void MenuCommandCleanup(MenuCommand * command)
 	    MenuDel(command->Submenu);
 	    command->Type = MENU_ACTION_DIR;
 	    command->String = path;
+	    break;
+	default:			// keep clang happy
 	    break;
     }
 }
