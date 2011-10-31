@@ -1,7 +1,7 @@
 ///
 ///	@file panel.h @brief panel header file
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -75,7 +75,7 @@ struct _panel_plugin_
     /// callback to resize plugin
     void (*Resize) (Plugin *);
     /// callback to show tooltip of plugin
-    void (*Tooltip) (Plugin *, int, int);
+    void (*Tooltip) (const Plugin *, int, int);
     /// callback for mouse presse event
     void (*HandleButtonPress) (Plugin *, int, int, int);
     /// callback for mouse release event

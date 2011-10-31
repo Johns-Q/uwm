@@ -1,7 +1,7 @@
 ///
 ///	@file clock.c	@brief clock panel plugin functions.
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -207,7 +207,7 @@ static void ClockHandleButtonPress(Plugin * plugin, int
 **	@param x	current mouse x-coordinate
 **	@param y	current mouse y-coordinate
 */
-static void ClockTooltip(Plugin * plugin, int x, int y)
+static void ClockTooltip(const Plugin * plugin, int x, int y)
 {
     const ClockPlugin *clock_plugin;
     time_t now;

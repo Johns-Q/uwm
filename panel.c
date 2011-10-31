@@ -57,7 +57,6 @@
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 
-#include "misc.h"
 #include "draw.h"
 #include "tooltip.h"
 #include "screen.h"
@@ -83,10 +82,6 @@
 struct _panel_head_ Panels = SLIST_HEAD_INITIALIZER(Panels);
 
 static uint32_t PanelOpacity;		///< panel window transparency
-
-static int16_t LastMouseX;		///< last mouse x-coordinate
-static int16_t LastMouseY;		///< last mouse y-coordinate
-static uint32_t LastMouseTick;		///< time of last mouse motion
 
 // ------------------------------------------------------------------------ //
 
@@ -229,8 +224,8 @@ static void PanelDraw(const Panel * panel)
 */
 void PanelsDraw(void)
 {
-    if (KeepLooping) {
-	Panel *panel;
+    if (KeepLooping) {			// not shuting down
+	const Panel *panel;
 
 	SLIST_FOREACH(panel, &Panels, Next) {
 	    // FIXME: should hidden panels be drawn?
@@ -547,6 +542,23 @@ int PanelHandleButtonRelease(const xcb_button_release_event_t * event)
 }
 
 /**
+**	Callback used by tooltip handler to show the tooltip.
+**
+**	@param x	current mouse x-coordinate
+**	@param y	current mouse y-coordinate
+*/
+static void PanelTooltip(int x, int y)
+{
+    const Panel *panel;
+    const Plugin *plugin;
+
+    if ((panel = PanelByXY(x, y))
+	&& (plugin = PanelGetPluginByXY(panel, x - panel->X, y - panel->Y))) {
+	plugin->Tooltip(plugin, x, y);
+    }
+}
+
+/**
 **	Handle a motion notify event over a panel.
 **
 **	@param event	X11 motion notify event
@@ -558,9 +570,7 @@ int PanelHandleMotionNotify(const xcb_motion_notify_event_t * event)
     Panel *panel;
 
     // remember last motion for tooltip
-    LastMouseX = event->root_x;
-    LastMouseY = event->root_y;
-    LastMouseTick = GetMsTicks();
+    TooltipRegister(event->root_x, event->root_y, PanelTooltip);
 
     if ((panel = PanelByWindow(event->event))) {
 	Plugin *plugin;
@@ -644,20 +654,6 @@ void PanelTimeout(uint32_t tick, int x, int y)
 	// call timeout of each plugin
 	STAILQ_FOREACH(plugin, &panel->Plugins, Next) {
 	    plugin->Timeout(plugin, tick, x, y);
-	}
-    }
-
-    //
-    //	Check if mouse stayed long enough on same place, to show tooltip
-    //
-    if (abs(LastMouseX - x) < TOOLTIP_MAXIMAL_MOVE
-	&& abs(LastMouseY - y) < TOOLTIP_MAXIMAL_MOVE
-	&& tick >= LastMouseTick + TooltipDelay) {
-
-	if ((panel = PanelByXY(x, y))
-	    && (plugin =
-		PanelGetPluginByXY(panel, x - panel->X, y - panel->Y))) {
-	    plugin->Tooltip(plugin, x, y);
 	}
     }
 }
@@ -1273,8 +1269,8 @@ static void PanelPluginDelete(Plugin * __attribute__ ((unused)) plugin)
 */
 static void PanelPluginTimeout(Plugin
     __attribute__ ((unused)) * plugin, uint32_t
-    __attribute__ ((unused)) tick, int __attribute__ ((unused))
-    x, int __attribute__ ((unused)) y)
+    __attribute__ ((unused)) tick, int __attribute__ ((unused)) x, int
+    __attribute__ ((unused)) y)
 {
 }
 
@@ -1285,8 +1281,9 @@ static void PanelPluginTimeout(Plugin
 **	@param x	current mouse x-coordinate
 **	@param y	current mouse y-coordinate
 */
-static void PanelPluginTooltip(Plugin __attribute__ ((unused)) * plugin, int
-    __attribute__ ((unused)) x, int __attribute__ ((unused)) y)
+static void PanelPluginTooltip(const Plugin
+    __attribute__ ((unused)) * plugin, int __attribute__ ((unused)) x, int
+    __attribute__ ((unused)) y)
 {
 }
 

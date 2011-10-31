@@ -103,7 +103,7 @@ static struct _pager_head_ Pagers = SLIST_HEAD_INITIALIZER(Pagers);
 **
 **	@returns desktop under @a x and @a y.
 */
-static int PagerGetDesktop(PagerPlugin * pager_plugin, int x, int y)
+static int PagerGetDesktop(const PagerPlugin * pager_plugin, int x, int y)
 {
     if (pager_plugin->Layout == PANEL_LAYOUT_HORIZONTAL) {
 	return x / (pager_plugin->DeskWidth + 1);
@@ -121,7 +121,7 @@ static int PagerGetDesktop(PagerPlugin * pager_plugin, int x, int y)
 **
 **	@returns client which contains point @a x @a y.
 */
-static Client *PagerGetClient(PagerPlugin * pager_plugin, int x, int y)
+static Client *PagerGetClient(const PagerPlugin * pager_plugin, int x, int y)
 {
     int desktop;
     int layer;
@@ -743,7 +743,7 @@ static void PagerSetSize(Plugin * plugin, unsigned width, unsigned height)
 **	@param x	current mouse x-coordinate
 **	@param y	current mouse y-coordinate
 */
-static void PagerTooltip(Plugin * plugin, int x, int y)
+static void PagerTooltip(const Plugin * plugin, int x, int y)
 {
     const char *desktop_name;
     const Client *client;

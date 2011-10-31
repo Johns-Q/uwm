@@ -1,7 +1,7 @@
 ///
 ///	@file netload.c @brief netload panel plugin functions.
 ///
-///	Copyright (c) 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2010, 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -415,7 +415,7 @@ static uint32_t NetloadScale(uint32_t value, const char **scale)
 **	@param x	current mouse x-coordinate
 **	@param y	current mouse y-coordinate
 */
-static void NetloadTooltip(Plugin * plugin, int x, int y)
+static void NetloadTooltip(const Plugin * plugin, int x, int y)
 {
     const NetloadPlugin *netload_plugin;
     char buf[128];

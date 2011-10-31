@@ -1,7 +1,7 @@
 ///
 ///	@file button.c	@brief button panel plugin functions.
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -323,7 +323,7 @@ static void PanelButtonHandleButtonRelease(Plugin * plugin, int
 **
 **	@todo tooltip is redrawn with each timeout (reduce it)
 */
-static void PanelButtonTooltip(Plugin * plugin, int x, int y)
+static void PanelButtonTooltip(const Plugin * plugin, int x, int y)
 {
     const ButtonPlugin *button_plugin;
     const char *tooltip;

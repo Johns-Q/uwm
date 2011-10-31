@@ -1,7 +1,7 @@
 ///
 ///	@file task.c	@brief task panel plugin functions.
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -680,7 +680,7 @@ static void TaskHandleButtonPress(Plugin * plugin, int x, int y, int mask)
 **	@param x	current mouse x-coordinate
 **	@param y	current mouse y-coordinate
 */
-static void TaskTooltip(Plugin * plugin, int x, int y)
+static void TaskTooltip(const Plugin * plugin, int x, int y)
 {
     TaskPlugin *task_plugin;
     Client *client;

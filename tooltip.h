@@ -1,7 +1,7 @@
 ///
 ///	@file tooltip.h		@brief tooltip header file
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -37,6 +37,9 @@ extern int TooltipDelay;		///< tooltip delay in milliseconds
 //////////////////////////////////////////////////////////////////////////////
 //	Prototypes
 //////////////////////////////////////////////////////////////////////////////
+
+    /// Register tooltip callback
+extern void TooltipRegister(int, int, void (*)(int, int));
 
     /// Show tooltip window.
 extern void TooltipShow(int, int, const char *);

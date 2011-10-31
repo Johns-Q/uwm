@@ -1,7 +1,7 @@
 ///
 ///	@file tooltip.c		@brief tooltip functions.
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -44,7 +44,9 @@
 #include "core-array/core-array.h"
 #include "core-rc/core-rc.h"
 
+#include "misc.h"
 #include "draw.h"
+#include "tooltip.h"
 #include "screen.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -65,12 +67,10 @@ typedef struct _tooltip_
     char *Text;				///< tooltip text
     xcb_window_t Window;		///< tooltip X11 window
 
-/* FIXME: more general tooltips handling
     uint16_t LastX;			///< last mouse x-coordinate
     uint16_t LastY;			///< last mouse y-coordinate
     uint32_t LastTick;			///< last tooltip tick
-    char *NewText;			///< new tooltip text
-*/
+    void (*DrawTooltip) (int, int);	///< tooltip callback to draw text
 } Tooltip;
 
 static Tooltip TooltipVars[1];		///< current tooltip data
@@ -80,6 +80,21 @@ int TooltipDelay;
 static int TooltipEnabled;		///< flag tooltips are enabled
 
 //////////////////////////////////////////////////////////////////////////////
+
+/**
+**	Register tooltip draw callback.
+**
+**	@param x	current mouse x-coordinate
+**	@param y	current mouse y-coordinate
+**	@param draw	function called to draw tooltip
+*/
+void TooltipRegister(int x, int y, void (*draw) (int, int))
+{
+    TooltipVars->LastX = x;
+    TooltipVars->LastY = y;
+    TooltipVars->LastTick = GetMsTicks();
+    TooltipVars->DrawTooltip = draw;
+}
 
 /**
 **	Draw the tooltip window.
@@ -112,6 +127,7 @@ void TooltipShow(int x, int y, const char *text)
     if (!TooltipEnabled) {
 	return;
     }
+    // FIXME: see above, same text again?
     free(TooltipVars->Text);
     TooltipVars->Text = NULL;
 
@@ -242,13 +258,25 @@ int TooltipHandleExpose(const xcb_expose_event_t * event)
 **	@param x	current mouse x-coordinate
 **	@param y	current mouse y-coordinate
 */
-void TooltipTimeout(uint32_t __attribute__ ((unused)) tick, int x, int y)
+void TooltipTimeout(uint32_t tick, int x, int y)
 {
     if (TooltipVars->Active
 	&& (abs(TooltipVars->MouseX - x) > TOOLTIP_MAXIMAL_MOVE
 	    || abs(TooltipVars->MouseY - y) > TOOLTIP_MAXIMAL_MOVE)) {
 	Debug(3, "tooltip moved unmap\n");
 	TooltipHide();
+    }
+    //
+    //	Check if mouse stayed long enough on same place, to show tooltip
+    //	The tooltip is redrawn in TooltipDelay intervals
+    //
+    if (TooltipVars->DrawTooltip
+	&& abs(TooltipVars->LastX - x) < TOOLTIP_MAXIMAL_MOVE
+	&& abs(TooltipVars->LastY - y) < TOOLTIP_MAXIMAL_MOVE
+	&& tick >= TooltipVars->LastTick + TooltipDelay) {
+
+	// call draw tooltip callback
+	TooltipVars->DrawTooltip(x, y);
     }
 }
 
