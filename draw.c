@@ -44,18 +44,6 @@
 // XCB
 // ------------------------------------------------------------------------ //
 
-// only in newer releases included
-#ifndef XCB_EVENT_ERROR_BAD_IMPLEMENTATION
-
-/**
-* @brief Convert an event error type to a label.
-* @param type The erro type.
-* @return A string with the event name, or NULL if unknown or if the event is
-* not an error.
-*/
-const char *xcb_event_get_error_label(uint8_t type);
-#endif
-
 #if 0
 
 /**
@@ -417,7 +405,7 @@ void ColorGetPixel(xcb_coloritem_t * c)
 **
 **	@todo split request and reply
 */
-static int ColorGetByName(const char *color_name, xcb_coloritem_t * c)
+int ColorGetByName(const char *color_name, xcb_coloritem_t * c)
 {
     xcb_lookup_color_reply_t *reply;
     xcb_lookup_color_cookie_t cookie;

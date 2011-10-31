@@ -42,6 +42,9 @@
 #include <setjmp.h>			// needed by jpg/png
 
 #include "image.h"
+    // I don't want to include complete draw.h
+    /// Look up a color by name
+extern int ColorGetByName(const char *, xcb_coloritem_t *);
 
 ///
 ///	@defgroup image The image loading module.
@@ -544,7 +547,7 @@ static void *ImageParseXPM(const char *const *data)
 	    if (!type) {
 		continue;		// whitespace upto end of line
 	    }
-	    if (type != 'c' && type != 'm') {
+	    if (type != 's' && type != 'c' && type != 'm') {
 		Error("unknown XPM pixel type '%c' in \"%s\"\n", type, *data);
 		type = 'c';
 	    }
@@ -561,31 +564,34 @@ static void *ImageParseXPM(const char *const *data)
 	    } else {
 		int j;
 		char colstr[256];
-		uint16_t red;
-		uint16_t green;
-		uint16_t blue;
+		xcb_coloritem_t c;
 
 		j = 0;
 		// copy color upto next " c " or " m "
 		while (*line && !(j && (line[-1] == ' ' || line[-1] == '\t')
 			&& (*line == 'c' || *line == 'm') && (line[1] == ' '
 			    || line[1] == '\t'))) {
-		    if (j < 254) {
+		    if (j < 254) {	// short enough for buffer
 			colstr[j++] = *line++;
 		    }
 		}
 		colstr[j] = '\0';
+		if (type == 's') {	// ignore symbolic
+		    continue;
+		}
 
-		if (xcb_aux_parse_color(colstr, &red, &green, &blue)) {
+		if (xcb_aux_parse_color(colstr, &c.red, &c.green, &c.blue)
+		    || ColorGetByName(colstr, &c)) {
 		    ctable[i].argb[0] = 0xFF;
-		    ctable[i].argb[1] = red / 256;
-		    ctable[i].argb[2] = green / 256;
-		    ctable[i].argb[3] = blue / 256;
+		    ctable[i].argb[1] = c.red / 256;
+		    ctable[i].argb[2] = c.green / 256;
+		    ctable[i].argb[3] = c.blue / 256;
 		} else {
-		    Error("unparsable XPM color spec: \"%s\"\n", *data);
+		    Error("unparsable XPM color spec: '%s' in \"%s\"\n",
+			colstr, *data);
 		}
 		Debug(4, "Color %5.*s %c %s=%d %d %d\n", chars_per_color,
-		    ctable[i].code, type, colstr, red, green, blue);
+		    ctable[i].code, type, colstr, c.red, c.green, c.blue);
 	    }
 	}
 	data++;
