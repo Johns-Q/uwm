@@ -1,7 +1,8 @@
-;{
+;{	Use UTF-8 encoding for this file!
+
 	@file uwmrc	@brief µwm µ window manager resource config file
 
-	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 
 	Contributor(s):
 
@@ -155,7 +156,7 @@ font = [
     titlebar = "-*-dejavu sans-*-r-*-*-12-*-*-*-*-*-*-15"
     menu = "-*-dejavu sans-*-*-*-*-18-*-*-*-*-*-*-15"
     task = "-*-dejavu sans-*-r-*-*-14-*-*-*-*-*-*-15"
-    tooltip = "-*-terminus-*-*-*-*-16-*-*-*-*-*-*-u"
+    tooltip = "-*-terminus-*-*-*-*-16-*-*-*-*-*-*-15"
     panel = "-*-dejavu sans-*-*-*-*-14-*-*-*-*-*-*-15"
     clock = "-*-dejavu sans-*-*-*-*-14-*-*-*-*-*-*-15"
     button = "-*-dejavu sans-*-r-*-*-14-*-*-*-*-*-*-15"
@@ -189,7 +190,7 @@ focus-model = `sloppy
 ;
 ;	dialogs
 ;
-    ; show confirmation dialog on exit �wm? true | false (true)
+    ; show confirmation dialog on exit µwm? true | false (true)
 show-exit-confirmation = true
     ; show confirmation dialog on kill window? true | false (true)
 show-kill-confirmation = true
@@ -254,9 +255,12 @@ border = [
 icon-path = [
     "~/.uwm/icons"
     "/usr/share/icons/uwm"
+    ; default place of pixmaps
     "/usr/share/pixmaps"
-    "/usr/share/icons/gnome/32x32/apps"
-    "/usr/share/icons/hicolor/32x32/apps/"
+    ; default place of icons
+    "/usr/share/icons/hicolor/32x32/apps"
+    ; install x11-themes/wm-icons from http://wm-icons.sourceforge.net
+    "/usr/share/icons/wm-icons/norm"
 ]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -271,9 +275,9 @@ root-menu = [
   [0] = [ label = "µWM " ~ UWM-VERSION
     ; height of menu entries (0 = auto max(icon,text))
     height = 0
-    [ icon = "terminal.png" text = DEFAULT_TERM execute = DEFAULT_TERM ]
-    [ icon = "firefox-icon.xpm" text = "firefox" execute = "firefox" ]
-    [ icon = "thunderbird-icon.xpm" text = "thunderbird" execute = "thunderbird" ]
+    [ icon = "terminal.xpm" text = DEFAULT_TERM execute = DEFAULT_TERM ]
+    [ icon = "firefox.png" text = "firefox" execute = "firefox" ]
+    [ icon = "thunderbird-icon.png" text = "thunderbird" execute = "thunderbird" ]
 
     ;
     ;	X utilities sub-menu
@@ -453,7 +457,7 @@ panel = [
 	[ type = `button
 	    height = 22 width = 22
 	    icon-or-text = true
-	    icon = "terminal.png" text = DEFAULT_TERM
+	    icon = "terminal.xpm" text = DEFAULT_TERM
 	    tooltip = "Execute terminal"
 	    [ button = 1 execute = DEFAULT_TERM]
 	]
@@ -616,7 +620,7 @@ panel = [
 	maximize-over =  true
 	layer = 0
 	[ type = `button
-	    icon = "terminal.png" text = DEFAULT_TERM
+	    icon = "terminal.xpm" text = DEFAULT_TERM
 	    tooltip = "Execute terminal"
 	    [ button = 1 execute = DEFAULT_TERM]
 	]
@@ -627,7 +631,7 @@ panel = [
 	maximize-over =  true
 	layer = 0
 	[ type = `button
-	    icon = "firefox-icon.png" text = "firefox"
+	    icon = "firefox.png" text = "firefox"
 	    tooltip = "Execute internet browser"
 	    [ button = 1 execute = "firefox"]
 	]
