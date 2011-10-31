@@ -217,7 +217,7 @@ contrib/uwm-helper:	contrib/uwm-helper.sh.in
 #----------------------------------------------------------------------------
 #	Developer tools
 
-.PHONY: doc indent clean clobber dist
+.PHONY: doc indent clean clobber distclean dist
 
 doc:	$(SRCS) $(HDRS) contrib/uwm.doxyfile
 	(cat contrib/uwm.doxyfile; \
@@ -232,7 +232,7 @@ indent:
 clean:
 	-rm core *.o *~ plugin/*.o plugin/*~
 
-clobber:	clean
+clobber distclean:	clean
 	-rm -rf uwm udm doc/html
 
 dist:

@@ -6,5 +6,6 @@
 # work directory
 chaos
 # generated files
+doc
 uwm
 contrib/uwm-helper
