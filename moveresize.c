@@ -1211,6 +1211,7 @@ int ClientMoveLoop(Client * client, int button, int startx, int starty)
 {
     xcb_grab_pointer_cookie_t gp_cookie;
     xcb_grab_keyboard_cookie_t gk_cookie;
+    xcb_query_pointer_cookie_t query_cookie;
     int oldx;
     int oldy;
     int north;
@@ -1222,14 +1223,17 @@ int ClientMoveLoop(Client * client, int button, int startx, int starty)
     int do_move;
     int height;
 
+    NO_WARNING(gk_cookie);
+
     // move allowed?
     if (!(client->Border & BORDER_MOVE)) {
 	return 0;
     }
 
     gp_cookie = PointerGrabForMoveRequest();
-    NO_WARNING(gk_cookie);
-    if (!button) {
+    if (button) {
+	query_cookie = PointerQueryRequest();
+    } else {
 	gk_cookie = KeyboardGrabRequest(client->Window);
     }
 
@@ -1259,8 +1263,8 @@ int ClientMoveLoop(Client * client, int button, int startx, int starty)
     // FIXME: what if grab failed?
     if (button) {
 	// FIXME; must convert button into mask
-	if (!(PointerGetButtonMask() & (XCB_BUTTON_MASK_1 |
-		    XCB_BUTTON_MASK_2))) {
+	if (!(PointerQueryReply(query_cookie)
+		& (XCB_BUTTON_MASK_1 | XCB_BUTTON_MASK_2))) {
 	    Debug(3, "only border clicked, leave early\n");
 	    ClientStopMove(client, 0, oldx, oldy, 0, 0);
 	    return 0;
@@ -1651,6 +1655,7 @@ void ClientResizeLoop(Client * client, int button, int action, int startx,
 {
     xcb_grab_pointer_cookie_t gp_cookie;
     xcb_grab_keyboard_cookie_t gk_cookie;
+    xcb_query_pointer_cookie_t query_cookie;
     int oldx;
     int oldy;
     int oldw;
@@ -1666,14 +1671,17 @@ void ClientResizeLoop(Client * client, int button, int action, int startx,
     int delta_x;
     int delta_y;
 
+    NO_WARNING(gk_cookie);
+
     // resize allowed?
     if (!(client->Border & BORDER_RESIZE)) {
 	return;
     }
 
     gp_cookie = PointerGrabForResizeRequest(action);
-    NO_WARNING(gk_cookie);
-    if (!button) {
+    if (button) {
+	query_cookie = PointerQueryRequest();
+    } else {
 	gk_cookie = KeyboardGrabRequest(client->Window);
     }
 
@@ -1707,8 +1715,8 @@ void ClientResizeLoop(Client * client, int button, int action, int startx,
 
     if (button) {
 	// FIXME; must convert button into mask
-	if (!(PointerGetButtonMask() & (XCB_BUTTON_MASK_1 |
-		    XCB_BUTTON_MASK_3))) {
+	if (!(PointerQueryReply(query_cookie)
+		& (XCB_BUTTON_MASK_1 | XCB_BUTTON_MASK_3))) {
 	    Debug(3, "only border clicked, leave early\n");
 	    ClientStopResize(client);
 	    return;

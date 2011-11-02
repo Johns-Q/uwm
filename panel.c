@@ -1,5 +1,5 @@
 ///
-///	@file panel.c	@brief panel functions
+///	@file panel.c		@brief panel functions
 ///
 ///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
@@ -348,10 +348,8 @@ static void PanelShow(Panel * panel)
 	xcb_configure_window(Connection, panel->Window,
 	    XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, values);
 
-	if (1) {
-	    // FIXME: why query pointer? (can generate enter window events?)
-	    PointerQuery();
-	}
+	// FIXME: why query pointer? (can generate enter window events?)
+	// PointerQuery();
     }
 }
 

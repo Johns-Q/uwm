@@ -39,6 +39,8 @@
 
 //////////////////////////////////////////////////////////////////////////////
 
+    /// query pointer cookie for init
+static xcb_query_pointer_cookie_t PointerCookie;
 static int PointerX;			///< cached current pointer x position
 static int PointerY;			///< cached current pointer y position
 
@@ -66,31 +68,6 @@ void PointerGetPosition(int *x, int *y)
 {
     *x = PointerX;
     *y = PointerY;
-}
-
-/**
-**	Get current button mask.
-**
-**	@returns current pointer button mask.
-**
-**	@todo FIXME: split into request / reply.
-*/
-xcb_button_mask_t PointerGetButtonMask(void)
-{
-    xcb_query_pointer_cookie_t query_cookie;
-    xcb_query_pointer_reply_t *query_reply;
-    xcb_button_mask_t mask;
-
-    query_cookie = xcb_query_pointer_unchecked(Connection, XcbScreen->root);
-    mask = 0;
-    query_reply = xcb_query_pointer_reply(Connection, query_cookie, NULL);
-    if (query_reply) {
-	PointerX = query_reply->root_x;
-	PointerY = query_reply->root_y;
-	mask = query_reply->mask;
-	free(query_reply);
-    }
-    return mask;
 }
 
 /**
@@ -180,27 +157,22 @@ xcb_query_pointer_cookie_t PointerQueryRequest(void)
 **	#PointerX and #PointerY.
 **
 **	@param cookie	cookie of query pointer request
+**
+**	@returns current pointer button mask.
 */
-void PointerQueryReply(xcb_query_pointer_cookie_t cookie)
+xcb_button_mask_t PointerQueryReply(xcb_query_pointer_cookie_t cookie)
 {
     xcb_query_pointer_reply_t *reply;
+    xcb_button_mask_t mask;
 
+    mask = 0;
     reply = xcb_query_pointer_reply(Connection, cookie, NULL);
     if (reply) {
 	PointerX = reply->root_x;
 	PointerY = reply->root_y;
 	free(reply);
     }
-}
-
-/**
-**	Query pointer.
-**
-**	@todo FIXME: remove use of this function.
-*/
-void PointerQuery(void)
-{
-    PointerQueryReply(PointerQueryRequest());
+    return mask;
 }
 
 /**
@@ -212,13 +184,13 @@ void PointerQuery(void)
 **	@param x	destination x-coordinate of pointer
 **	@param y	destination y-coordinate of pointer
 **
-**	FIXME: split into request / reply.
+**	@todo FIXME: split into request / reply.
 */
 void PointerWrap(xcb_window_t window, int x, int y)
 {
     xcb_warp_pointer(Connection, XCB_NONE, window, 0, 0, 0, 0, x, y);
 
-    PointerQuery();
+    PointerQueryReply(PointerQueryRequest());
 }
 
 /**
@@ -258,7 +230,7 @@ static xcb_cursor_t CursorCreate(xcb_font_t font, int index)
 */
 void PointerPreInit(void)
 {
-    // FIXME: move query here
+    PointerCookie = PointerQueryRequest();
 }
 
 /**
@@ -266,53 +238,45 @@ void PointerPreInit(void)
 */
 void PointerInit(void)
 {
-    xcb_query_pointer_cookie_t query_cookie;
     xcb_font_t font;
+    unsigned u;
 
-    query_cookie = PointerQueryRequest();
+    // check if the order in Cursors changed
+    IfDebug(if ((void *)&Cursors != &Cursors.Default
+	    || (&Cursors.Choose - &Cursors.Default) + 1 !=
+	    sizeof(Cursors) / sizeof(Cursors.Choose)) {
+	FatalError("Order of elements in CursorTable changed\n");}
+    ) ;
 
     font = xcb_generate_id(Connection);
     xcb_open_font(Connection, font, sizeof(CURSOR_FONT) - 1, CURSOR_FONT);
 
-    Cursors.Default = CursorCreate(font, XC_left_ptr);
-    Cursors.Move = CursorCreate(font, XC_fleur);
-    Cursors.North = CursorCreate(font, XC_top_side);
-    Cursors.South = CursorCreate(font, XC_bottom_side);
-    Cursors.East = CursorCreate(font, XC_right_side);
-    Cursors.West = CursorCreate(font, XC_left_side);
-    //Cursors.NorthEast = CursorCreate(font, XC_ur_angle);
-    //Cursors.NorthWest = CursorCreate(font, XC_ul_angle);
-    //Cursors.SouthEast = CursorCreate(font, XC_lr_angle);
-    //Cursors.SouthWest = CursorCreate(font, XC_ll_angle);
-    Cursors.NorthEast = CursorCreate(font, XC_top_right_corner);
-    Cursors.NorthWest = CursorCreate(font, XC_top_left_corner);
-    Cursors.SouthEast = CursorCreate(font, XC_bottom_right_corner);
-    Cursors.SouthWest = CursorCreate(font, XC_bottom_left_corner);
-    Cursors.Choose = CursorCreate(font, XC_tcross);
+    for (u = 0; u < sizeof(Cursors) / sizeof(Cursors.Default); ++u) {
+	// must fit to CursorTable
+	static const uint32_t table[] = { XC_left_ptr, XC_fleur, XC_top_side,
+	    XC_bottom_side, XC_right_side, XC_left_side, XC_top_right_corner,
+	    XC_top_left_corner, XC_bottom_right_corner, XC_bottom_left_corner,
+	    XC_tcross
+	};
+	((xcb_cursor_t *) & Cursors)[u] = CursorCreate(font, table[u]);
+    }
 
     xcb_close_font(Connection, font);
 
-    PointerQueryReply(query_cookie);
+    PointerQueryReply(PointerCookie);
 }
 
 /**
 **	Cleanup the pointer module.
-**
-**	@todo FIXME: use loop, should be shorter
 */
 void PointerExit(void)
 {
-    xcb_free_cursor(Connection, Cursors.Default);
-    xcb_free_cursor(Connection, Cursors.Move);
-    xcb_free_cursor(Connection, Cursors.North);
-    xcb_free_cursor(Connection, Cursors.South);
-    xcb_free_cursor(Connection, Cursors.East);
-    xcb_free_cursor(Connection, Cursors.West);
-    xcb_free_cursor(Connection, Cursors.NorthEast);
-    xcb_free_cursor(Connection, Cursors.NorthWest);
-    xcb_free_cursor(Connection, Cursors.SouthEast);
-    xcb_free_cursor(Connection, Cursors.SouthWest);
-    xcb_free_cursor(Connection, Cursors.Choose);
+    xcb_cursor_t *cursor;
+
+    for (cursor = &Cursors.Default; cursor <= &Cursors.Choose; ++cursor) {
+	xcb_free_cursor(Connection, *cursor);
+	*cursor = XCB_NONE;
+    }
 }
 
 /// @}

@@ -1,7 +1,7 @@
 ///
 ///	@file pointer.h		@brief Pointer/Cursor header file
 ///
-///	Copyright (c) 2009 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -37,7 +37,7 @@ typedef struct _cursor_table_ CursorTable;
 */
 struct _cursor_table_
 {
-    xcb_cursor_t Default;		///< default cursor
+    xcb_cursor_t Default;		///< default cursor (must be first!)
     xcb_cursor_t Move;			///< move cursor
     xcb_cursor_t North;			///< north cursor
     xcb_cursor_t South;			///< south cursor
@@ -47,7 +47,7 @@ struct _cursor_table_
     xcb_cursor_t NorthWest;		///< north-west cursor
     xcb_cursor_t SouthEast;		///< south-east cursor
     xcb_cursor_t SouthWest;		///< south-west cursor
-    xcb_cursor_t Choose;		///< choose cursor
+    xcb_cursor_t Choose;		///< choose cursor (must be last!)
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -87,11 +87,11 @@ extern xcb_grab_pointer_cookie_t PointerGrabForChooseRequest(void);
     /// Request pointer grab for resizing window.
 extern xcb_grab_pointer_cookie_t PointerGrabForResizeRequest(int);
 
-    /// Get query pointer reply.
-extern void PointerQueryReply(xcb_query_pointer_cookie_t);
+    /// Send query pointer request.
+extern xcb_query_pointer_cookie_t PointerQueryRequest(void);
 
-    /// Query pointer.
-extern void PointerQuery(void);
+    /// Get query pointer reply.
+extern xcb_button_mask_t PointerQueryReply(xcb_query_pointer_cookie_t);
 
     /// Wrap pointer
 extern void PointerWrap(xcb_window_t, int, int);

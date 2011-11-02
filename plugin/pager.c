@@ -1,5 +1,5 @@
 ///
-///	@file pager.c	@brief pager panel plugin functions.
+///	@file pager.c		@brief pager panel plugin functions.
 ///
 ///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
@@ -275,7 +275,8 @@ int PagerMoveLoop(Plugin * plugin, int startx, int starty)
 {
     PagerPlugin *pager_plugin;
     Client *client;
-    xcb_grab_pointer_cookie_t cookie;
+    xcb_query_pointer_cookie_t query_cookie;
+    xcb_grab_pointer_cookie_t grab_cookie;
     int do_move;
     int hmax;
     int vmax;
@@ -295,7 +296,8 @@ int PagerMoveLoop(Plugin * plugin, int startx, int starty)
     if (!(client->Border & BORDER_MOVE)) {
 	return 0;
     }
-    cookie = PointerGrabForMoveRequest();
+    grab_cookie = PointerGrabForMoveRequest();
+    query_cookie = PointerQueryRequest();
 
     BorderGetSize(client, &north, &south, &east, &west);
 
@@ -308,9 +310,10 @@ int PagerMoveLoop(Plugin * plugin, int startx, int starty)
 
     olddesktop = client->Desktop;
 
-    PointerGrabReply(cookie);
+    PointerGrabReply(grab_cookie);
     // FIXME: what if grab failed?
-    if (!(PointerGetButtonMask() & (XCB_BUTTON_MASK_1 | XCB_BUTTON_MASK_3))) {
+    if (!(PointerQueryReply(query_cookie)
+	    & (XCB_BUTTON_MASK_1 | XCB_BUTTON_MASK_3))) {
 	Debug(3, "only client clicked, leave early\n");
 	PagerStopMove(client, 0, 0, 0);
 	return 0;
