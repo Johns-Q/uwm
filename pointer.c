@@ -170,6 +170,7 @@ xcb_button_mask_t PointerQueryReply(xcb_query_pointer_cookie_t cookie)
     if (reply) {
 	PointerX = reply->root_x;
 	PointerY = reply->root_y;
+	mask = reply->mask;
 	free(reply);
     }
     return mask;
