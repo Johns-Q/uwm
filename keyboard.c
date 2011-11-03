@@ -278,25 +278,25 @@ static const char *KeyboardMask2String(uint16_t mask)
 **	Key pressed or released.
 **
 **	@param pressed	true, key was pressed; false, key was released.
-**	@param key	key
-**	@param state	state
+**	@param event	key press or key release event
 **
 **	@todo pressing keysym simultaneous for a command, isn't supported.
 **	@todo pressing keysym in sequence for a command, isn't supported.
 **	@todo check shift-lock num-lock
 */
-void KeyboardHandler(int pressed, unsigned key, unsigned state)
+void KeyboardHandler(int pressed, const xcb_key_press_event_t * event)
 {
     int i;
     xcb_keysym_t keysym;
 
 #ifdef DEBUG
-    Debug(4, "%s: %d, %d, %d ", __FUNCTION__, pressed, key, state);
-    if (state) {
+    Debug(4, "%s: %d, %d, %d ", __FUNCTION__, pressed, event->detail,
+	event->state);
+    if (event->state) {
 	Debug(5, "modifier: ");
 	for (i = 0; i < 16; ++i) {
-	    if (state & (1 << i)) {
-		Debug(5, "%s ", KeyboardMask2String(state & (1 << i)));
+	    if (event->state & (1 << i)) {
+		Debug(5, "%s ", KeyboardMask2String(event->state & (1 << i)));
 	    }
 	}
     }
@@ -306,23 +306,21 @@ void KeyboardHandler(int pressed, unsigned key, unsigned state)
 	return;
     }
     // convert keycode into keysym
-    keysym = KeyboardGet(key, state);
+    keysym = KeyboardGet(event->detail, event->state);
     Debug(3, "keysym %#010x\n", keysym);
 
     //
     //	search mapping for the key
     //
     for (i = 0; i < KeyboardBindingN; ++i) {
-	if (KeyboardBindings[i].Key.Modifier == state
+	if (KeyboardBindings[i].Key.Modifier == event->state
 	    && KeyboardBindings[i].Key.KeySym == keysym) {
-	    int x;
-	    int y;
 
 	    Debug(4, "found key with command %d\n",
 		KeyboardBindings[i].Command.Type);
 
-	    PointerGetPosition(&x, &y);
-	    MenuCommandExecute(&KeyboardBindings[i].Command, x, y);
+	    MenuCommandExecute(&KeyboardBindings[i].Command, event->root_x,
+		event->root_y);
 	    break;
 	}
     }

@@ -119,7 +119,7 @@ static inline int HandleKeyPress(const xcb_key_press_event_t * event)
     Debug(4, "key press state=%x, detail=%d child %x event %x\n", event->state,
 	event->detail, event->child, event->event);
 
-    KeyboardHandler(1, event->detail, event->state);
+    KeyboardHandler(1, event);
 
     return 1;
 }
@@ -136,7 +136,7 @@ static inline int HandleKeyRelease(const xcb_key_release_event_t * event)
     Debug(4, "key release state=%x, detail=%d child %x event %x\n",
 	event->state, event->detail, event->child, event->event);
 
-    KeyboardHandler(0, event->detail, event->state);
+    KeyboardHandler(0, (const xcb_key_press_event_t *)event);
 
     return 1;
 }
@@ -801,6 +801,7 @@ static inline int HandleSelectionClear(const xcb_selection_clear_event_t *
 }
 
 #ifdef DEBUG
+
 /**
 **	Debug atom name.
 **
@@ -962,7 +963,7 @@ static inline int HandleDebugEvent(const xcb_generic_event_t * event)
 }
 #else
 ///	Dunmy debug print event
-#define HandleDebugEvent(x) /* x */
+#define HandleDebugEvent(x)		/* x */
 #endif
 
 //////////////////////////////////////////////////////////////////////////////

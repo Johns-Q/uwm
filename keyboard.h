@@ -1,7 +1,7 @@
 ///
-///	@file keyboard.h @brief keyboard header file
+///	@file keyboard.h	@brief keyboard header file
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -48,7 +48,7 @@ extern xcb_keysym_t KeyboardGet(xcb_keycode_t, unsigned);
 extern void KeyboardGrabBindings(Client *);
 
     /// Key pressed or released.
-extern void KeyboardHandler(int, unsigned, unsigned);
+extern void KeyboardHandler(int, const xcb_key_press_event_t *);
 
     /// Initialize the keyboard module.
 extern void KeyboardInit(void);
