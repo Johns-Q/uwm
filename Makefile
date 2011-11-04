@@ -181,6 +181,9 @@ all:	uwm #udm
 td.c:
 	touch td.c
 
+td.h:
+	touch td.h
+
 uwm-config.h:
 	touch uwm-config.h
 
