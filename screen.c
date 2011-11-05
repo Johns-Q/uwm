@@ -48,6 +48,7 @@
 
 #include "draw.h"
 #include "image.h"
+#include "pointer.h"
 #include "icon.h"
 #include "menu.h"
 #include "desktop.h"
@@ -119,10 +120,9 @@ void ScreenInit(void)
 {
 #ifdef USE_XINERAMA			// {
     xcb_xinerama_is_active_cookie_t active_cookie;
-    xcb_xinerama_is_active_reply_t active_reply;
+    xcb_xinerama_is_active_reply_t *active_reply;
 
-    xcb_xinerama_is_active_cookie_t =
-	xcb_xinerama_is_active_unchecked(Connection);
+    active_cookie = xcb_xinerama_is_active_unchecked(Connection);
     active_reply =
 	xcb_xinerama_is_active_reply(Connection, active_cookie, NULL);
 
@@ -130,27 +130,27 @@ void ScreenInit(void)
 	Debug(3, "xcb_xinerama_is_active %d\n", active_reply->state);
 	if (active_reply->state) {
 	    xcb_xinerama_query_screens_cookie_t query_cookie;
-	    xcb_xinerama_query_screens_reply_t query_reply;
+	    xcb_xinerama_query_screens_reply_t *query_reply;
 
 	    query_cookie = xcb_xinerama_query_screens_unchecked(Connection);
 	    query_reply =
 		xcb_xinerama_query_screens_reply(Connection, query_cookie,
 		NULL);
 	    if (query_reply) {
-		xcb_xinerama_screen_info_iterator_t info_iter;
+		xcb_xinerama_screen_info_iterator_t iter;
 
 		ScreenN =
 		    xcb_xinerama_query_screens_screen_info_length(query_reply);
 		// FIXME: or ScreenN = iter.rem;
 		Screens = calloc(ScreenN, sizeof(*Screens));
-		info_iter =
+		iter =
 		    xcb_xinerama_query_screens_screen_info_iterator
 		    (query_reply);
 		for (; iter.rem; xcb_xinerama_screen_info_next(&iter)) {
 		    Screens[iter.index].X = iter.data->x_org;
 		    Screens[iter.index].Y = iter.data->x_org;
-		    Screens[iter.index].Width = iter.data->Width;
-		    Screens[iter.index].Height = iter.data->Height;
+		    Screens[iter.index].Width = iter.data->width;
+		    Screens[iter.index].Height = iter.data->height;
 		}
 		free(query_reply);
 	    }
