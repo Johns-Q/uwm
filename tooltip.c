@@ -150,18 +150,19 @@ void TooltipShow(int x, int y, const char *text)
 	TooltipVars->Width = screen->Width;
 	// FIXME: make multiline tooltip
     }
+
     TooltipVars->X = x;
     TooltipVars->Y = y - TooltipVars->Height - 2;
 
     // make sure tooltip is shown as much as possible
-    if (TooltipVars->X + TooltipVars->Width >= screen->Width) {
-	TooltipVars->X = screen->Width - TooltipVars->Width - 2;
+    if (TooltipVars->X + TooltipVars->Width >= screen->X + screen->Width) {
+	TooltipVars->X = screen->X + screen->Width - TooltipVars->Width - 2;
     }
-    if (TooltipVars->Y < 0) {
+    if (TooltipVars->Y < screen->Y) {
 	TooltipVars->Y = y + 2;
     }
-    if (TooltipVars->Y + TooltipVars->Height >= screen->Height) {
-	TooltipVars->Y = screen->Height - TooltipVars->Height - 2;
+    if (TooltipVars->Y + TooltipVars->Height >= screen->Y + screen->Height) {
+	TooltipVars->Y = screen->Y + screen->Height - TooltipVars->Height - 2;
     }
 
     if (TooltipVars->Window) {		// move and resize the window
@@ -183,25 +184,12 @@ void TooltipShow(int x, int y, const char *text)
 	values[4] =
 	    XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_BUTTON_PRESS |
 	    XCB_EVENT_MASK_BUTTON_RELEASE;
-	xcb_create_window(Connection, XCB_COPY_FROM_PARENT,	// depth (same as root)
-	    TooltipVars->Window, XcbScreen->root,	// parent window
-	    TooltipVars->X, TooltipVars->Y, TooltipVars->Width, TooltipVars->Height, 1,	// border_width
-	    XCB_WINDOW_CLASS_INPUT_OUTPUT, XCB_COPY_FROM_PARENT,	// visual (same as root)
+	xcb_create_window(Connection, XCB_COPY_FROM_PARENT,
+	    TooltipVars->Window, XcbScreen->root, TooltipVars->X,
+	    TooltipVars->Y, TooltipVars->Width, TooltipVars->Height, 1,
+	    XCB_WINDOW_CLASS_INPUT_OUTPUT, XCB_COPY_FROM_PARENT,
 	    XCB_CW_BACK_PIXEL | XCB_CW_BORDER_PIXEL | XCB_CW_SAVE_UNDER |
 	    XCB_CW_EVENT_MASK | XCB_CW_DONT_PROPAGATE, values);
-
-#ifdef DEBUG
-	if (0) {
-	    xcb_get_window_attributes_reply_t *reply;
-
-	    reply =
-		xcb_get_window_attributes_reply(Connection,
-		xcb_get_window_attributes_unchecked(Connection,
-		    TooltipVars->Window), NULL);
-	    Debug(3, "tooltip: save under %d\n", reply->save_under);
-	    free(reply);
-	}
-#endif
     }
     TooltipVars->MouseX = x;
     TooltipVars->MouseY = y;

@@ -26,6 +26,8 @@
 ///	This module handles physical monitors = screens. Screens are
 ///	determined using the X11 xinerama extension.
 ///
+///	@todo adding / removing monitors during session is not supported.
+///
 /// @{
 
 #include <stdio.h>
@@ -138,19 +140,20 @@ void ScreenInit(void)
 		NULL);
 	    if (query_reply) {
 		xcb_xinerama_screen_info_iterator_t iter;
+		int i;
 
-		ScreenN =
-		    xcb_xinerama_query_screens_screen_info_length(query_reply);
 		// FIXME: or ScreenN = iter.rem;
-		Screens = calloc(ScreenN, sizeof(*Screens));
 		iter =
 		    xcb_xinerama_query_screens_screen_info_iterator
 		    (query_reply);
-		for (; iter.rem; xcb_xinerama_screen_info_next(&iter)) {
-		    Screens[iter.index].X = iter.data->x_org;
-		    Screens[iter.index].Y = iter.data->x_org;
-		    Screens[iter.index].Width = iter.data->width;
-		    Screens[iter.index].Height = iter.data->height;
+		ScreenN = iter.rem;
+		Screens = calloc(ScreenN, sizeof(*Screens));
+		for (i = 0; iter.rem;
+		    xcb_xinerama_screen_info_next(&iter), ++i) {
+		    Screens[i].X = iter.data->x_org;
+		    Screens[i].Y = iter.data->y_org;
+		    Screens[i].Width = iter.data->width;
+		    Screens[i].Height = iter.data->height;
 		}
 		free(query_reply);
 	    }
