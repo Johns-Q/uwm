@@ -1,0 +1,38 @@
+@file CODINGSTYLE.txt		@brief µ window manager coding style
+
+Copyright (c) 2011 by Lutz Sammer.  All Rights Reserved.
+
+Contributor(s):
+
+License: AGPLv3
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+$Id$
+
+Tabulators are 8 characters, but indentations are 4 characters.
+Tabulators are always unexpanded.
+
+The maximal line length is 79 characters.
+
+Write {} always, even for single statements:
+
+	if (expr) {
+	    stmt;
+	}
+
+Use // for end of line comments.
+
+See .indent.pro for indentation rules.
+
+Enable ".git/hooks/pre-commit", which checks for trailing whitespaces.
+
+Run "make indent" before sending patches or commit.
