@@ -89,6 +89,7 @@ typedef struct _border_button_table_
     BorderButton Maximize;		///< maximize button
     BorderButton MaximizeActive;	///< maximize active button
     BorderButton Sticky;		///< sticky button
+    BorderButton StickyActive;		///< sticky active button
 } BorderButtonTable;
 
 /**
@@ -169,14 +170,31 @@ static BorderButtonTable BorderButtons = {
 		    ________, ________,
 		    ________, ________,
 		    ________, ________,
-		    ____OOOO, OOOO____,
+		    _____OOO, OOO_____,
 		    ____OO__, __OO____,
+		    ___OO___, ___OO___,
+		    ___O____, O___O___,
+		    ___O___O, ____O___,
+		    ___OO___, ___OO___,
 		    ____OO__, __OO____,
-		    ____OO_O, O_OO____,
-		    ____OO_O, O_OO____,
+		    _____OOO, OOO_____,
+		    ________, ________,
+		    ________, ________,
+	    ________, ________}, XCB_NONE},
+    .StickyActive = {"sticky-active", NULL, {
+		    ________, ________,
+		    ________, ________,
+		    ________, ________,
+		    ________, ________,
+		    ________, ________,
+		    _____OOO, OOO_____,
 		    ____OO__, __OO____,
+		    ___OO__O, O__OO___,
+		    ___O__OO, OO__O___,
+		    ___O__OO, OO__O___,
+		    ___OO__O, O__OO___,
 		    ____OO__, __OO____,
-		    ____OOOO, OOOO____,
+		    _____OOO, OOO_____,
 		    ________, ________,
 		    ________, ________,
 	    ________, ________}, XCB_NONE},
@@ -204,6 +222,7 @@ static int BorderCornerSize;
 static const int BorderButtonWidth = BORDER_BUTTON_WIDTH;
 
 #ifdef USE_PIXMAN
+    /// FIXME: not written yet
 static pixman_region16_t BorderRegion;
 
 static xcb_rectangle_t *BorderRectangles;	///< clip rectangles for border
@@ -349,12 +368,13 @@ static inline int BorderGetIconSize(void)
 void BorderGetSize(const Client * client, int *north, int *south, int *east,
     int *west)
 {
-    // full screen is special case
+    *north = 0;
+    *south = 0;
+    *east = 0;
+    *west = 0;				// default border size
+
+    // full screen is a special case
     if (client->State & WM_STATE_FULLSCREEN) {
-	*north = 0;
-	*south = 0;
-	*east = 0;
-	*west = 0;
 	return;
     }
 
@@ -363,11 +383,6 @@ void BorderGetSize(const Client * client, int *north, int *south, int *east,
 	*south = BorderWidth;
 	*east = BorderWidth;
 	*west = BorderWidth;
-    } else {
-	*north = 0;
-	*south = 0;
-	*east = 0;
-	*west = 0;
     }
 
     if (client->Border & BORDER_TITLE) {
@@ -382,67 +397,13 @@ void BorderGetSize(const Client * client, int *north, int *south, int *east,
 /**
 **	Get the size of the window title border.
 **
-**	@returns the size in pixel of the default title bar.
+**	Only used for cascade window placement.
+**
+**	@returns the height in pixel of the default title bar.
 */
 int BorderGetTitleSize(void)		// __attribute__ ((pure))
 {
     return BorderWidth + BorderTitleHeight;
-}
-
-/**
-**	Determine number of buttons to be displayed for client.
-**
-**	Depends on the window width and which buttons are enabled.
-**
-**	@param client	get number of buttons of this client
-**
-**	@returns the number of buttons visible in the title.
-**
-**	@todo FIXME: move into draw.
-*/
-static int BorderGetButtonCount(const Client * client)
-{
-    int north;
-    int south;
-    int east;
-    int west;
-    int count;
-    int xoffset;
-
-    // windows without title have no buttons
-    if (!(client->Border & BORDER_TITLE)) {
-	return 0;
-    }
-
-    BorderGetSize(client, &north, &south, &east, &west);
-
-    // caclulate starting position
-    xoffset =
-	client->Width + west + east - 1 - BORDER_TITLE_SPACE -
-	BorderButtonWidth;
-    if (xoffset <= BorderButtonWidth) {
-	return 0;
-    }
-
-    count = 0;
-    if (client->Border & BORDER_CLOSE) {
-	xoffset -= BorderButtonWidth;
-	++count;
-	if (xoffset <= BorderButtonWidth) {
-	    return count;
-	}
-    }
-    if (client->Border & BORDER_MAXIMIZE) {
-	xoffset -= BorderButtonWidth;
-	++count;
-	if (xoffset <= BorderButtonWidth) {
-	    return count;
-	}
-    }
-    if (client->Border & BORDER_MINIMIZE) {
-	++count;
-    }
-    return count;
 }
 
 /**
@@ -480,88 +441,11 @@ static void BorderDrawTitleButton(xcb_drawable_t window, xcb_gcontext_t gc,
 }
 
 /**
-**	Draw buttons on client frame.
+**	Draw window border decoration.
 **
-**	@param client	client to decorate
-**	@param window	frame window.
-**	@param gc	graphical context (border)
-**
-**	@todo integrate into draw border.
-**	@todo sticky button
-*/
-static void BorderDrawButtons(const Client * client, xcb_drawable_t window,
-    xcb_gcontext_t gc)
-{
-    int north;
-    int south;
-    int east;
-    int west;
-    uint32_t pixel;
-    uint32_t outline_pixel;
-    int xoffset;
-    int yoffset;
-
-    // windows without title have no buttons
-    if (!(client->Border & BORDER_TITLE)) {
-	return;
-    }
-
-    BorderGetSize(client, &north, &south, &east, &west);
-
-    // caclulate starting position
-    xoffset =
-	client->Width + west + east - 1 - BORDER_TITLE_SPACE -
-	BorderButtonWidth;
-    if (xoffset <= BorderButtonWidth) {
-	return;
-    }
-
-    yoffset = BorderTitleHeight / 2 - BORDER_BUTTON_HEIGHT / 2;
-
-    // determine colors to use
-    if (client->State & WM_STATE_ACTIVE) {
-	pixel = Colors.TitleActiveFG.Pixel;
-	outline_pixel = Colors.BorderActiveLine.Pixel;
-    } else {
-	pixel = Colors.TitleFG.Pixel;
-	outline_pixel = Colors.BorderLine.Pixel;
-    }
-
-    // close button
-    if (client->Border & BORDER_CLOSE) {
-	BorderDrawTitleButton(window, gc, pixel, BorderButtons.Close.Pixmap,
-	    xoffset, yoffset);
-
-	xoffset -= BorderButtonWidth;
-	if (xoffset <= BorderButtonWidth) {
-	    return;
-	}
-
-    }
-    // maximize button
-    if (client->Border & BORDER_MAXIMIZE) {
-	BorderDrawTitleButton(window, gc, pixel,
-	    (client->
-		State & (WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT))
-	    ? BorderButtons.MaximizeActive.Pixmap : BorderButtons.Maximize.
-	    Pixmap, xoffset, yoffset);
-
-	xoffset -= BorderButtonWidth;
-	if (xoffset <= BorderButtonWidth) {
-	    return;
-	}
-
-    }
-    // minimize button
-    if (client->Border & BORDER_MINIMIZE) {
-	BorderDrawTitleButton(window, gc, pixel, BorderButtons.Minimize.Pixmap,
-	    xoffset, yoffset);
-
-    }
-}
-
-/**
-**	Draw borders.
+**	Draw title bar with application icon, title text and minimize,
+**	maximize and close button.
+**	Draw resize corner and window border.
 **
 **	@param client		client to decorate
 **	@param draw_icon	true draw window client icon
@@ -581,8 +465,6 @@ static void BorderDrawBorder(const Client * client, int draw_icon)
     uint32_t outline_pixel;
     uint32_t corner_pixel;
     xcb_rectangle_t rectangles[2];
-    int button_count;
-    int title_width;
 
     icon_size = BorderGetIconSize();
     BorderGetSize(client, &north, &south, &east, &west);
@@ -619,15 +501,56 @@ static void BorderDrawBorder(const Client * client, int draw_icon)
 	rectangles);
     // FIXME: check if 4 rectangles are faster than 1 big?
 
-    // determine how many pixels may be used for title
-    // space icon space title space icons space
-    button_count = BorderGetButtonCount(client);
-    title_width = width;
-    title_width -= BorderButtonWidth * button_count;
-    title_width -= icon_size + 4 * BORDER_TITLE_SPACE;
-
-    // draw top part (either title or north border)
+    // windows without title have no icon, text and buttons
     if (client->Border & BORDER_TITLE) {
+	int title_width;
+	int yoffset;
+
+	yoffset = BorderTitleHeight / 2 - BORDER_BUTTON_HEIGHT / 2;
+
+	// draw buttons and determine how many pixels may be used for title
+	// [space] [icon] [space] [title...] [space] [buttons...] [space]
+
+	// caclulate starting position of rightmost title icon
+	title_width = width - 1 - BORDER_TITLE_SPACE - BorderButtonWidth;
+
+	// window close button
+	if (title_width > BorderButtonWidth && (client->Border & BORDER_CLOSE)) {
+	    BorderDrawTitleButton(client->Parent, BorderGC, text_pixel,
+		BorderButtons.Close.Pixmap, title_width, yoffset);
+	    title_width -= BorderButtonWidth;
+	}
+	// window maximize button
+	if (title_width > BorderButtonWidth
+	    && (client->Border & (BORDER_MAXIMIZE_VERT |
+		    BORDER_MAXIMIZE_HORZ))) {
+	    BorderDrawTitleButton(client->Parent, BorderGC, text_pixel,
+		(client->State & (WM_STATE_MAXIMIZED_HORZ |
+			WM_STATE_MAXIMIZED_VERT))
+		? BorderButtons.MaximizeActive.Pixmap : BorderButtons.
+		Maximize.Pixmap, title_width, yoffset);
+	    title_width -= BorderButtonWidth;
+	}
+	// window minimize button
+	if (title_width > BorderButtonWidth
+	    && (client->Border & BORDER_MINIMIZE)) {
+	    BorderDrawTitleButton(client->Parent, BorderGC, text_pixel,
+		BorderButtons.Minimize.Pixmap, title_width, yoffset);
+	    title_width -= BorderButtonWidth;
+	}
+	// window sticky button
+	if (title_width > BorderButtonWidth
+	    && (client->Border & BORDER_STICKY)) {
+	    BorderDrawTitleButton(client->Parent, BorderGC, text_pixel,
+		(client->State & WM_STATE_STICKY)
+		? BorderButtons.StickyActive.Pixmap : BorderButtons.
+		Sticky.Pixmap, title_width, yoffset);
+	    title_width -= BorderButtonWidth;
+	}
+
+	title_width += 1 + BORDER_TITLE_SPACE + BorderButtonWidth;
+	title_width -= icon_size + 4 * BORDER_TITLE_SPACE;
+
 	// draw title bar
 	if (title_pixel1 != title_pixel2) {
 	    // keep 1 pixel border
@@ -714,7 +637,6 @@ static void BorderDrawBorder(const Client * client, int draw_icon)
     xcb_poly_rectangle(Connection, client->Parent, BorderGC, 1, rectangles);
 #endif
 
-    BorderDrawButtons(client, client->Parent, BorderGC);
 }
 
 /**
@@ -816,7 +738,7 @@ static xcb_cursor_t BorderGetResizeCursor(BorderAction action)
 */
 xcb_cursor_t BorderGetCursor(BorderAction action)
 {
-    switch (action & 0x0F) {
+    switch (action & BORDER_ACTION_MASK) {
 	case BORDER_ACTION_RESIZE:
 	    return BorderGetResizeCursor(action);
 	case BORDER_ACTION_CLOSE:
@@ -888,7 +810,8 @@ BorderAction BorderGetAction(const Client * client, int x, int y)
 		offset -= BorderButtonWidth;
 	    }
 	    // maximize button
-	    if ((client->Border & BORDER_MAXIMIZE)
+	    if ((client->Border & (BORDER_MAXIMIZE_VERT |
+			BORDER_MAXIMIZE_HORZ))
 		&& offset > BorderButtonWidth) {
 		if (x > offset && x < offset + BorderButtonWidth) {
 		    return BORDER_ACTION_MAXIMIZE;
@@ -900,6 +823,14 @@ BorderAction BorderGetAction(const Client * client, int x, int y)
 		&& offset > BorderButtonWidth) {
 		if (x > offset && x < offset + BorderButtonWidth) {
 		    return BORDER_ACTION_MINIMIZE;
+		}
+		offset -= BorderButtonWidth;
+	    }
+	    // sticky button
+	    if ((client->Border & BORDER_STICKY)
+		&& offset > BorderButtonWidth) {
+		if (x > offset && x < offset + BorderButtonWidth) {
+		    return BORDER_ACTION_STICKY;
 		}
 	    }
 	}
@@ -972,7 +903,7 @@ void BorderHandleButtonPress(Client * client,
 
     action = BorderGetAction(client, event->event_x, event->event_y);
     Debug(3, "%s: action = %d\n", __FUNCTION__, action);
-    switch (action & 0x0F) {
+    switch (action & BORDER_ACTION_MASK) {
 	case BORDER_ACTION_RESIZE:
 	    ClientResizeLoop(client, event->detail, action, event->event_x,
 		event->event_y);
@@ -1005,6 +936,13 @@ void BorderHandleButtonPress(Client * client,
 	    break;
 	case BORDER_ACTION_MINIMIZE:
 	    ClientMinimize(client);
+	    break;
+	case BORDER_ACTION_STICKY:
+	    if (client->State & WM_STATE_STICKY) {
+		ClientSetSticky(client, 0);
+	    } else {
+		ClientSetSticky(client, 1);
+	    }
 	    break;
 	default:
 	    Debug(2, "unknown border action %d\n", action);
@@ -1049,7 +987,7 @@ void BorderInit(void)
 	BorderTitleHeight = Fonts.Titlebar.Height + 2 * BORDER_TITLE_SPACE;
     }
 
-    for (button = &BorderButtons.Close; button <= &BorderButtons.Sticky;
+    for (button = &BorderButtons.Close; button <= &BorderButtons.StickyActive;
 	++button) {
 	if (button->FileName) {
 	    Debug(2, "FIXME: should load '%s' for %s.\n", button->FileName,
@@ -1077,12 +1015,10 @@ void BorderExit(void)
 {
     BorderButton *button;
 
-    for (button = &BorderButtons.Close; button <= &BorderButtons.Sticky;
+    for (button = &BorderButtons.Close; button <= &BorderButtons.StickyActive;
 	++button) {
-	if (button->FileName) {
-	    free(button->FileName);
-	    button->FileName = NULL;
-	}
+	free(button->FileName);
+	button->FileName = NULL;
 	if (button->Pixmap) {
 	    xcb_free_pixmap(Connection, button->Pixmap);
 	    button->Pixmap = XCB_NONE;
@@ -1150,6 +1086,7 @@ void BorderConfig(const Config * config)
 	    BorderTitleHeight = ival;
 	}
     }
+    // FIXME: look for user icon names.
 }
 
 #endif // } USE_RC

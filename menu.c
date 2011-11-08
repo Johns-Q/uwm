@@ -28,6 +28,9 @@
 ///	@todo move menu-item complete into menu
 ///	@todo add string pool to each menu
 ///	@todo support of double clicks
+///	@todo more work for touch devices
+///	@todo support build without menu-module: keyboard, panel, clock,
+///		netload, task and button all need the menu module.
 ///
 /// @{
 
@@ -2763,6 +2766,13 @@ void MenuCommandConfig(const ConfigObject * array, MenuCommand * command)
 /**
 **	Parse single menu pointer button configuration.
 **
+**	modifier: shift | lock | ctrl | mod1 | mod2 | mod3 | mod4 | mod5
+**	type: button | click | double-click | triple-click | long-click
+**
+**	2^8 * 5 * 32
+**
+**	[modifier]* type number
+**
 **	@param array		array of config values for pointer button
 **	@param[in,out] button	button config result
 */
@@ -3207,6 +3217,28 @@ void RootMenuConfig(const Config * config)
     }
 }
 
+#if 0
+
+/**
+**	Parse window menu/command configuration.
+**
+**	@param config	global config dictionary
+*/
+void WindowMenuConfig(const Config * config)
+{
+    const ConfigObject *array;
+    static MenuButton *BorderButtons;	///< border window buttons
+    static MenuButton *ClientButtons;	///< client window buttons
+
+    if (ConfigGetArray(ConfigDict(config), &array, "border", NULL)) {
+	MenuButtonsConfig(array, &BorderButtons);
+    }
+    if (ConfigGetArray(ConfigDict(config), &array, "client", NULL)) {
+	MenuButtonsConfig(array, &ClientButtons);
+    }
+}
+#endif
+
 #endif // } USE_RC
 
 /// @}
@@ -3302,6 +3334,9 @@ static Menu *WindowMenuCreateLayer(int on_layer)
 	    case LAYER_ABOVE:
 		str = on_layer == layer ? "[Above]" : "Above";
 		break;
+	    case LAYER_FULLSCREEN:
+		str = on_layer == layer ? "[Fullscreen]" : "Fullscreen";
+		break;
 	    default:
 		if (on_layer == layer) {
 		    buf[0] = '[';
@@ -3345,7 +3380,7 @@ static Menu *WindowMenuCreate(const Client * client)
     menu = MenuNew();
     menu->UserHeight = WindowMenuUserHeight;
 
-    if ((client->Border & BORDER_MAXIMIZE)
+    if ((client->Border & (BORDER_MAXIMIZE_HORZ | BORDER_MAXIMIZE_VERT))
 	&& (client->State & WM_STATE_MAPPED)) {
 
 	if (!(client->

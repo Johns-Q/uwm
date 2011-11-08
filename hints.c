@@ -413,7 +413,7 @@ void AtomExit(void)
 #define MWM_HINTS_STATUS      (1L << 3)
 
 #define MWM_FUNC_ALL	  (1L << 0)
-#define MWM_FUNC_RESIZE   (1L << 1)
+#define MWM_FUNC_RESIZE	  (1L << 1)
 #define MWM_FUNC_MOVE	  (1L << 2)
 #define MWM_FUNC_MINIMIZE (1L << 3)
 #define MWM_FUNC_MAXIMIZE (1L << 4)
@@ -422,7 +422,7 @@ void AtomExit(void)
 #define MWM_DECOR_ALL	   (1L << 0)
 #define MWM_DECOR_BORDER   (1L << 1)
 #define MWM_DECOR_RESIZEH  (1L << 2)
-#define MWM_DECOR_TITLE    (1L << 3)
+#define MWM_DECOR_TITLE	   (1L << 3)
 #define MWM_DECOR_MENU	   (1L << 4)
 #define MWM_DECOR_MINIMIZE (1L << 5)
 #define MWM_DECOR_MAXIMIZE (1L << 6)
@@ -910,7 +910,7 @@ static void HintGetNetWmWindowType(xcb_get_property_cookie_t cookie,
 		    break;
 		}
 		if (atoms[i] == Atoms.NET_WM_WINDOW_TYPE_DOCK.Atom) {
-		    // indicates dock or panel feature.  Typically Window
+		    // indicates dock or panel feature.	 Typically Window
 		    // Manager would keep such windows on top of all other
 		    // windows.
 		    client->State |= WM_STATE_NOLIST | WM_STATE_NOPAGER;
@@ -1249,14 +1249,14 @@ static void HintSetNetAllowed(const Client * client)
     if (client->Border & BORDER_TITLE) {
 	values[i++] = Atoms.NET_WM_ACTION_SHADE.Atom;
     }
-    values[i++] = Atoms.NET_WM_ACTION_STICK.Atom;
-    if (client->Border & BORDER_MAXIMIZE) {
-	if (client->Border & BORDER_MAXIMIZE_HORZ) {
-	    values[i++] = Atoms.NET_WM_ACTION_MAXIMIZE_HORZ.Atom;
-	}
-	if (client->Border & BORDER_MAXIMIZE_VERT) {
-	    values[i++] = Atoms.NET_WM_ACTION_MAXIMIZE_VERT.Atom;
-	}
+    if (client->Border & BORDER_STICKY) {
+	values[i++] = Atoms.NET_WM_ACTION_STICK.Atom;
+    }
+    if (client->Border & BORDER_MAXIMIZE_HORZ) {
+	values[i++] = Atoms.NET_WM_ACTION_MAXIMIZE_HORZ.Atom;
+    }
+    if (client->Border & BORDER_MAXIMIZE_VERT) {
+	values[i++] = Atoms.NET_WM_ACTION_MAXIMIZE_VERT.Atom;
     }
     values[i++] = Atoms.NET_WM_ACTION_FULLSCREEN.Atom;
     if (!(client->State & WM_STATE_STICKY)) {

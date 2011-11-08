@@ -233,11 +233,12 @@ ColorTable Colors = {
     .BorderActiveCorner = {"border-active-corner", NULL, 0UL, "white"}
     ,
 
-#ifdef USE_MENU
+    // FIXME: this is used by moveresize
     .MenuFG = {"menu-fg", NULL, 0UL, "gray11"}
     ,
     .MenuBG = {"menu-bg", NULL, 0UL, "gray44"}
     ,
+#ifdef USE_MENU
     .MenuOutline = {"menu-outline", NULL, 0UL, "gray44"}
     ,
     .MenuActiveFG = {"menu-active-fg", NULL, 0UL, "white"}
@@ -802,9 +803,10 @@ void ColorConfig(const Config * config)
 FontTable Fonts = {			///< contains all our used fonts
     .Titlebar = {.ModuleName = "titlebar"}
     ,
-#ifdef USE_MENU
+    // FIXME: used by moveresize
     .Menu = {.ModuleName = "menu"}
     ,
+#ifdef USE_MENU
 #endif
 #ifdef USE_TOOLTIP
     .Tooltip = {.ModuleName = "tooltip"}

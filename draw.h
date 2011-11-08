@@ -73,9 +73,10 @@ struct _color_table_
     Color BorderCorner;			///< window corner (resize)
     Color BorderActiveCorner;		///< active window corner (resize)
 
-#ifdef USE_MENU
+    // FIXME: this is used by move-resize
     Color MenuFG;			///< menu foreground
     Color MenuBG;			///< menu background
+#ifdef USE_MENU
     Color MenuOutline;			///< menu item outline
     Color MenuActiveFG;			///< active menu item foreground
     Color MenuActiveBG1;		///< active menu item background 1
@@ -226,8 +227,9 @@ struct _font_
 typedef struct _fonts_
 {
     Font Titlebar;			///< titlebar font
-#ifdef USE_MENU
+    // FIXME: used by moveresize
     Font Menu;				///< menu font
+#ifdef USE_MENU
 #endif
 #ifdef USE_TOOLTIP
     Font Tooltip;			///< tooltip font

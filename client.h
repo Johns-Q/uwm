@@ -1,7 +1,7 @@
 ///
 ///	@file client.h	@brief client header file
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -77,15 +77,14 @@ typedef enum
     BORDER_OUTLINE = 1 << 0,		///< window has a border
     BORDER_TITLE = 1 << 1,		///< window has a title bar
     BORDER_MINIMIZE = 1 << 2,		///< window supports minimize
-    // FIXME: do we need this and BORDER_MAXIMIZE_VERT/BORDER_MAXIMIZE_HORZ
-    BORDER_MAXIMIZE = 1 << 3,		///< window supports maximize
+    BORDER_STICKY = 1 << 3,		///< window supports sticky
     BORDER_CLOSE = 1 << 4,		///< window supports close
     BORDER_RESIZE = 1 << 5,		///< window supports resizing
     BORDER_LOWER = 1 << 6,		///< window supports lower
     BORDER_RAISE = 1 << 7,		///< window supports raise
     BORDER_MOVE = 1 << 8,		///< window supports moving
-    BORDER_MAXIMIZE_VERT = 1 << 9,	///< maximize vertically
-    BORDER_MAXIMIZE_HORZ = 1 << 10	///< maximize horizontally
+    BORDER_MAXIMIZE_VERT = 1 << 9,	///< " supports maximize vertically
+    BORDER_MAXIMIZE_HORZ = 1 << 10,	///< " supports maximize horizontally
 } WmBorder;
 
 /**
@@ -108,9 +107,9 @@ typedef enum
 **	The default border flags.
 */
 #define BORDER_DEFAULT \
-    ( BORDER_OUTLINE |	BORDER_TITLE | BORDER_MINIMIZE | BORDER_MAXIMIZE	\
+    (BORDER_OUTLINE | BORDER_TITLE | BORDER_MINIMIZE | BORDER_STICKY \
     | BORDER_CLOSE | BORDER_RESIZE | BORDER_MOVE | BORDER_LOWER \
-    | BORDER_RAISE | BORDER_MAXIMIZE_VERT | BORDER_MAXIMIZE_HORZ )
+    | BORDER_RAISE | BORDER_MAXIMIZE_VERT | BORDER_MAXIMIZE_HORZ)
 
 /**
 **	Client window structure typedef.
@@ -223,8 +222,13 @@ extern void ClientRefocus(void);
     /// Focus next client in stacking order.
 extern void ClientFocusNextStacked(const Client *);
 
+#ifdef USE_SHAPE
     /// Update shape of a client using shape extension.
 extern void ClientUpdateShape(const Client *);
+#else
+    /// Dummy for Update shape of a client using shape extension.
+#define ClientUpdateShape(client)
+#endif
 
     /// Shade a client.
 extern void ClientShade(Client *);

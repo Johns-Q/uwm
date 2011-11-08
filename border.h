@@ -1,7 +1,7 @@
 ///
 ///	@file border.h		@brief client window border header file
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -28,8 +28,8 @@
 //	Declares
 //////////////////////////////////////////////////////////////////////////////
 
-#define BORDER_BUTTON_WIDTH 16		///< width of border icons
-#define BORDER_BUTTON_HEIGHT 16		///< height of border icons
+#define BORDER_BUTTON_WIDTH 16		///< width of border button icons
+#define BORDER_BUTTON_HEIGHT 16		///< height of border button icons
 
 /**
 **	Flags to determine what action to take on border.
@@ -37,19 +37,22 @@
 typedef enum
 {
     BORDER_ACTION_NONE,			///< do nothing
-    BORDER_ACTION_LOWER,		///< lower window
-    BORDER_ACTION_RAISE,		///< raise window
+    /*
+       BORDER_ACTION_LOWER,		///< lower window
+       BORDER_ACTION_RAISE,		///< raise window
+     */
     BORDER_ACTION_RESIZE,		///< resize window
     BORDER_ACTION_MOVE,			///< move window
     BORDER_ACTION_CLOSE,		///< close window
-    BORDER_ACTION_MAXIMIZE,		///< maximize window
+    BORDER_ACTION_MAXIMIZE,		///< toggle maximize window
     BORDER_ACTION_MINIMIZE,		///< minimize window
-    BORDER_ACTION_STICKY,		///< make window sticky
+    BORDER_ACTION_STICKY,		///< toggle window sticky
     BORDER_ACTION_MENU,			///< show window menu
-    BORDER_ACTION_RESIZE_N = 0x10,	///< resize north
-    BORDER_ACTION_RESIZE_S = 0x20,	///< resize south
-    BORDER_ACTION_RESIZE_E = 0x40,	///< resize east
-    BORDER_ACTION_RESIZE_W = 0x80	///< resize west
+    BORDER_ACTION_MASK = 0x0F,		///< mask for above commands
+    BORDER_ACTION_RESIZE_N = 0x10,	///< resize north flag
+    BORDER_ACTION_RESIZE_S = 0x20,	///< resize south flag
+    BORDER_ACTION_RESIZE_E = 0x40,	///< resize east flag
+    BORDER_ACTION_RESIZE_W = 0x80	///< resize west flag
 } BorderAction;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -59,15 +62,6 @@ typedef enum
 //////////////////////////////////////////////////////////////////////////////
 //	Prototypes
 //////////////////////////////////////////////////////////////////////////////
-
-    /// Clear shape mask of a window.
-extern void ShapeRoundedRectReset(xcb_window_t);
-
-    /// Set shape mask on window to give rounded border.
-extern void ShapeRoundedRectWindow(xcb_window_t, unsigned, unsigned);
-
-    /// Subtract shape mask on window to give rounded border.
-extern void ShapeRoundedRectSubtract(xcb_window_t, unsigned, unsigned);
 
     /// Get size of borders for a client.
 extern void BorderGetSize(const Client *, int *, int *, int *, int *);
@@ -102,7 +96,14 @@ extern void BorderConfig(const Config *);
 
 #if defined(USE_SHAPE) && defined(USE_XMU)	// {
 
-// FIXME: write function prototypes for shape functions
+    /// Clear shape mask of a window.
+extern void ShapeRoundedRectReset(xcb_window_t);
+
+    /// Set shape mask on window to give rounded border.
+extern void ShapeRoundedRectWindow(xcb_window_t, unsigned, unsigned);
+
+    /// Subtract shape mask on window to give rounded border.
+extern void ShapeRoundedRectSubtract(xcb_window_t, unsigned, unsigned);
 
 #else // }{ USE_SHAPE && USE_XMU
 
