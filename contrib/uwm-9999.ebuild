@@ -44,8 +44,8 @@ src_compile() {
 	use jpeg && myconf="${myconf} -DUSE_JPEG"
 	use xinerama && myconf="${myconf} -DUSE_XINERAMA"
 
-	#emake -j1 all contrib/uwm-helper CFLAGS="${CFLAGS}"
-	emake -j1 all contrib/uwm-helper CONFIG="${myconf}"
+	emake -j1 all contrib/uwm-helper CC="$(tc-getCC)" CFLAGS="${CFLAGS}" \
+		LDFLAGS="${LDFLAGS}" CONFIG="${myconf}"
 }
 
 src_install() {
