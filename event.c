@@ -157,7 +157,7 @@ static inline int HandleButtonPress(xcb_button_press_event_t * event)
 {
     Client *client;
 
-    Debug(3, "ButtonCommand #%zd\n", sizeof(ButtonCommand));
+    //Debug(3, "ButtonCommand #%zd\n", sizeof(ButtonCommand));
     Debug(3, "button press state=%x, detail=%d child %x event %x time %x\n",
 	event->state, event->detail, event->child, event->event, event->time);
     PointerSetPosition(event->root_x, event->root_y);
