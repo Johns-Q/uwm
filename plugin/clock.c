@@ -97,7 +97,6 @@ static uint32_t ClockLastUpdateTick;	///< tick of last clock update
 **	Draw a clock panel plugin.
 **
 **	@param clock_plugin	clock plugin private data
-**	@param now		current time
 */
 static void ClockDraw(ClockPlugin * clock_plugin)
 {
