@@ -153,7 +153,7 @@ static void ProcReadNet(void)
 	    if (name[n - 1] == ':') {
 		name[n - 1] = '\0';
 	    }
-	    Debug(3, "%s %d %lu %lu\n", name, n, rx, tx);
+	    Debug(4, "%s %d %lu %lu\n", name, n, rx, tx);
 
 	    //
 	    //	search plugin
@@ -168,7 +168,7 @@ static void ProcReadNet(void)
 			|| !strncmp(name, "irda", 4)) {
 			continue;
 		    }
-		    Debug(0, "found %s\n", name);
+		    Debug(0, "found default interface %s\n", name);
 		    netload_plugin->Interface = strdup(name);
 		}
 		//
@@ -179,7 +179,7 @@ static void ProcReadNet(void)
 		    unsigned delta_rx;
 		    unsigned delta_tx;
 
-		    Debug(3, "found plugin %s\n", name);
+		    Debug(4, "found plugin %s\n", name);
 
 		    // round about
 		    if (rx < netload_plugin->LastRX) {

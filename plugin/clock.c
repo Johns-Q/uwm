@@ -27,8 +27,11 @@
 ///	This module add clocks to the panel. This module is only available
 ///	if compiled with #USE_CLOCK.
 ///
-///	The clock is shown as text in the panel. Commands (external or window
-///	manager) can be executed on pointer button click.
+///	The clock is shown as single or double line text in the panel.
+///	Commands (external or window manager) can be executed on pointer
+///	button click.
+///
+///	@todo drawing two lines isn't the best code
 ///
 /// @{
 
@@ -96,14 +99,19 @@ static uint32_t ClockLastUpdateTick;	///< tick of last clock update
 **	@param clock_plugin	clock plugin private data
 **	@param now		current time
 */
-static void ClockDraw(ClockPlugin * clock_plugin, const time_t * now)
+static void ClockDraw(ClockPlugin * clock_plugin)
 {
+    time_t now;
     char buf[80];
+    char *s;
+    int l;
     Plugin *plugin;
     Panel *panel;
-    xcb_query_text_extents_cookie_t cookie_label;
+    xcb_query_text_extents_cookie_t cookie_label1;
+    xcb_query_text_extents_cookie_t cookie_label2;
     unsigned real_width;
-    unsigned width;
+    unsigned width1;
+    unsigned width2;
     unsigned height;
 
     plugin = clock_plugin->Plugin;
@@ -111,29 +119,61 @@ static void ClockDraw(ClockPlugin * clock_plugin, const time_t * now)
 	Debug(2, "clock not inside a panel\n");
 	return;
     }
-    // draw only, if text changed
-    strftime(buf, sizeof(buf), clock_plugin->ShortFormat, localtime(now));
+    time(&now);
+    l = strftime(buf, sizeof(buf), clock_plugin->ShortFormat, localtime(&now));
 
+    // draw only, if text changed
     if (!strcmp(clock_plugin->AsciiTime, buf)) {
 	return;
     }
-    cookie_label = FontQueryExtentsRequest(&Fonts.Clock, strlen(buf), buf);
+    // handle only one or two lines
+    s = strchr(buf, '\n');
+    if (s) {
+	s++;
+	cookie_label1 =
+	    FontQueryExtentsRequest(&Fonts.Clock, (s - buf) - 1, buf);
+	cookie_label2 =
+	    FontQueryExtentsRequest(&Fonts.Clock, l - (s - buf), s);
+	height = Fonts.Clock.Height * 2 + CLOCK_INNER_SPACE;
+
+    } else {
+	cookie_label1 = FontQueryExtentsRequest(&Fonts.Clock, l, buf);
+	height = Fonts.Clock.Height;
+    }
 
     strcpy(clock_plugin->AsciiTime, buf);
 
     // clear the background
     PanelClearPluginBackgroundWithColor(plugin, &Colors.ClockBG.Pixel);
 
-    width = FontTextWidthReply(cookie_label);
-    height = Fonts.Clock.Height;
-    real_width = width + 2 * CLOCK_INNER_SPACE;
+    width1 = FontTextWidthReply(cookie_label1);
+    NO_WARNING(width2);
+    real_width = width1 + 2 * CLOCK_INNER_SPACE;
+    if (s) {
+	width2 = FontTextWidthReply(cookie_label2);
+	if (width2 > width1) {
+	    real_width = width2 + 2;
+	}
+    }
     // is clock right size?
     // FIXME: proportional font, too much resizes?
     if (real_width == plugin->RequestedWidth || plugin->UserWidth) {
 	// just draw the clock
-	FontDrawString(plugin->Pixmap, &Fonts.Clock, Colors.ClockFG.Pixel,
-	    plugin->Width / 2 - width / 2, plugin->Height / 2 - height / 2,
-	    plugin->Width, NULL, buf);
+
+	if (s) {
+	    s[-1] = '\0';
+	    FontDrawString(plugin->Pixmap, &Fonts.Clock, Colors.ClockFG.Pixel,
+		plugin->Width / 2 - width1 / 2,
+		plugin->Height / 2 - height / 2, plugin->Width, NULL, buf);
+	    FontDrawString(plugin->Pixmap, &Fonts.Clock, Colors.ClockFG.Pixel,
+		plugin->Width / 2 - width2 / 2,
+		plugin->Height / 2 - height / 2 + Fonts.Clock.Height,
+		plugin->Width, NULL, s);
+	} else {
+	    FontDrawString(plugin->Pixmap, &Fonts.Clock, Colors.ClockFG.Pixel,
+		plugin->Width / 2 - width1 / 2,
+		plugin->Height / 2 - height / 2, plugin->Width, NULL, buf);
+	}
 
 	PanelUpdatePlugin(panel, plugin);
     } else {				// wrong size, request resize
@@ -153,20 +193,14 @@ static void ClockDraw(ClockPlugin * clock_plugin, const time_t * now)
 static void ClockCreate(Plugin * plugin)
 {
     ClockPlugin *clock_plugin;
-    time_t now;
 
     // create pixmap
     PanelPluginCreatePixmap(plugin);
 
-    // clear the background
-    PanelClearPluginBackgroundWithColor(plugin, &Colors.ClockBG.Pixel);
-
-    // FIXME: is redraw needed?
     clock_plugin = plugin->Object;
     clock_plugin->AsciiTime[0] = '\0';	// force redraw
 
-    time(&now);
-    ClockDraw(clock_plugin, &now);
+    ClockDraw(clock_plugin);
 }
 
 /**
@@ -231,7 +265,6 @@ static void ClockTimeout(Plugin
     __attribute__ ((unused)) * plugin, uint32_t tick, int
     __attribute__ ((unused)) x, int __attribute__ ((unused)) y)
 {
-    time_t now;
     ClockPlugin *clock_plugin;
 
     // draw only every 1000ms
@@ -239,8 +272,7 @@ static void ClockTimeout(Plugin
 	ClockLastUpdateTick = tick;
 	// all clocks are redrawn by first plugin
 	SLIST_FOREACH(clock_plugin, &Clocks, Next) {
-	    time(&now);
-	    ClockDraw(clock_plugin, &now);
+	    ClockDraw(clock_plugin);
 	}
     }
 }
@@ -262,20 +294,46 @@ void ClockInit(void)
     SLIST_FOREACH(clock_plugin, &Clocks, Next) {
 	Plugin *plugin;
 	char buf[80];
-	xcb_query_text_extents_cookie_t cookie_label;
-	unsigned width;
+	const char *s;
+	int l;
+	xcb_query_text_extents_cookie_t cookie_label1;
+	xcb_query_text_extents_cookie_t cookie_label2;
+	unsigned width1;
+	unsigned width2;
 	unsigned height;
 
-	strftime(buf, sizeof(buf), clock_plugin->ShortFormat, localtime(&now));
-	cookie_label = FontQueryExtentsRequest(&Fonts.Clock, strlen(buf), buf);
+	// FIXME: combine with draw
+	l = strftime(buf, sizeof(buf), clock_plugin->ShortFormat,
+	    localtime(&now));
+	s = strchr(buf, '\n');
+	if (s) {
+	    ++s;
+	    cookie_label1 =
+		FontQueryExtentsRequest(&Fonts.Clock, (s - buf) - 1, buf);
+	    cookie_label2 =
+		FontQueryExtentsRequest(&Fonts.Clock, l - (s - buf), s);
+	    height = Fonts.Clock.Height * 2;
+
+	} else {
+	    cookie_label1 = FontQueryExtentsRequest(&Fonts.Clock, l, buf);
+	    height = Fonts.Clock.Height;	// use max height
+	}
 
 	plugin = clock_plugin->Plugin;
 
-	width = FontTextWidthReply(cookie_label);
-	height = Fonts.Clock.Height;	// use max height
+	// FIXME TWO lines clock format
+
+	width1 = FontTextWidthReply(cookie_label1);
+	if (s) {
+	    width2 = FontTextWidthReply(cookie_label2);
+	    if (width2 > width1) {
+		width1 = width2;
+	    }
+
+	}
 
 	if (!plugin->RequestedWidth) {
-	    plugin->RequestedWidth = width + 2 * CLOCK_INNER_SPACE;
+	    plugin->RequestedWidth = width1 + 2 * CLOCK_INNER_SPACE;
 	}
 	if (!plugin->RequestedHeight) {
 	    plugin->RequestedHeight = height + 2 * CLOCK_INNER_SPACE;

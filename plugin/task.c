@@ -33,6 +33,8 @@
 ///
 ///	@todo insert-mode = right and insert-mode = left are currently
 ///		not supported.
+///	@todo support mouse over raise or focus
+///
 /// @{
 
 #include <xcb/xcb.h>
