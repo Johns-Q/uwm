@@ -1760,6 +1760,9 @@ void ClientSetLayer(Client * client, int layer)
 	    Client *temp;
 	    Client *next;
 
+	    if (l == layer) {		// skip destination layer
+		continue;
+	    }
 	    TAILQ_FOREACH_SAFE(temp, &ClientLayers[l], LayerQueue, next) {
 		if (temp == client || temp->Owner == client->Window) {
 		    // remove from old node list
@@ -1836,6 +1839,7 @@ void ClientSetSticky(Client * client, int sticky)
 		    temp->State |= WM_STATE_STICKY;
 		    // FIXME: not all states need to be updated
 		    HintSetAllStates(temp);
+		    BorderDraw(temp, NULL);
 		}
 	    }
 	}
@@ -1852,6 +1856,7 @@ void ClientSetSticky(Client * client, int sticky)
 		    temp->State &= ~WM_STATE_STICKY;
 		    // FIXME: not all states need to be updated
 		    HintSetAllStates(temp);
+		    BorderDraw(temp, NULL);
 		}
 	    }
 	}

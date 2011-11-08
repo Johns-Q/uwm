@@ -116,8 +116,9 @@ static int8_t DoubleClickActive;
 */
 static inline int HandleKeyPress(const xcb_key_press_event_t * event)
 {
-    Debug(4, "key press state=%x, detail=%d child %x event %x\n", event->state,
-	event->detail, event->child, event->event);
+    Debug(3, "key press state=%x, detail=%d child %x event %x %d,%d\n",
+	event->state, event->detail, event->child, event->event, event->root_x,
+	event->root_y);
 
     KeyboardHandler(1, event);
 
@@ -150,13 +151,15 @@ static inline int HandleKeyRelease(const xcb_key_release_event_t * event)
 **
 **	@todo make button click on frame configurable
 **	@todo rewrite the double-click handling with delay/timeout
+**	@todo click | button | double-click | triple-click | long-click
 */
 static inline int HandleButtonPress(xcb_button_press_event_t * event)
 {
     Client *client;
 
-    Debug(3, "button press state=%x, detail=%d child %x event %x\n",
-	event->state, event->detail, event->child, event->event);
+    Debug(3, "ButtonCommand #%zd\n", sizeof(ButtonCommand));
+    Debug(3, "button press state=%x, detail=%d child %x event %x time %x\n",
+	event->state, event->detail, event->child, event->event, event->time);
     PointerSetPosition(event->root_x, event->root_y);
     TooltipHide();
 
@@ -195,11 +198,13 @@ static inline int HandleButtonPress(xcb_button_press_event_t * event)
 	// FIXME: make configurable
 	switch (event->detail) {
 	    case XCB_BUTTON_INDEX_1:
+		// FIXME: click, double-click, hold-click
 		BorderHandleButtonPress(client, event);
 		break;
 	    case XCB_BUTTON_INDEX_2:
 		ClientMoveLoop(client, XCB_BUTTON_INDEX_2, event->event_x,
 		    event->event_y);
+		// FIXME: Move updates Pagers!
 		break;
 	    case XCB_BUTTON_INDEX_3:
 		BorderShowMenu(client, event->event_x, event->event_y);
@@ -213,6 +218,9 @@ static inline int HandleButtonPress(xcb_button_press_event_t * event)
 		// FIXME: check already unshaded?
 		ClientUnshade(client);
 		// FIXME: Shade didn't update Pager!
+		break;
+	    default:
+		Debug(3, "frame window button press %d\n", event->detail);
 		break;
 	}
 	// not done by Shade/Unshade,...
@@ -245,7 +253,7 @@ static inline int HandleButtonPress(xcb_button_press_event_t * event)
 
 	Debug(3, "client window button press\n");
 	if (DialogHandleButtonPress(event)) {
-	    return 1;
+	    return 1;			// special client uwm windows
 	}
 	switch (event->detail) {
 	    case XCB_BUTTON_INDEX_1:
@@ -514,11 +522,15 @@ static inline int HandleUnmapNotify(const xcb_unmap_notify_event_t * event)
 	    free(peek);
 	    return 1;
 	}
+#if 0
+	// FIXME: this conflicts with fullscreen/normal screen dual window apps
 	// ignore this unmap, produces only problems!!!!
 	if (!XCB_EVENT_SENT(event)) {
 	    return 1;
 	}
+#endif
 
+	Debug(3, "\tclient window unmapped\n");
 	if (client == ClientControlled) {
 	    ClientController();		// stop, if move/resize
 	}
@@ -534,6 +546,44 @@ static inline int HandleUnmapNotify(const xcb_unmap_notify_event_t * event)
 	}
     }
 
+    return 1;
+}
+
+/**
+**	Handle map notify.
+**
+**	@param event	map notify event
+**
+**	@returns true if event was handled, false otherwise.
+*/
+static inline int HandleMapNotify(const xcb_map_notify_event_t * event)
+{
+    Client *client;
+
+    Debug(3, "map notify - event %x window %x %s\n", event->event,
+	event->window, event->override_redirect ? "(Override redirect)" : "");
+
+    if (!event->override_redirect && (client = ClientFindByAny(event->window))) {
+	// known client
+	if (!(client->State & WM_STATE_MAPPED)) {
+	    client->State |= WM_STATE_MAPPED;
+	    client->State &=
+		~(WM_STATE_MINIMIZED | WM_STATE_SHOW_DESKTOP | WM_STATE_HIDDEN
+		| WM_STATE_SHADED);
+	    if (!(client->State & WM_STATE_STICKY)) {
+		client->Desktop = DesktopCurrent;
+	    }
+	    if (client->State & WM_STATE_FULLSCREEN) {
+		Debug(2, "\tmap full screen window\n");
+	    }
+	    xcb_map_window(Connection, client->Parent);
+	    // FIXME: refocus / restack?
+	    //ClientRaise(client);
+	    //ClientFocus(client);
+	    // Done by focus: TaskUpdate();
+	    // Done by focus: PagerUpdate();
+	}
+    }
     return 1;
 }
 
@@ -566,6 +616,9 @@ static inline int HandleMapRequest(const xcb_map_request_event_t * event)
 		client->Desktop = DesktopCurrent;
 	    }
 	    xcb_map_window(Connection, client->Window);
+	    if (client->State & WM_STATE_FULLSCREEN) {
+		Debug(2, "\tmap full screen window\n");
+	    }
 	    xcb_map_window(Connection, client->Parent);
 	    ClientRaise(client);
 	    ClientFocus(client);
@@ -681,8 +734,8 @@ static inline int HandleConfigureRequest(const xcb_configure_request_event_t *
 	    client->Height = event->height;
 	    changed = 1;
 	}
-	Debug(3, "changed %d,%d %dx%d\n", client->X, client->Y, client->Width,
-	    client->Height);
+	Debug(3, "\tchanged %s %dx%d+%d+%d\n", changed ? "yes" : "no",
+	    client->Width, client->Height, client->X, client->Y);
 	// border, sibling, stacking are ignored
 	if (!changed) {			// nothing changed
 	    return 1;
@@ -695,7 +748,10 @@ static inline int HandleConfigureRequest(const xcb_configure_request_event_t *
 	client->State &= ~(WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT);
 	if (client->State & WM_STATE_SHADED) {
 	    // FIXME: shaded? fullscreen
-	    Debug(2, "loose shading?\n");
+	    Debug(2, "\tloose shading?\n");
+	}
+	if (client->State & WM_STATE_FULLSCREEN) {
+	    Debug(2, "\tresize fullscreen?\n");
 	}
 
 	ClientUpdateShape(client);
@@ -838,7 +894,12 @@ static inline int HandleClientMessage(const xcb_client_message_event_t * event)
 {
     Client *client;
 
-    Debug(3, "client message - window %x\n", event->window);
+#ifdef DEBUG
+    if (3 < DebugLevel) {
+	Debug(3, "client message - window %x\t", event->window);
+	DebugAtomName(event->type);
+    }
+#endif
 
     // message for our root window
     if (event->window == XcbScreen->root) {
@@ -1169,6 +1230,9 @@ void EventHandleEvent(xcb_generic_event_t * event)
 	    break;
 	case XCB_UNMAP_NOTIFY:		// window unmap notify
 	    HandleUnmapNotify((xcb_unmap_notify_event_t *) event);
+	    break;
+	case XCB_MAP_NOTIFY:		// window map notify
+	    HandleMapNotify((xcb_map_notify_event_t *) event);
 	    break;
 	case XCB_MAP_REQUEST:		// window map request
 	    HandleMapRequest((xcb_map_request_event_t *) event);

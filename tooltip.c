@@ -205,7 +205,8 @@ void TooltipShow(int x, int y, const char *text)
 	xcb_map_window(Connection, TooltipVars->Window);
 	TooltipVars->Active = 1;
 	// FIXME: tooltip isn't shown, only empty window!
-	Debug(3, "tooltip mapped, should get expose next\n");
+	Debug(3, "tooltip %x mapped, should get expose next\n",
+	    TooltipVars->Window);
     }
 }
 
