@@ -1,0 +1,22 @@
+User johns
+Date:
+
+    Improved build system, add gentoo ebuild.
+    Fix bugs with fullscreen/window switching apps.
+    Add support of two text line to the clock pluglin.
+    Fix xinerama bugs.
+    Support color names in xpm icons.
+
+Data:	Fri May  6 14:10:20 CEST 2011
+
+    Fix xcb 1.7 compatiblity.
+    Doxygen documentation cleaned up.
+
+Date:	Wed Nov 10 21:42:44 CET 2010
+
+    Release 0.25.
+    Fix outdated glibc queue.h.
+
+Date:   Fri Jul 10 15:49:12 2009 +0200
+
+    Initial version

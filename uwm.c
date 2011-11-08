@@ -62,7 +62,8 @@
 **	- multiple screen (xinerama)
 **	- 64-bit and 32-bit clean
 **	- little-endian and big-endian clean
-**	- compatible with uclibc
+**	- compatible with uclibc and libc6
+**	- compatible with GCC 4.5.3, Clang 2.9 and ekopath 4.0.11
 **	- many features can be compile time enabled / disabled
 **
 **	see <a href="modules.html">list of µwm modules</a>.

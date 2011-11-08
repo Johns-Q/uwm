@@ -30,6 +30,8 @@
 #
 #CONFIG	+=	'-DDEFAULT_FONT="-*-luxi sans-*-*-*-*-*-*-*-*-*-*-*-*"'
 
+#	global default uwm system configuration file
+#CONFIG += '-DSYSTEM_CONFIG="/etc/system.uwmrc"'
 #	enable/disable runtime configuration
 #CONFIG += -DUSE_RC
 #CONFIG += -DNO_RC
@@ -90,10 +92,10 @@
 #CONFIG += -DUSE_ICON
 #CONFIG	+= -DNO_ICON
 #		enable/disable external jpeg support (needs icon)
-#CONFIG += -DUSE_JPEG
+CONFIG += -DUSE_JPEG
 #CONFIG += -DNO_JPEG
 #		enable/disable external png support (needs icon)
-#CONFIG += -DUSE_PNG
+CONFIG += -DUSE_PNG
 #CONFIG += -DNO_PNG
 #		enable/disable external tiff support (needs icon)
 #CONFIG += -DUSE_TIFF
@@ -113,7 +115,7 @@
 #CONFIG += -DNO_TD
 
 #	use X Xinerama Extension
-#CONFIG += -DUSE_XINERAMA
+CONFIG += -DUSE_XINERAMA
 #CONFIG += -DNO_XINERAMA
 #	use X Rendering Extension
 #CONFIG += -DUSE_RENDER
@@ -142,22 +144,34 @@ DEFS = $(CONFIG) #### $(addprefix -D, $(CONFIG))
 VERSION	=	"0.30"
 GIT_REV =	$(shell git describe --always 2>/dev/null)
 
-CC=	gcc
+#CC=	gcc
+#CC=	tcc
 #CC=	clang
+#CC=	/opt/ekopath/bin/pathcc
 
 #MARCH=	-march=armv6j -mtune=arm1136jf-s -mfpu=vfp -mfloat-abi=softfp
 #MARCH=	-march=native
 #MARCH=	-muclibc
 OPTIM=	-U_FORTIFY_SOURCE -D__OPTIMIZE__ -Os -fomit-frame-pointer
-CFLAGS= $(MARCH) $(OPTIM) -W -Wall -Wextra -g -pipe \
-	-I. $(DEFS) -DVERSION='$(VERSION)' \
+CFLAGS= $(MARCH) $(OPTIM) -pipe -W -Wall -Wextra -g
+override CFLAGS+= -I. $(DEFS) -DVERSION='$(VERSION)' \
 	$(if $(GIT_REV), -DGIT_REV='"$(GIT_REV)"') \
 	$(if $(findstring DDEBUG,$(CONFIG)), -Werror)
-LDFLAGS	= -Wl,--sort-common,--gc-sections,--as-needed
+ifeq ($(CC),tcc)
+    LDFLAGS=
+else
+    LDFLAGS=	-Wl,--sort-common,--gc-sections,--as-needed
+endif
 LIBS=	`pkg-config --static --libs xcb-keysyms xcb-aux xcb-atom xcb-util \
 	xcb-event xcb-icccm xcb-shape xcb-renderutil xcb-render xcb-image \
-	xcb-shm xcb` `pkg-config --static --libs libpng` -ljpeg -ltiff -lpthread
-
+	xcb-shm xcb` \
+	$(if $(findstring USE_XINERAMA,$(CONFIG)), \
+	    `pkg-config --static --libs xcb-xinerama`) \
+	$(if $(findstring USE_PNG,$(CONFIG)), \
+	    `pkg-config --static --libs libpng`) \
+	$(if $(findstring USE_JPEG,$(CONFIG)), -ljpeg) \
+	$(if $(findstring USE_TIFF,$(CONFIG)), -ltiff) \
+	-lpthread
 OBJS	= uwm.o command.o pointer.o keyboard.o draw.o image.o icon.o \
 	tooltip.o hints.o screen.o background.o desktop.o menu.o \
 	rule.o border.o client.o moveresize.o event.o property.o misc.o \
@@ -172,8 +186,9 @@ HDRS	= uwm.h command.h pointer.h keyboard.h draw.h image.h icon.h \
 	plugin/systray.h plugin/clock.h plugin/netload.h \
 	readable_bitmap.h dia.h td.h uwm-config.h queue.h
 
-FILES=	Makefile u.xpm contrib/uwm-helper.sh.in uwm.1 uwmrc.5 \
-	contrib/uwm.doxyfile contrib/uwm16x16.xpm contrib/uwmrc.example
+FILES=	Makefile u.xpm contrib/uwm-helper.sh.in uwm.1 uwmrc.5 CODINGSTYLE.txt \
+	ChangeLog contrib/uwm.doxyfile contrib/uwm16x16.xpm contrib/x.xpm \
+	contrib/uwmrc.example
 
 all:	uwm #udm
 

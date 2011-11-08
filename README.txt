@@ -97,6 +97,7 @@ Optional:
 		http://www.libpng.org/
 
 	media-libs/tiff
+		not yet supported!
 		Library for manipulation of TIFF (Tag Image File Format) images
 		http://www.remotesensing.org/libtiff/
 
@@ -108,9 +109,18 @@ Optional:
 		A clean fixed font for the console and X11
 		http://www.is-vn.bg/hamster/
 
+	media-fonts/font-alias
+		X.Org font aliases
+		http://xorg.freedesktop.org/
+
+	media-fonts/font-cursor-misc
+		X.Org cursor font
+		http://xorg.freedesktop.org/
+
 	media-fonts/font-misc-misc
 		X.Org miscellaneous fonts
 		http://xorg.freedesktop.org/
+
 	peg
 		Parsing Expression Grammar - parser generator
 		http://piumarta.com/software/peg
