@@ -158,7 +158,7 @@ font = [
     task = "-*-dejavu sans-*-r-*-*-14-*-*-*-*-*-*-15"
     tooltip = "-*-terminus-*-*-*-*-16-*-*-*-*-*-*-15"
     panel = "-*-dejavu sans-*-*-*-*-14-*-*-*-*-*-*-15"
-    clock = "-*-dejavu sans-*-*-*-*-14-*-*-*-*-*-*-15"
+    clock = "-*-dejavu sans-*-*-*-*-10-*-*-*-*-*-*-15"
     button = "-*-dejavu sans-*-r-*-*-14-*-*-*-*-*-*-15"
     pager = "5x7"
     fallback = "-*-dejavu sans-*-r-*-*-14-*-*-*-*-*-*-15"
@@ -351,6 +351,8 @@ root-menu = [
 ;
 ;	configure pointer/mouse buttons on root window
 ;
+;	FIXME: change to new button configuration
+;
 root = [
     [ button = 1 root-menu = 0 ]
     [ button = 2 root-menu = 1 ]
@@ -362,13 +364,54 @@ root = [
 ]
 
 ;
+;	configure pointer/mouse buttons on frame of client window
+;
+;	modifier:	shift lock ctrl mod1 mod2 mod3 mod4 mod5
+;	type:		button click double-click triple-click long-click
+;	nr:		button nr 0 .. 255
+;
+;	click-raises	button raises the client window
+;	click-focus	button focus the client window
+;	replay		send button also to client
+;
+;	[ [ modifier* type nr] option action ]
+;
+;	FIXME: border = is above, planned feature
+;{
+frame = [
+    [ [ `button 1 ] click-raises = true border-button = true ]
+    [ [ `long-click 1 ] border-button = true ]
+    [ [ `double-click 1 ] toggle-maximize = true ]
+    [ [ `button 2 ] move = true ]
+    [ [ `button 3 ] window-menu = true ]
+    [ [ `double-click 3 ] toggle-shade = true ]
+    [ [ `button 4 ] shade = true ]
+    [ [ `button 5 ] shade = false ]
+    [ [ `button 6 ] lower = true ]
+    [ [ `button 7 ] raise = true ]
+]
+
+;
+;	configure pointer/mouse buttons on client window
+;
+client = [
+    [ [ `button 1 ] click-raises = true click-focus = true replay = true ]
+    [ [ `button 2 ] click-raises = true click-focus = true replay = true ]
+    [ [ `button 3 ] click-raises = true click-focus = true replay = true ]
+    [ [ `mod1 `button 1 ] move = true ]
+    [ [ `mod1 `button 2 ] move = true ]
+    [ [ `mod1 `button 3 ] resize = true ]
+]
+;}
+
+;
 ;	window menu (FIXME: not yet used)
 ;
 window-menu = [
     [ text = "Maximize-y" maximize-vertical = true ]
     [ text = "Maximize-x" maximize-horizontal = true ]
-    [ text = "Maximize" toogle-maximize = true ]
-    [ text = "Unmaximize" toogle-maximize = true ]
+    [ text = "Maximize" toggle-maximize = true ]
+    [ text = "Unmaximize" toggle-maximize = true ]
 
     [ text = "Restore" restore = true ]
     [ text = "Unshade" toggle-shade = true ]
@@ -421,7 +464,7 @@ panel = [
 	    ; panel height: >0 height in pixel, 0 auto, <0 percent (0)
 	; height = -99
 	    ; panel autohide: 0|1 (0)
-	auto-hide = false
+	; auto-hide = true
 	    ; panel maximize over panel; 0|1 (0)
 	maximize-over =  false
 	    ; panel layer: 0 .. 10 (6)
@@ -536,6 +579,8 @@ panel = [
 ;	%R		HH:MM
 ;	%T		HH:MM:SS
 ;	%c		preferred date and time representation
+;	%n		for a new line
+;	%R%n%x		for a two line time and date
 ;
 	[ type = `clock
 	    width = 0 height = 0
@@ -556,7 +601,7 @@ panel = [
 	; FIXME: setting X and auto calculated width didn't work
 	;x = 66 y = 1
 	width = -95
-	auto-hide = false
+	; auto-hide = true
 	height = 24
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Pager plugin
@@ -593,6 +638,16 @@ panel = [
 ;	There can only be one systray in one panel
 ;
 	[ type = `systray
+	]
+
+	[ type = `clock
+	    width = 0 height = 0
+	    format = "%R%n%d/%m/%y" tooltip = "%c"
+	    [ button = 1 execute = "xcalendar"]
+	    [ button = 2 execute = "oclock"]
+	    [ button = 3 execute = "xclock"]
+	    [ button = 4 execute = "dclock"]
+	    [ button = 5 execute = "cairo-clock"]
 	]
     ]
 

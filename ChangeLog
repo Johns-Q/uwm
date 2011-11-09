@@ -1,6 +1,7 @@
 User johns
-Date:
+Date: Wed Nov  9 15:07:38 CET 2011
 
+    Release 0.30.
     Improved build system, add gentoo ebuild.
     Fix bugs with fullscreen/window switching apps.
     Add support of two text line to the clock pluglin.
