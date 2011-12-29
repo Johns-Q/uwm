@@ -11,7 +11,6 @@ if [[ ${PV} == "9999" ]] ; then
 	EGIT_REPO_URI="git://uwm.git.sourceforge.net/gitroot/${PN}/${PN}"
 else
 	SRC_URI="mirror://sourceforge/${PN}/${P}.tar.bz2"
-	S="${WORKDIR}/${PN}"
 fi
 
 DESCRIPTION="uwm - µ Window Manager"
