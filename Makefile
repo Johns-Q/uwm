@@ -255,8 +255,14 @@ clobber distclean:	clean
 	-rm -rf uwm udm doc/html
 
 dist:
-	tar cjCf .. uwm-`date +%F-%H`.tar.bz2 \
-		$(addprefix uwm/, $(FILES) $(HDRS) $(OBJS:.o=.c))
+	tar cjf uwm-`date +%F-%H`.tar.bz2 \
+		--transform "s,^,uwm-`date +%F-%H`/," \
+		$(FILES) $(HDRS) $(OBJS:.o=.c)
+
+dist-version:
+	tar cjf uwm-$(VERSION).tar.bz2 \
+		--transform "s,^,uwm-$(VERSION)/," \
+		$(FILES) $(HDRS) $(OBJS:.o=.c)
 
 dist-git:
 	git tag v$(VERSION)
