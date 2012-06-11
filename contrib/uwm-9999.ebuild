@@ -7,10 +7,10 @@ EAPI="4"
 inherit eutils
 
 if [[ ${PV} == "9999" ]] ; then
-		inherit git-2
-		EGIT_REPO_URI="git://uwm.git.sourceforge.net/gitroot/${PN}/${PN}"
+	inherit git-2
+	EGIT_REPO_URI="git://uwm.git.sourceforge.net/gitroot/${PN}/${PN}"
 else
-		SRC_URI="mirror://sourceforge/${PN}/${P}.tar.bz2"
+	SRC_URI="mirror://sourceforge/${PN}/${P}.tar.bz2"
 fi
 
 DESCRIPTION="uwm - µ Window Manager"
@@ -49,19 +49,19 @@ src_compile() {
 }
 
 src_install() {
-		echo "#!/bin/sh" > ${T}/uwm
-		echo "exec /usr/bin/uwm" >> ${T}/uwm
+	echo "#!/bin/sh" > ${T}/uwm
+	echo "exec /usr/bin/uwm" >> ${T}/uwm
 
-		exeinto /etc/X11/Sessions
-		doexe "${T}"/uwm
+	exeinto /etc/X11/Sessions
+	doexe "${T}"/uwm
 
-		dobin uwm contrib/uwm-helper
-		doman uwm.1 uwmrc.5
-		dodoc ChangeLog README.txt contrib/uwmrc.example
-		doicon contrib/uwm16x16.xpm contrib/x.xpm
+	dobin uwm contrib/uwm-helper
+	doman uwm.1 uwmrc.5
+	dodoc ChangeLog README.txt contrib/uwmrc.example
+	doicon contrib/uwm16x16.xpm contrib/x.xpm
 }
 
 pkg_postinst() {
-		ewarn "Please extract uwmrc.example from /usr/share/doc/${PF} to"
-		ewarn "/etc/system.uwmrc or to your \$HOME/.uwm/uwmrc or/and edit it."
+	ewarn "Please extract uwmrc.example from /usr/share/doc/${PF} to"
+	ewarn "/etc/system.uwmrc or to your \$HOME/.uwm/uwmrc or/and edit it."
 }

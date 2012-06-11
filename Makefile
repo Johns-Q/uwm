@@ -141,7 +141,7 @@ DEFS = $(CONFIG) #### $(addprefix -D, $(CONFIG))
 
 #----------------------------------------------------------------------------
 
-VERSION	=	"0.30"
+VERSION	=	"0.31"
 GIT_REV =	$(shell git describe --always 2>/dev/null)
 
 #CC=	gcc
@@ -153,7 +153,8 @@ GIT_REV =	$(shell git describe --always 2>/dev/null)
 #MARCH=	-march=native
 #MARCH=	-muclibc
 OPTIM=	-U_FORTIFY_SOURCE -D__OPTIMIZE__ -Os -fomit-frame-pointer
-CFLAGS= $(MARCH) $(OPTIM) -pipe -W -Wall -Wextra -g
+CFLAGS= $(MARCH) $(OPTIM) -pipe -g -W -Wall -Wextra -Winit-self \
+	-Wdeclaration-after-statement
 override CFLAGS+= -I. $(DEFS) -DVERSION='$(VERSION)' \
 	$(if $(GIT_REV), -DGIT_REV='"$(GIT_REV)"') \
 	$(if $(findstring DDEBUG,$(CONFIG)), -Werror)
@@ -254,8 +255,14 @@ clobber distclean:	clean
 	-rm -rf uwm udm doc/html
 
 dist:
-	tar cjCf .. uwm-`date +%F-%H`.tar.bz2 \
-		$(addprefix uwm/, $(FILES) $(HDRS) $(OBJS:.o=.c))
+	tar cjf uwm-`date +%F-%H`.tar.bz2 \
+		--transform "s,^,uwm-`date +%F-%H`/," \
+		$(FILES) $(HDRS) $(OBJS:.o=.c)
+
+dist-version:
+	tar cjf uwm-$(VERSION).tar.bz2 \
+		--transform "s,^,uwm-$(VERSION)/," \
+		$(FILES) $(HDRS) $(OBJS:.o=.c)
 
 dist-git:
 	git tag v$(VERSION)
