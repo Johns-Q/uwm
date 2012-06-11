@@ -32,7 +32,7 @@ DEPEND=">=x11-libs/libxcb-1.7
 	media-fonts/font-misc-misc
 	media-fonts/font-cursor-misc
 	png? ( media-libs/libpng )
-	jpeg? ( media-libs/jpeg )
+	jpeg? ( virtual/jpeg )
 	xinerama? ( x11-proto/xineramaproto )
 "
 
