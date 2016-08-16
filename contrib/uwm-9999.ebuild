@@ -8,7 +8,7 @@ inherit eutils
 
 if [[ ${PV} == "9999" ]] ; then
 	inherit git-2
-	EGIT_REPO_URI="git://uwm.git.sourceforge.net/gitroot/${PN}/${PN}"
+	EGIT_REPO_URI="git://git.code.sf.net/p/${PN}/code"
 else
 	SRC_URI="mirror://sourceforge/${PN}/${P}.tar.bz2"
 fi
