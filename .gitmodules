@@ -1,6 +1,6 @@
 [submodule "core-rc"]
 	path = core-rc
-	url = git://core-rc.git.sourceforge.net/gitroot/core-rc/core-rc
+	url = git://git.code.sf.net/p/core-rc/code/
 [submodule "core-array"]
 	path = core-array
-	url = git://core-array.git.sourceforge.net/gitroot/core-array/core-array
+	url = git://git.code.sf.net/p/core-array/code/
