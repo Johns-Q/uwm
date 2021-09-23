@@ -1,7 +1,7 @@
 ///
 ///	@file desktop.c		@brief desktop management functions
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -277,7 +277,7 @@ void DesktopInit(void)
 {
     int i;
     int n;
-    char buf[16];
+    char buf[32];
     char *data;
 
     // allocate space, if not already done by config

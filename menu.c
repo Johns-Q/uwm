@@ -1,7 +1,7 @@
 ///
 ///	@file menu.c	@brief menu functions
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -684,7 +684,7 @@ void LabelDraw(const Label * label)
     uint32_t bg1_pixel;
     uint32_t bg2_pixel;
     uint32_t outline_pixel;
-    uint32_t top_pixel;
+    //uint32_t top_pixel;
     uint32_t bottom_pixel;
     xcb_rectangle_t rectangle;
     unsigned icon_width;
@@ -723,7 +723,7 @@ void LabelDraw(const Label * label)
 	    bg1_pixel = Colors.MenuBG.Pixel;
 	    bg2_pixel = Colors.MenuBG.Pixel;
 	    outline_pixel = Colors.MenuOutline.Pixel;
-	    top_pixel = Colors.MenuBG.Pixel;
+	    //top_pixel = Colors.MenuBG.Pixel;
 	    bottom_pixel = Colors.MenuBG.Pixel;
 	    break;
 	case LABEL_MENU_ACTIVE:
@@ -735,14 +735,14 @@ void LabelDraw(const Label * label)
 	    } else {
 		outline_pixel = Colors.MenuActiveDown.Pixel;
 	    }
-	    top_pixel = Colors.MenuActiveUp.Pixel;
+	    //top_pixel = Colors.MenuActiveUp.Pixel;
 	    bottom_pixel = Colors.MenuActiveDown.Pixel;
 	    break;
 	case LABEL_TASK:
 	    fg_pixel = Colors.TaskFG.Pixel;
 	    bg1_pixel = Colors.TaskBG1.Pixel;
 	    bg2_pixel = Colors.TaskBG2.Pixel;
-	    top_pixel = Colors.TaskUp.Pixel;
+	    //top_pixel = Colors.TaskUp.Pixel;
 	    bottom_pixel = Colors.TaskDown.Pixel;
 	    outline_pixel = bottom_pixel;
 	    break;
@@ -750,7 +750,7 @@ void LabelDraw(const Label * label)
 	    fg_pixel = Colors.TaskActiveFG.Pixel;
 	    bg1_pixel = Colors.TaskActiveBG1.Pixel;
 	    bg2_pixel = Colors.TaskActiveBG2.Pixel;
-	    top_pixel = Colors.TaskActiveDown.Pixel;
+	    //top_pixel = Colors.TaskActiveDown.Pixel;
 	    bottom_pixel = Colors.TaskActiveUp.Pixel;
 	    outline_pixel = bottom_pixel;
 	    break;
@@ -758,7 +758,7 @@ void LabelDraw(const Label * label)
 	    fg_pixel = Colors.PanelButtonFG.Pixel;
 	    bg1_pixel = Colors.TaskBG1.Pixel;
 	    bg2_pixel = Colors.TaskBG2.Pixel;
-	    top_pixel = Colors.TaskUp.Pixel;
+	    //top_pixel = Colors.TaskUp.Pixel;
 	    bottom_pixel = Colors.TaskDown.Pixel;
 	    outline_pixel = bottom_pixel;
 	    break;
@@ -766,7 +766,7 @@ void LabelDraw(const Label * label)
 	    fg_pixel = Colors.PanelButtonFG.Pixel;
 	    bg1_pixel = Colors.TaskActiveBG1.Pixel;
 	    bg2_pixel = Colors.TaskActiveBG2.Pixel;
-	    top_pixel = Colors.TaskActiveDown.Pixel;
+	    //top_pixel = Colors.TaskActiveDown.Pixel;
 	    bottom_pixel = Colors.TaskActiveUp.Pixel;
 	    outline_pixel = bottom_pixel;
 	    break;
@@ -776,7 +776,7 @@ void LabelDraw(const Label * label)
 	    bg1_pixel = Colors.MenuBG.Pixel;
 	    bg2_pixel = Colors.MenuBG.Pixel;
 	    outline_pixel = Colors.MenuDown.Pixel;
-	    top_pixel = Colors.MenuUp.Pixel;
+	    //top_pixel = Colors.MenuUp.Pixel;
 	    bottom_pixel = Colors.MenuDown.Pixel;
 	    break;
     }
@@ -791,6 +791,7 @@ void LabelDraw(const Label * label)
 	    if (width < 48) {
 		break;
 	    }
+	    // fallthrough
 	default:
 	    // draw the label background
 	    if (!label->NoBackground) {
@@ -3574,6 +3575,7 @@ static void WindowMenuChoose(const MenuCommand * command)
 			    Debug(2, "no client selected\n");
 			}
 		    }
+		    // fallthrough
 		case XCB_KEY_PRESS:
 		    free(event);
 		    goto out;

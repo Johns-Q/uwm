@@ -1,7 +1,7 @@
 ///
 ///	@file uwm.c	@brief µwm µ window manager main file
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///		based on jwm from Joe Wingbermuehle
@@ -672,7 +672,7 @@ static void PrintVersion(void)
 #ifdef GIT_REV
 	"(GIT-" GIT_REV ")"
 #endif
-	", (c) 2009 - 2011 by Lutz Sammer\n"
+	", (c) 2009 - 2011, 2021 by Lutz Sammer\n"
 	"\tLicense AGPLv3: GNU Affero General Public License version 3\n");
 }
 

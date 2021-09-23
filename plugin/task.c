@@ -1,7 +1,7 @@
 ///
 ///	@file task.c	@brief task panel plugin functions.
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -397,7 +397,7 @@ static void TaskDraw(TaskPlugin * task_plugin)
     int x;
     int y;
     unsigned width;
-    unsigned height;
+    //unsigned height;
     unsigned item_width;
     int remainder;
     Label label;
@@ -418,7 +418,7 @@ static void TaskDraw(TaskPlugin * task_plugin)
     }
 
     width = plugin->Width;
-    height = plugin->Height;
+    //height = plugin->Height;
     x = TASK_INNER_SPACE;
     width -= x;
     y = PANEL_INNER_SPACE;

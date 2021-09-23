@@ -1,7 +1,7 @@
 ///
 ///	@file property.c	@brief x11 property handler functions
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -204,12 +204,14 @@ static int HandlePropertyDebug(uint8_t state, xcb_window_t window,
 
     Debug(3, "%s: state %d window %x atom %x - ", __FUNCTION__, state, window,
 	atom);
-
+#if 0
+    // removed from libxcb-util
     // predefined atom?
     if ((name = xcb_atom_get_name_predefined(atom))) {
 	Debug(3, "'%s'\n", name);
 	return 1;
     }
+#endif
     // one of our atoms?
     for (temp = &Atoms.COMPOUND_TEXT; temp <= &Atoms.UWM_EXIT; ++temp) {
 	if (temp->Atom == atom) {
@@ -270,8 +272,9 @@ static xcb_get_property_reply_t *PropertyGet(uint8_t state,
 */
 void PropertyHandler(int state, xcb_window_t window, xcb_atom_t atom)
 {
-    Debug(4, "%s: %d window %x atom %x\n", __FUNCTION__, state, window, atom);
     xcb_get_property_reply_t *reply;
+
+    Debug(4, "%s: %d window %x atom %x\n", __FUNCTION__, state, window, atom);
 
     reply = NULL;
     switch (atom) {			// handle predefined atoms

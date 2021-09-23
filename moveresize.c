@@ -1,7 +1,7 @@
 ///
 ///	@file moveresize.c	@brief move/resize window functions.
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -1063,7 +1063,8 @@ void ClientSnap(Client * client)
 	    break;
 	case SNAP_BORDER:
 	    ClientSnapToBorder(client);
-	    // fall through snaps larger distance, not good!
+	    // snaps larger distance, not good!
+	    // fallthrough
 	case SNAP_SCREEN:
 	    ClientSnapToScreen(client);
 	    break;
