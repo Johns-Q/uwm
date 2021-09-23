@@ -2,13 +2,16 @@
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
-EAPI="4"
+EAPI="7"
 
 inherit eutils
+inherit toolchain-funcs
 
 if [[ ${PV} == "9999" ]] ; then
-	inherit git-2
-	EGIT_REPO_URI="git://git.code.sf.net/p/${PN}/code"
+	inherit git-r3
+	EGIT_REPO_URI="https://git.code.sf.net/p/${PN}/code"
+	EGIT_OVERRIDE_REPO_CORE_ARRAY_CODE="https://git.code.sf.net/p/core-array/code"
+	EGIT_OVERRIDE_REPO_CORE_RC_CODE="https://git.code.sf.net/p/core-rc/code"
 else
 	SRC_URI="mirror://sourceforge/${PN}/${P}.tar.bz2"
 fi
@@ -33,8 +36,8 @@ DEPEND=">=x11-libs/libxcb-1.7
 	media-fonts/font-cursor-misc
 	png? ( media-libs/libpng )
 	jpeg? ( virtual/jpeg )
-	xinerama? ( x11-proto/xineramaproto )
 "
+# xinerama? ( x11-proto/xineramaproto )
 
 src_compile() {
 	local myconf
