@@ -1,7 +1,7 @@
 ///
 ///	@file background.c	@brief desktop background control.
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -104,7 +104,7 @@ struct _background_
     char *Value;			///< value for background type
 
     xcb_pixmap_t Pixmap;		///< background pixmap
-} __attribute__ ((packed));
+} __attribute__((packed));
 
     /// table of backgrounds.
 static Background *Backgrounds;

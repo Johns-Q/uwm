@@ -1,7 +1,7 @@
 ///
 ///	@file hints.c	@brief window manager hints functions.
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -1366,8 +1366,7 @@ void HintNetWmState(Client * client, const xcb_client_message_event_t * event)
 	    }
 	    if (state & (WM_STATE_MAXIMIZED_VERT | WM_STATE_MAXIMIZED_HORZ)) {
 		// ignore if not maximized
-		if (client->
-		    State & (WM_STATE_MAXIMIZED_HORZ |
+		if (client->State & (WM_STATE_MAXIMIZED_HORZ |
 			WM_STATE_MAXIMIZED_VERT)) {
 		    ClientMaximize(client, 0, 0);
 		}
@@ -1385,7 +1384,8 @@ void HintNetWmState(Client * client, const xcb_client_message_event_t * event)
 	    }
 	    if (state & (WM_STATE_MAXIMIZED_VERT | WM_STATE_MAXIMIZED_HORZ)) {
 		// ignore if already maximized
-		if (!(client->State & (WM_STATE_MAXIMIZED_VERT |
+		if (!(client->
+			State & (WM_STATE_MAXIMIZED_VERT |
 			    WM_STATE_MAXIMIZED_HORZ))) {
 		    ClientMaximize(client, state & WM_STATE_MAXIMIZED_HORZ,
 			state & WM_STATE_MAXIMIZED_VERT);

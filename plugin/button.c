@@ -1,7 +1,7 @@
 ///
 ///	@file button.c	@brief button panel plugin functions.
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -272,8 +272,8 @@ static void PanelButtonResize(Plugin * plugin)
 **	@param mask	button mask
 */
 static void PanelButtonHandleButtonPress(Plugin * plugin, int
-    __attribute__ ((unused)) x, int __attribute__ ((unused)) y, int
-    __attribute__ ((unused)) mask)
+    __attribute__((unused)) x, int __attribute__((unused)) y, int
+    __attribute__((unused)) mask)
 {
     ButtonPlugin *button_plugin;
 
@@ -298,8 +298,8 @@ static void PanelButtonHandleButtonPress(Plugin * plugin, int
 **	@param mask	button mask
 */
 static void PanelButtonHandleButtonRelease(Plugin * plugin, int
-    __attribute__ ((unused)) x, int __attribute__ ((unused)) y, int
-    __attribute__ ((unused)) mask)
+    __attribute__((unused)) x, int __attribute__((unused)) y, int
+    __attribute__((unused)) mask)
 {
     PanelButtonDraw(plugin, 0);
     PanelUpdatePlugin(plugin->Panel, plugin);

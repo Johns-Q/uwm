@@ -1,7 +1,7 @@
 ///
 ///	@file dia.c	@brief dia show application functions
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -35,14 +35,14 @@
 ///
 ///	<tt>
 ///	.----------------v---------------------------------------v------.
-///	|  film   |	 |	   |		       |	 |	|
-///	|  roll   | NWC  |	   |		       |	 | NEC	|
+///	|  film	  |	 |	   |		       |	 |	|
+///	|  roll	  | NWC	 |	   |		       |	 | NEC	|
 ///	|	  |	 |	   |		       |	 |	|
 ///	|	  }------'	   |		       |	 `------{
 ///	|	  |		   |		       |		|
 ///	|	  |		   |		       |		|
 ///	|	  |		   |		       |		|
-///	|	  |	  WS	   |	   FOTO        |      ES	|
+///	|	  |	  WS	   |	   FOTO	       |      ES	|
 ///	|	  |		   |		       |		|
 ///	|	  |		   |		       |		|
 ///	|	  |		   |		       |		|
@@ -238,7 +238,7 @@ static Array *DiaDirNew(const char *name)
     if (n > 0) {
 	index = 0;
 	for (i = 0; i < n; ++i) {
-	    ArrayIns(&array, index++, (size_t) strdup(namelist[i]->d_name));
+	    ArrayIns(&array, index++, (size_t)strdup(namelist[i]->d_name));
 	    free(namelist[i]);
 	}
 	free(namelist);
@@ -1294,7 +1294,7 @@ static void DiaClickCommand(int mask, int x, int y)
 **	@param move_y	how far pointer moved up/down
 */
 static void DiaMoveCommand(int x, int
-    __attribute__ ((unused)) y, int move_x, int move_y)
+    __attribute__((unused)) y, int move_x, int move_y)
 {
     int left_right;
 
@@ -1469,8 +1469,8 @@ int DiaHandleMotionNotify(const xcb_motion_notify_event_t * event)
 **	@param x	current mouse x-coordinate
 **	@param y	current mouse y-coordinate
 */
-void DiaTimeout(uint32_t tick, int __attribute__ ((unused)) x, int
-    __attribute__ ((unused)) y)
+void DiaTimeout(uint32_t tick, int __attribute__((unused)) x, int
+    __attribute__((unused)) y)
 {
     if (!DiaVars->Window) {
 	return;

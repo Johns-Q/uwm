@@ -1,7 +1,7 @@
 ///
 ///	@file border.c		@brief client window border functions
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -522,13 +522,14 @@ static void BorderDrawBorder(const Client * client, int draw_icon)
 	}
 	// window maximize button
 	if (title_width > BorderButtonWidth
-	    && (client->Border & (BORDER_MAXIMIZE_VERT |
-		    BORDER_MAXIMIZE_HORZ))) {
+	    && (client->
+		Border & (BORDER_MAXIMIZE_VERT | BORDER_MAXIMIZE_HORZ))) {
 	    BorderDrawTitleButton(client->Parent, BorderGC, text_pixel,
-		(client->State & (WM_STATE_MAXIMIZED_HORZ |
+		(client->
+		    State & (WM_STATE_MAXIMIZED_HORZ |
 			WM_STATE_MAXIMIZED_VERT))
-		? BorderButtons.MaximizeActive.Pixmap : BorderButtons.
-		Maximize.Pixmap, title_width, yoffset);
+		? BorderButtons.MaximizeActive.Pixmap : BorderButtons.Maximize.
+		Pixmap, title_width, yoffset);
 	    title_width -= BorderButtonWidth;
 	}
 	// window minimize button
@@ -543,8 +544,8 @@ static void BorderDrawBorder(const Client * client, int draw_icon)
 	    && (client->Border & BORDER_STICKY)) {
 	    BorderDrawTitleButton(client->Parent, BorderGC, text_pixel,
 		(client->State & WM_STATE_STICKY)
-		? BorderButtons.StickyActive.Pixmap : BorderButtons.
-		Sticky.Pixmap, title_width, yoffset);
+		? BorderButtons.StickyActive.Pixmap : BorderButtons.Sticky.
+		Pixmap, title_width, yoffset);
 	    title_width -= BorderButtonWidth;
 	}
 
@@ -810,8 +811,8 @@ BorderAction BorderGetAction(const Client * client, int x, int y)
 		offset -= BorderButtonWidth;
 	    }
 	    // maximize button
-	    if ((client->Border & (BORDER_MAXIMIZE_VERT |
-			BORDER_MAXIMIZE_HORZ))
+	    if ((client->
+		    Border & (BORDER_MAXIMIZE_VERT | BORDER_MAXIMIZE_HORZ))
 		&& offset > BorderButtonWidth) {
 		if (x > offset && x < offset + BorderButtonWidth) {
 		    return BORDER_ACTION_MAXIMIZE;

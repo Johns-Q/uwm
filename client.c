@@ -1,7 +1,7 @@
 ///
 ///	@file client.c		@brief client functions
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -571,8 +571,8 @@ void ClientPlace(Client * client, int already_mapped)
     //
     if ((!overflow && already_mapped)
 	|| (!(client->State & WM_STATE_PIGNORE)
-	    && (client->
-		SizeHints.flags & (XCB_ICCCM_SIZE_HINT_P_POSITION |
+	    && (client->SizeHints.
+		flags & (XCB_ICCCM_SIZE_HINT_P_POSITION |
 		    XCB_ICCCM_SIZE_HINT_US_POSITION)))) {
 	ClientGravitate(client, 0);
     } else {
@@ -868,7 +868,7 @@ int ClientN;				///< number of clients managed
     /// table of double linked tail queues of all clients in layer
 ClientLayerHead ClientLayers[LAYER_MAX];
 
-void (*ClientController) (void);	///< callback to stop move/resize
+void (*ClientController)(void);		///< callback to stop move/resize
 Client *ClientControlled;		///< current controlled client
 
     /// pre-init -> init cookie
@@ -2213,8 +2213,8 @@ void ClientDelWindow(Client * client)
     //	If window manager is exiting (ie, not client), then reparent etc.
     //
     if (!KeepLooping && !(client->State & WM_STATE_WMDIALOG)) {
-	if (client->
-	    State & (WM_STATE_MAXIMIZED_VERT | WM_STATE_MAXIMIZED_HORZ)) {
+	if (client->State & (WM_STATE_MAXIMIZED_VERT |
+		WM_STATE_MAXIMIZED_HORZ)) {
 	    uint32_t values[4];
 
 	    client->X = client->OldX;

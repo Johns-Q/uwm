@@ -1,7 +1,7 @@
 ///
 ///	@file tooltip.c		@brief tooltip functions.
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -70,7 +70,7 @@ typedef struct _tooltip_
     uint16_t LastX;			///< last mouse x-coordinate
     uint16_t LastY;			///< last mouse y-coordinate
     uint32_t LastTick;			///< last tooltip tick
-    void (*DrawTooltip) (int, int);	///< tooltip callback to draw text
+    void (*DrawTooltip)(int, int);	///< tooltip callback to draw text
 } Tooltip;
 
 static Tooltip TooltipVars[1];		///< current tooltip data
@@ -88,7 +88,7 @@ static int TooltipEnabled;		///< flag tooltips are enabled
 **	@param y	current mouse y-coordinate
 **	@param draw	function called to draw tooltip
 */
-void TooltipRegister(int x, int y, void (*draw) (int, int))
+void TooltipRegister(int x, int y, void (*draw)(int, int))
 {
     TooltipVars->LastX = x;
     TooltipVars->LastY = y;

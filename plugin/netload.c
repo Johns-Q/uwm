@@ -1,7 +1,7 @@
 ///
 ///	@file netload.c @brief netload panel plugin functions.
 ///
-///	Copyright (c) 2010, 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2010, 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -373,8 +373,8 @@ static void NetloadResize(Plugin * plugin)
 **	@param mask	button mask
 */
 static void NetloadHandleButtonPress(Plugin * plugin, int
-    __attribute__ ((unused)) x, int __attribute__ ((unused)) y, int
-    __attribute__ ((unused)) mask)
+    __attribute__((unused)) x, int __attribute__((unused)) y, int
+    __attribute__((unused)) mask)
 {
     NetloadPlugin *netload_plugin;
 
@@ -449,8 +449,8 @@ static void NetloadTooltip(const Plugin * plugin, int x, int y)
 **	@param y	current mouse y-coordinate
 */
 static void NetloadTimeout(Plugin
-    __attribute__ ((unused)) * plugin, uint32_t tick, int
-    __attribute__ ((unused)) x, int __attribute__ ((unused)) y)
+    __attribute__((unused)) * plugin, uint32_t tick, int
+    __attribute__((unused)) x, int __attribute__((unused)) y)
 {
     // draw only every 500ms
     if (NetloadLastUpdateTick > tick || tick >= NetloadLastUpdateTick + 500) {

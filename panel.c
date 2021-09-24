@@ -1,7 +1,7 @@
 ///
 ///	@file panel.c		@brief panel functions
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -1252,7 +1252,7 @@ void PanelPluginDeletePixmap(Plugin * plugin)
 **
 **	@param plugin	common plugin data to be deleted
 */
-static void PanelPluginDelete(Plugin * __attribute__ ((unused)) plugin)
+static void PanelPluginDelete(Plugin * __attribute__((unused)) plugin)
 {
     Debug(3, "plugin delete %p\n", plugin);
 }
@@ -1266,9 +1266,9 @@ static void PanelPluginDelete(Plugin * __attribute__ ((unused)) plugin)
 **	@param y	current mouse y-coordinate
 */
 static void PanelPluginTimeout(Plugin
-    __attribute__ ((unused)) * plugin, uint32_t
-    __attribute__ ((unused)) tick, int __attribute__ ((unused)) x, int
-    __attribute__ ((unused)) y)
+    __attribute__((unused)) * plugin, uint32_t
+    __attribute__((unused)) tick, int __attribute__((unused)) x, int
+    __attribute__((unused)) y)
 {
 }
 
@@ -1280,8 +1280,8 @@ static void PanelPluginTimeout(Plugin
 **	@param y	current mouse y-coordinate
 */
 static void PanelPluginTooltip(const Plugin
-    __attribute__ ((unused)) * plugin, int __attribute__ ((unused)) x, int
-    __attribute__ ((unused)) y)
+    __attribute__((unused)) * plugin, int __attribute__((unused)) x, int
+    __attribute__((unused)) y)
 {
 }
 

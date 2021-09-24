@@ -1,7 +1,7 @@
 ///
 ///	@file systray.c		@brief systray panel plugin functions.
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -758,7 +758,7 @@ void SystrayExit(void)
 **
 **	@returns created sysstray panel plugin.
 */
-Plugin *SystrayConfig( __attribute__ ((unused))
+Plugin *SystrayConfig( __attribute__((unused))
     const ConfigObject * array)
 {
     Plugin *plugin;

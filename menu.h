@@ -1,7 +1,7 @@
 ///
 ///	@file menu.h	@brief menu header file
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -260,7 +260,7 @@ struct _menu_command_
 	char *String;			///< string parameter
 	Menu *Submenu;			///< sub menu parameter
     };
-} __attribute__ ((packed));
+} __attribute__((packed));
 
 /**
 **	Menu button structure.
@@ -292,7 +292,7 @@ struct _menu_item_
 #endif
 
     MenuCommand Command;		///< command of menu item
-} __attribute__ ((packed));
+} __attribute__((packed));
 
 //////////////////////////////////////////////////////////////////////////////
 //	Variables

@@ -1,7 +1,7 @@
 ///
 ///	@file clock.c	@brief clock panel plugin functions.
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -224,8 +224,8 @@ static void ClockResize(Plugin * plugin)
 **	@param mask	button mask
 */
 static void ClockHandleButtonPress(Plugin * plugin, int
-    __attribute__ ((unused)) x, int __attribute__ ((unused)) y, int
-    __attribute__ ((unused)) mask)
+    __attribute__((unused)) x, int __attribute__((unused)) y, int
+    __attribute__((unused)) mask)
 {
     ClockPlugin *clock_plugin;
 
@@ -261,8 +261,8 @@ static void ClockTooltip(const Plugin * plugin, int x, int y)
 **	@param y	current mouse y-coordinate
 */
 static void ClockTimeout(Plugin
-    __attribute__ ((unused)) * plugin, uint32_t tick, int
-    __attribute__ ((unused)) x, int __attribute__ ((unused)) y)
+    __attribute__((unused)) * plugin, uint32_t tick, int
+    __attribute__((unused)) x, int __attribute__((unused)) y)
 {
     ClockPlugin *clock_plugin;
 

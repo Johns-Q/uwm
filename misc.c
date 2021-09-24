@@ -1,7 +1,7 @@
 ///
 ///	@file misc.c	@brief misc functions
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -204,7 +204,7 @@ char *ExpandPath(const char *path)
 #ifdef USE_XMU				// {
 
 /**
-**	Draw rounded rectangle.  Where @a x, @a y, @a w, @a h are
+**	Draw rounded rectangle.	 Where @a x, @a y, @a w, @a h are
 **	dimensions of overall rectangle, and @a ew and @a eh are sizes of
 **	bounding box that corners are drawn inside of.
 **
@@ -292,7 +292,7 @@ void xmu_draw_rounded_rectangle(xcb_connection_t * c, xcb_drawable_t draw,
 }
 
 /**
-**	Fill rounded rectangle.  Where @a x, @a y, @a w, @a h are
+**	Fill rounded rectangle.	 Where @a x, @a y, @a w, @a h are
 **	dimensions of overall rectangle, and @a ew and @a eh are sizes of
 **	bounding box that corners are drawn inside of.
 **

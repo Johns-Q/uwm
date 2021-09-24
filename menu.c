@@ -1,7 +1,7 @@
 ///
 ///	@file menu.c	@brief menu functions
 ///
-///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -130,7 +130,7 @@ struct _dialog_
 {
     LIST_ENTRY(_dialog_) Node;		///< list of dialogs
 
-    void (*Action) (Client *);		///< action called on OK click
+    void (*Action)(Client *);		///< action called on OK click
     Client *Client;			///< client argument of action
 
     int LineN;				///< number of text lines
@@ -316,7 +316,7 @@ static void DialogSetupSize(Dialog * dialog)
 **	@param action	callback to run if "OK" is clicked
 **	@param ...	list of message strings
 */
-void DialogShowConfirm(Client * client, void (*action) (Client *), ...)
+void DialogShowConfirm(Client * client, void (*action)(Client *), ...)
 {
     Dialog *dialog;
     va_list ap;
@@ -684,6 +684,7 @@ void LabelDraw(const Label * label)
     uint32_t bg1_pixel;
     uint32_t bg2_pixel;
     uint32_t outline_pixel;
+
     //uint32_t top_pixel;
     uint32_t bottom_pixel;
     xcb_rectangle_t rectangle;
@@ -1063,7 +1064,7 @@ static void MenuCommandCleanup(MenuCommand *);
 static void MenuCommandCopy(MenuCommand *, const MenuCommand *);
 
 static void RootMenuExecute(void
-    __attribute__ ((unused)) *, const MenuCommand *);
+    __attribute__((unused)) *, const MenuCommand *);
 
 static void RootMenuShow(int, int, int);
 
@@ -2118,7 +2119,7 @@ static int MenuExecuteRuntime(Runtime * runtime, Runtime * parent, int x,
 **	@param opaque	private data for execute
 */
 static void MenuShowRuntime(Runtime * runtime, int x, int y,
-    void (*execute) (void *, const MenuCommand *), void *opaque)
+    void (*execute)(void *, const MenuCommand *), void *opaque)
 {
     xcb_grab_pointer_cookie_t pointer_cookie;
     xcb_grab_keyboard_cookie_t keyboard_cookie;
@@ -2160,7 +2161,7 @@ static void MenuShowRuntime(Runtime * runtime, int x, int y,
 **
 **	@param client	dummy argument for other callbacks.
 */
-void ExitHandler(Client __attribute__ ((unused)) * client)
+void ExitHandler(Client __attribute__((unused)) * client)
 {
     Debug(3, "--- starting exit:\n");
     KeepLooping = 0;
@@ -2462,7 +2463,7 @@ void MenuCommandDel(MenuCommand * command)
 **	@param opaque	user data pointer
 */
 void MenuButtonExecute(MenuButton * button, int mask, int x, int y, void
-    __attribute__ ((unused)) * opaque)
+    __attribute__((unused)) * opaque)
 {
     int b;
 
@@ -3042,7 +3043,7 @@ static MenuButton *RootButtons;		///< root window buttons
 **	@param command	menu command to execute
 */
 static void RootMenuExecute(void
-    __attribute__ ((unused)) * opaque, const MenuCommand * command)
+    __attribute__((unused)) * opaque, const MenuCommand * command)
 {
     int x;
     int y;
@@ -3384,20 +3385,20 @@ static Menu *WindowMenuCreate(const Client * client)
     if ((client->Border & (BORDER_MAXIMIZE_HORZ | BORDER_MAXIMIZE_VERT))
 	&& (client->State & WM_STATE_MAPPED)) {
 
-	if (!(client->
-		State & (WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT))) {
+	if (!(client->State & (WM_STATE_MAXIMIZED_HORZ |
+		    WM_STATE_MAXIMIZED_VERT))) {
 	    WindowMenuAppend(menu, NULL, "Maximize-y",
 		MENU_ACTION_MAXIMIZE_VERT, 0);
 	}
 
-	if (!(client->
-		State & (WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT))) {
+	if (!(client->State & (WM_STATE_MAXIMIZED_HORZ |
+		    WM_STATE_MAXIMIZED_VERT))) {
 	    WindowMenuAppend(menu, NULL, "Maximize-x",
 		MENU_ACTION_MAXIMIZE_HORZ, 0);
 	}
 
-	if ((client->
-		State & (WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT))) {
+	if ((client->State & (WM_STATE_MAXIMIZED_HORZ |
+		    WM_STATE_MAXIMIZED_VERT))) {
 	    WindowMenuAppend(menu, NULL, "Unmaximize",
 		MENU_ACTION_TOGGLE_MAXIMIZE, 0);
 	} else {

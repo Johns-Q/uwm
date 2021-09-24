@@ -1,7 +1,7 @@
 ///
 ///	@file border.h		@brief client window border header file
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -67,7 +67,7 @@ typedef enum
 extern void BorderGetSize(const Client *, int *, int *, int *, int *);
 
     /// Get size of title border.
-extern int BorderGetTitleSize(void) __attribute__ ((pure));
+extern int BorderGetTitleSize(void) __attribute__((pure));
 
     /// Draw client window border.
 extern void BorderDraw(const Client *, const xcb_expose_event_t *);

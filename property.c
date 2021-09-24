@@ -1,7 +1,7 @@
 ///
 ///	@file property.c	@brief x11 property handler functions
 ///
-///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -74,9 +74,9 @@
 **	@todo property argument isn't used.
 */
 static int HandlePropertyWMName(
-    __attribute__ ((unused)) uint8_t state, xcb_window_t window,
+    __attribute__((unused)) uint8_t state, xcb_window_t window,
     xcb_atom_t atom,
-    __attribute__ ((unused)) xcb_get_property_reply_t * property)
+    __attribute__((unused)) xcb_get_property_reply_t * property)
 {
     Client *client;
 
@@ -104,7 +104,7 @@ static int HandlePropertyWMName(
 **	@returns always true.
 */
 static int HandlePropertyWMHints(
-    __attribute__ ((unused)) uint8_t state, xcb_window_t window,
+    __attribute__((unused)) uint8_t state, xcb_window_t window,
     xcb_atom_t atom, xcb_get_property_reply_t * property)
 {
     Client *client;
@@ -171,9 +171,9 @@ static int HandlePropertyWMHints(
 **	@returns always true.
 */
 static int HandlePropertyWMNormalHints(
-    __attribute__ ((unused)) uint8_t state,
-    __attribute__ ((unused)) xcb_window_t window, xcb_atom_t atom,
-    __attribute__ ((unused)) xcb_get_property_reply_t * property)
+    __attribute__((unused)) uint8_t state,
+    __attribute__((unused)) xcb_window_t window, xcb_atom_t atom,
+    __attribute__((unused)) xcb_get_property_reply_t * property)
 {
     Debug(3, "%s: atom %x\n", __FUNCTION__, atom);
 
@@ -194,7 +194,7 @@ static int HandlePropertyWMNormalHints(
 */
 static int HandlePropertyDebug(uint8_t state, xcb_window_t window,
     xcb_atom_t atom,
-    __attribute__ ((unused)) xcb_get_property_reply_t * property)
+    __attribute__((unused)) xcb_get_property_reply_t * property)
 {
     Atom *temp;
     const char *name;

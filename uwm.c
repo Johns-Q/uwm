@@ -1,7 +1,7 @@
 ///
 ///	@file uwm.c	@brief µwm µ window manager main file
 ///
-///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///		based on jwm from Joe Wingbermuehle
@@ -361,7 +361,7 @@ static void ConnectionClose(void)
 /**
 **	Signal handler.
 */
-static void SignalHandler(int __attribute__ ((unused)) signum)
+static void SignalHandler(int __attribute__((unused)) signum)
 {
     signal(SIGTERM, SignalHandler);
     signal(SIGINT, SignalHandler);

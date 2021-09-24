@@ -1,7 +1,7 @@
 ///
 ///	@file image.c	@brief image loading functions.
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -100,7 +100,7 @@ void ImageDel(Image * image)
 #include <jpeglib.h>
 
     // funny construct to have noreturn attribute with stupid gcc
-static void ImageJPEGErrorExit(j_common_ptr cinfo) __attribute__ ((noreturn));
+static void ImageJPEGErrorExit(j_common_ptr cinfo) __attribute__((noreturn));
 
 /**
 **	Called from jpeg on errors by error_exit method.

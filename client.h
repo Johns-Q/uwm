@@ -1,7 +1,7 @@
 ///
 ///	@file client.h	@brief client header file
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -191,7 +191,7 @@ extern int ClientN;			///< number of clients managed
     /// table of double linkted tail queues of all clients in a layer
 extern ClientLayerHead ClientLayers[LAYER_MAX];
 
-extern void (*ClientController) (void);	///< callback to stop move/resize
+extern void (*ClientController)(void);	///< callback to stop move/resize
 extern Client *ClientControlled;	///< current controlled client
 
 //////////////////////////////////////////////////////////////////////////////

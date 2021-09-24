@@ -1,7 +1,7 @@
 ///
 ///	@file panel.h @brief panel header file
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -67,23 +67,23 @@ struct _panel_plugin_
     xcb_pixmap_t Pixmap;		///< content of pixmap (plugin frees)
 
     /// callback to create new plugin
-    void (*Create) (Plugin *);
+    void (*Create)(Plugin *);
     /// callback to delete plugin
-    void (*Delete) (Plugin *);
+    void (*Delete)(Plugin *);
     /// callback to set size known so far
-    void (*SetSize) (Plugin *, unsigned, unsigned);
+    void (*SetSize)(Plugin *, unsigned, unsigned);
     /// callback to resize plugin
-    void (*Resize) (Plugin *);
+    void (*Resize)(Plugin *);
     /// callback to show tooltip of plugin
-    void (*Tooltip) (const Plugin *, int, int);
+    void (*Tooltip)(const Plugin *, int, int);
     /// callback for mouse presse event
-    void (*HandleButtonPress) (Plugin *, int, int, int);
+    void (*HandleButtonPress)(Plugin *, int, int, int);
     /// callback for mouse release event
-    void (*HandleButtonRelease) (Plugin *, int, int, int);
+    void (*HandleButtonRelease)(Plugin *, int, int, int);
     /// callback for mouse motion event
-    void (*HandleMotionNotify) (Plugin *, int, int, int);
+    void (*HandleMotionNotify)(Plugin *, int, int, int);
     /// callback for timeout of plugin
-    void (*Timeout) (Plugin *, uint32_t, int, int);
+    void (*Timeout)(Plugin *, uint32_t, int, int);
 };
 
 /**
