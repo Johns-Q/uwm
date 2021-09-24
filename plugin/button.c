@@ -1,7 +1,7 @@
 ///
 ///	@file button.c	@brief button panel plugin functions.
 ///
-///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -479,17 +479,17 @@ Plugin *PanelButtonConfig(const ConfigObject * array)
     SLIST_INSERT_HEAD(&Buttons, button_plugin, Next);
 
 #ifdef USE_ICON
-    if (ConfigGetString(array, &sval, "icon", NULL)) {
+    if (ConfigStringsGetString(array, &sval, "icon", NULL)) {
 	button_plugin->IconName = strdup(sval);
     }
-    if (ConfigGetBoolean(array, "icon-or-text", NULL) > 0) {
+    if (ConfigStringsGetBoolean(array, "icon-or-text", NULL) > 0) {
 	button_plugin->IconOrText = 1;
     }
 #endif
-    if (ConfigGetString(array, &sval, "text", NULL)) {
+    if (ConfigStringsGetString(array, &sval, "text", NULL)) {
 	button_plugin->Text = strdup(sval);
     }
-    if (ConfigGetString(array, &sval, "tooltip", NULL)) {
+    if (ConfigStringsGetString(array, &sval, "tooltip", NULL)) {
 	button_plugin->Tooltip = strdup(sval);
     }
     // common config of pointer buttons to commands
@@ -502,11 +502,11 @@ Plugin *PanelButtonConfig(const ConfigObject * array)
 
     PanelPluginConfigSize(array, plugin);	// get width, height
 
-    if (ConfigGetBoolean(array, "desktop", NULL) > 0) {
+    if (ConfigStringsGetBoolean(array, "desktop", NULL) > 0) {
 	button_plugin->DesktopName = 1;
     }
 #ifdef USE_BUTTON_BACKGROUND
-    if (ConfigGetBoolean(array, "background", NULL) > 0) {
+    if (ConfigStringsGetBoolean(array, "background", NULL) > 0) {
 	button_plugin->Background = 1;
     }
     if (button_plugin->Background) {

@@ -1145,7 +1145,7 @@ void IconConfig(const Config * config)
 {
     const ConfigObject *array;
 
-    if (ConfigGetArray(ConfigDict(config), &array, "icon-path", NULL)) {
+    if (ConfigStringsGetArray(ConfigDict(config), &array, "icon-path", NULL)) {
 	const ConfigObject *index;
 	const ConfigObject *value;
 	char *path;

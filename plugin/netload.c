@@ -1,7 +1,7 @@
 ///
 ///	@file netload.c @brief netload panel plugin functions.
 ///
-///	Copyright (c) 2010, 2011, 2021 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2010, 2011, 2021 by Lutz Sammer.	All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -542,10 +542,10 @@ Plugin *NetloadConfig(const ConfigObject * array)
     SLIST_INSERT_HEAD(&Netloads, netload_plugin, Next);
 
     // user specified network interface
-    if (ConfigGetString(array, &sval, "interface", NULL)) {
+    if (ConfigStringsGetString(array, &sval, "interface", NULL)) {
 	netload_plugin->Interface = strdup(sval);
     }
-    if (ConfigGetBoolean(array, "smooth", NULL) > 0) {
+    if (ConfigStringsGetBoolean(array, "smooth", NULL) > 0) {
 	netload_plugin->Smooth = 1;
     }
     // common config of pointer buttons to commands

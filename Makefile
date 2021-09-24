@@ -33,7 +33,7 @@
 #	global default uwm system configuration file
 #CONFIG += '-DSYSTEM_CONFIG="/etc/system.uwmrc"'
 #	enable/disable runtime configuration
-#CONFIG += -DUSE_RC
+CONFIG += -DUSE_RC -DUSE_CORE_RC_GET_STRINGS
 #CONFIG += -DNO_RC
 #	enable/disable outline window move/resize
 #CONFIG += -DUSE_OUTLINE

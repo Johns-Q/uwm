@@ -752,7 +752,7 @@ Plugin *TaskConfig(const ConfigObject * array)
     task_plugin = calloc(1, sizeof(*task_plugin));
     SLIST_INSERT_HEAD(&Tasks, task_plugin, Next);
 
-    if (ConfigGetString(array, &sval, "insert-mode", NULL)) {
+    if (ConfigStringsGetString(array, &sval, "insert-mode", NULL)) {
 	if (!strcasecmp(sval, "right")) {
 	    TaskInsertMode = TASK_INSERT_RIGHT;
 	} else if (!strcasecmp(sval, "left")) {
@@ -762,12 +762,12 @@ Plugin *TaskConfig(const ConfigObject * array)
 	    TaskInsertMode = TASK_INSERT_LEFT;
 	}
     }
-    if (ConfigGetInteger(array, &ival, "max-item-width", NULL)) {
+    if (ConfigStringsGetInteger(array, &ival, "max-item-width", NULL)) {
 	task_plugin->MaxItemWidth = ival;
     } else {
 	task_plugin->MaxItemWidth = UINT16_MAX;
     }
-    if (ConfigGetBoolean(array, "dynamic-size", NULL) > 0) {
+    if (ConfigStringsGetBoolean(array, "dynamic-size", NULL) > 0) {
 	task_plugin->DynamicSize = 1;
     }
     //task_plugin->Layout = PANEL_LAYOUT_HORIZONTAL;

@@ -1,7 +1,7 @@
 ///
 ///	@file pager.c		@brief pager panel plugin functions.
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -847,10 +847,10 @@ Plugin *PagerConfig(const ConfigObject * array)
     pager_plugin = calloc(1, sizeof(*pager_plugin));
     SLIST_INSERT_HEAD(&Pagers, pager_plugin, Next);
 
-    if (ConfigGetBoolean(array, "labeled", NULL) > 0) {
+    if (ConfigStringsGetBoolean(array, "labeled", NULL) > 0) {
 	pager_plugin->Labeled = 1;
     }
-    if (ConfigGetBoolean(array, "sticky", NULL) > 0) {
+    if (ConfigStringsGetBoolean(array, "sticky", NULL) > 0) {
 	pager_plugin->Sticky = 1;
     }
 

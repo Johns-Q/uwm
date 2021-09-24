@@ -1,7 +1,7 @@
 ///
 ///	@file clock.c	@brief clock panel plugin functions.
 ///
-///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -381,12 +381,12 @@ Plugin *ClockConfig(const ConfigObject * array)
     clock_plugin = calloc(1, sizeof(*clock_plugin));
     SLIST_INSERT_HEAD(&Clocks, clock_plugin, Next);
 
-    if (!ConfigGetString(array, &sval, "format", NULL)) {
+    if (!ConfigStringsGetString(array, &sval, "format", NULL)) {
 	sval = CLOCK_DEFAULT_FORMAT;
     }
     clock_plugin->ShortFormat = strdup(sval);
 
-    if (!ConfigGetString(array, &sval, "tooltip", NULL)) {
+    if (!ConfigStringsGetString(array, &sval, "tooltip", NULL)) {
 	sval = CLOCK_DEFAULT_LONG_FORMAT;
     }
     clock_plugin->LongFormat = strdup(sval);

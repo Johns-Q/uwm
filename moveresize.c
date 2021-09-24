@@ -401,8 +401,8 @@ void StatusConfig(const Config * config)
     StatusMoveX = 0;
     StatusMoveY = 0;
     // FIXME: get array and than values
-    if (ConfigGetString(ConfigDict(config), &sval, "move", "status", "type",
-	    NULL)) {
+    if (ConfigStringsGetString(ConfigDict(config), &sval, "move", "status",
+	    "type", NULL)) {
 	StatusType type;
 
 	type = StatusParseType(sval);
@@ -413,20 +413,20 @@ void StatusConfig(const Config * config)
 	    Warning("invalid move status type: \"%s\"\n", sval);
 	}
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "move", "status", "x",
-	    NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival, "move", "status",
+	    "x", NULL)) {
 	StatusMoveX = ival;
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "move", "status", "y",
-	    NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival, "move", "status",
+	    "y", NULL)) {
 	StatusMoveY = ival;
     }
     StatusResizeType = STATUS_WINDOW_CENTER_SCREEN;
     StatusResizeX = 0;
     StatusResizeY = 0;
     // FIXME: get array and than values
-    if (ConfigGetString(ConfigDict(config), &sval, "resize", "status", "type",
-	    NULL)) {
+    if (ConfigStringsGetString(ConfigDict(config), &sval, "resize", "status",
+	    "type", NULL)) {
 	StatusType type;
 
 	type = StatusParseType(sval);
@@ -437,12 +437,12 @@ void StatusConfig(const Config * config)
 	    Warning("invalid resize status type: \"%s\"\n", sval);
 	}
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "resize", "status", "x",
-	    NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival, "resize", "status",
+	    "x", NULL)) {
 	StatusResizeX = ival;
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "resize", "status", "y",
-	    NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival, "resize", "status",
+	    "y", NULL)) {
 	StatusResizeY = ival;
     }
 }
@@ -573,7 +573,8 @@ void OutlineConfig(const Config * config)
     const char *sval;
 
     ClientMoveMode = MOVE_OPAQUE;
-    if (ConfigGetString(ConfigDict(config), &sval, "move", "mode", NULL)) {
+    if (ConfigStringsGetString(ConfigDict(config), &sval, "move", "mode",
+	    NULL)) {
 	if (!strcasecmp(sval, "outline")) {
 	    ClientMoveMode = MOVE_OUTLINE;
 	} else if (!strcasecmp(sval, "opaque")) {
@@ -584,7 +585,8 @@ void OutlineConfig(const Config * config)
     }
 
     ClientResizeMode = RESIZE_OPAQUE;
-    if (ConfigGetString(ConfigDict(config), &sval, "resize", "mode", NULL)) {
+    if (ConfigStringsGetString(ConfigDict(config), &sval, "resize", "mode",
+	    NULL)) {
 	if (!strcasecmp(sval, "outline")) {
 	    ClientResizeMode = RESIZE_OUTLINE;
 	} else if (!strcasecmp(sval, "opaque")) {
@@ -1089,7 +1091,8 @@ void SnapConfig(const Config * config)
     ssize_t ival;
 
     // snap.mode
-    if (ConfigGetString(ConfigDict(config), &sval, "snap", "mode", NULL)) {
+    if (ConfigStringsGetString(ConfigDict(config), &sval, "snap", "mode",
+	    NULL)) {
 	if (!strcasecmp(sval, "none")) {
 	    ClientSnapMode = SNAP_NONE;
 	} else if (!strcasecmp(sval, "client")) {
@@ -1104,7 +1107,8 @@ void SnapConfig(const Config * config)
 	}
     }
     // snap.distance
-    if (ConfigGetInteger(ConfigDict(config), &ival, "snap", "distance", NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival, "snap", "distance",
+	    NULL)) {
 	if (SNAP_MINIMAL_DISTANCE <= ival && ival <= SNAP_MAXIMAL_DISTANCE) {
 	    ClientSnapDistance = ival;
 	} else {

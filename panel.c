@@ -1,7 +1,7 @@
 ///
 ///	@file panel.c		@brief panel functions
 ///
-///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -1350,11 +1350,11 @@ void PanelPluginConfigSize(const ConfigObject * array, Plugin * plugin)
 {
     ssize_t ival;
 
-    if (ConfigGetInteger(array, &ival, "width", NULL)) {
+    if (ConfigStringsGetInteger(array, &ival, "width", NULL)) {
 	plugin->RequestedWidth = ival;
 	plugin->UserWidth = 1;
     }
-    if (ConfigGetInteger(array, &ival, "height", NULL)) {
+    if (ConfigStringsGetInteger(array, &ival, "height", NULL)) {
 	plugin->RequestedHeight = ival;
 	plugin->UserHeight = 1;
     }
@@ -1378,19 +1378,19 @@ static void PanelConfigPanel(const ConfigObject * array)
     //
     //	request-x
     //
-    if (ConfigGetInteger(array, &ival, "x", NULL)) {
+    if (ConfigStringsGetInteger(array, &ival, "x", NULL)) {
 	panel->RequestedX = ival;
     }
     //
     //	request-y
     //
-    if (ConfigGetInteger(array, &ival, "y", NULL)) {
+    if (ConfigStringsGetInteger(array, &ival, "y", NULL)) {
 	panel->RequestedY = ival;
     }
     //
     //	request-width
     //
-    if (ConfigGetInteger(array, &ival, "width", NULL)) {
+    if (ConfigStringsGetInteger(array, &ival, "width", NULL)) {
 	panel->RequestedWidth =
 	    ival <
 	    0 ? ((ssize_t) XcbScreen->width_in_pixels * -ival) / 100 : ival;
@@ -1398,7 +1398,7 @@ static void PanelConfigPanel(const ConfigObject * array)
     //
     //	request-height
     //
-    if (ConfigGetInteger(array, &ival, "height", NULL)) {
+    if (ConfigStringsGetInteger(array, &ival, "height", NULL)) {
 	panel->RequestedHeight =
 	    ival <
 	    0 ? ((ssize_t) XcbScreen->height_in_pixels * -ival) / 100 : ival;
@@ -1406,7 +1406,7 @@ static void PanelConfigPanel(const ConfigObject * array)
     //
     //	border
     //
-    if (ConfigGetInteger(array, &ival, "border", NULL)) {
+    if (ConfigStringsGetInteger(array, &ival, "border", NULL)) {
 	if (ival < PANEL_MINIMAL_BORDER || ival > PANEL_MAXIMAL_BORDER) {
 	    Warning("invalid panel border: %zd\n", ival);
 	} else {
@@ -1416,7 +1416,7 @@ static void PanelConfigPanel(const ConfigObject * array)
     //
     //	hidden-size
     //
-    if (ConfigGetInteger(array, &ival, "hidden-size", NULL)) {
+    if (ConfigStringsGetInteger(array, &ival, "hidden-size", NULL)) {
 	if (ival < 1 || ival > 256) {
 	    Warning("invalid panel hidden size: %zd\n", ival);
 	} else {
@@ -1426,7 +1426,7 @@ static void PanelConfigPanel(const ConfigObject * array)
     //
     //	layer
     //
-    if (ConfigGetInteger(array, &ival, "layer", NULL)) {
+    if (ConfigStringsGetInteger(array, &ival, "layer", NULL)) {
 	if (ival < LAYER_BOTTOM || ival > LAYER_TOP) {
 	    Warning("invalid panel layer: %zd\n", ival);
 	} else {
@@ -1436,7 +1436,7 @@ static void PanelConfigPanel(const ConfigObject * array)
     //
     //	gravity
     //
-    if (ConfigGetString(array, &sval, "gravity", NULL)) {
+    if (ConfigStringsGetString(array, &sval, "gravity", NULL)) {
 	int i;
 
 	if ((i = ParseGravity(sval, "panel"))) {
@@ -1447,7 +1447,7 @@ static void PanelConfigPanel(const ConfigObject * array)
     //	layout
     //
     sval = NULL;
-    if (ConfigGetString(array, &sval, "layout", NULL)) {
+    if (ConfigStringsGetString(array, &sval, "layout", NULL)) {
 	if (!strcasecmp(sval, "auto")) {
 	    sval = NULL;
 	} else if (!strcasecmp(sval, "horizontal")) {
@@ -1472,13 +1472,13 @@ static void PanelConfigPanel(const ConfigObject * array)
     //
     //	auto-hide
     //
-    if (ConfigGetBoolean(array, "auto-hide", NULL) > 0) {
+    if (ConfigStringsGetBoolean(array, "auto-hide", NULL) > 0) {
 	panel->AutoHide = 1;
     }
     //
     //	maximize-over
     //
-    if (ConfigGetBoolean(array, "maximize-over", NULL) > 0) {
+    if (ConfigStringsGetBoolean(array, "maximize-over", NULL) > 0) {
 	panel->MaximizeOver = 1;
     }
     //
@@ -1491,7 +1491,7 @@ static void PanelConfigPanel(const ConfigObject * array)
 
 	if (ConfigCheckArray(value, &p_array)) {
 
-	    if (ConfigGetString(p_array, &sval, "type", NULL)) {
+	    if (ConfigStringsGetString(p_array, &sval, "type", NULL)) {
 		Plugin *plugin;
 
 		if (!strcasecmp(sval, "button")) {
@@ -1543,14 +1543,14 @@ void PanelConfig(const Config * config)
     //
     //	array of panels
     //
-    if (ConfigGetArray(ConfigDict(config), &array, "panel", NULL)) {
+    if (ConfigStringsGetArray(ConfigDict(config), &array, "panel", NULL)) {
 	const ConfigObject *index;
 	const ConfigObject *value;
 
 	//
 	//	opacity
 	//
-	if (ConfigGetDouble(array, &opacity, "opacity", NULL)) {
+	if (ConfigStringsGetDouble(array, &opacity, "opacity", NULL)) {
 	    if (opacity <= 0.0 || opacity > 1.0) {
 		Warning("invalid panel opacity: %g\n", opacity);
 		opacity = 1.0;

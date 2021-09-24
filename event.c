@@ -1,7 +1,7 @@
 ///
 ///	@file event.c		@brief x11 event handler functions
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -158,7 +158,7 @@ static inline int HandleButtonPress(xcb_button_press_event_t * event)
     Client *client;
 
     //Debug(3, "ButtonCommand #%zd\n", sizeof(ButtonCommand));
-    Debug(3, "button press state=%x, detail=%d child %x event %x time %x\n",
+    Debug(3, "button press   state=%x, detail=%d child %x event %x time %x\n",
 	event->state, event->detail, event->child, event->event, event->time);
     PointerSetPosition(event->root_x, event->root_y);
     TooltipHide();
@@ -318,8 +318,8 @@ static inline int HandleButtonPress(xcb_button_press_event_t * event)
 */
 static inline int HandleButtonRelease(const xcb_button_release_event_t * event)
 {
-    Debug(3, "button release detail = %d state = %d\n", event->detail,
-	event->state);
+    Debug(3, "button release state=%x, detail=%d child %x event %x time %x\n",
+	event->state, event->detail, event->child, event->event, event->time);
 
     PointerSetPosition(event->root_x, event->root_y);
 
@@ -1070,12 +1070,13 @@ void WaitForEvent(void)
     if (PushedEvent) {			// pushed event?
 	return;
     }
-    HandleTimeout();
 
     fds[0].fd = xcb_get_file_descriptor(Connection);
     fds[0].events = POLLIN | POLLPRI;
 
     while (KeepLooping) {
+	HandleTimeout();
+
 	// flush before blocking (and waiting for new events)
 	xcb_flush(Connection);
 #ifdef DEBUG
@@ -1100,7 +1101,6 @@ void WaitForEvent(void)
 		break;
 	    }
 	}
-	HandleTimeout();
     }
 }
 

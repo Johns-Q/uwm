@@ -1,7 +1,7 @@
 ///
 ///	@file border.c		@brief client window border functions
 ///
-///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -1062,7 +1062,8 @@ void BorderConfig(const Config * config)
 
     // window border width
     BorderWidth = BORDER_DEFAULT_WIDTH;
-    if (ConfigGetInteger(ConfigDict(config), &ival, "border", "width", NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival, "border", "width",
+	    NULL)) {
 	if (ival < BORDER_MINIMAL_WIDTH || ival > BORDER_MAXIMAL_WIDTH) {
 	    Warning("border width %zd out of range\n", ival);
 	} else {
@@ -1077,8 +1078,8 @@ void BorderConfig(const Config * config)
     }
     // window title height
     BorderTitleHeight = BORDER_DEFAULT_TITLE_HEIGHT;
-    if (ConfigGetInteger(ConfigDict(config), &ival, "border", "title-height",
-	    NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival, "border",
+	    "title-height", NULL)) {
 	// 0 is valid as default: use font height
 	if (ival && (ival < BORDER_MINIMAL_TITLE_HEIGHT
 		|| ival > BORDER_MAXIMAL_TITLE_HEIGHT)) {

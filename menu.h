@@ -1,7 +1,7 @@
 ///
 ///	@file menu.h	@brief menu header file
 ///
-///	Copyright (c) 2009, 2010, 2021 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010, 2021 by Lutz Sammer.	All Rights Reserved.
 ///
 ///	Contributor(s):
 ///

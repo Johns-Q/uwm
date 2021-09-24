@@ -514,7 +514,7 @@ static void GlobalConfig(const Config * config)
     ssize_t ival;
 
     FocusModus = FOCUS_SLOPPY;
-    if (ConfigGetString(ConfigDict(config), &sval, "focus-model", NULL)) {
+    if (ConfigStringsGetString(ConfigDict(config), &sval, "focus-model", NULL)) {
 	if (!strcasecmp(sval, "sloppy")) {
 	    // default: FocusModus = FOCUS_SLOPPY;
 	} else if (!strcasecmp(sval, "click")) {
@@ -525,8 +525,8 @@ static void GlobalConfig(const Config * config)
     }
     // DoubleClick
     DoubleClickDelta = DOUBLE_CLICK_DEFAULT_DELTA;
-    if (ConfigGetInteger(ConfigDict(config), &ival, "double-click", "delta",
-	    NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival, "double-click",
+	    "delta", NULL)) {
 	if (DOUBLE_CLICK_MINIMAL_DELTA <= ival
 	    && ival <= DOUBLE_CLICK_MAXIMAL_DELTA) {
 	    DoubleClickDelta = ival;
@@ -535,8 +535,8 @@ static void GlobalConfig(const Config * config)
 	}
     }
     DoubleClickSpeed = DOUBLE_CLICK_DEFAULT_SPEED;
-    if (ConfigGetInteger(ConfigDict(config), &ival, "double-click", "speed",
-	    NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival, "double-click",
+	    "speed", NULL)) {
 	if (DOUBLE_CLICK_MINIMAL_SPEED <= ival
 	    && ival <= DOUBLE_CLICK_MAXIMAL_SPEED) {
 	    DoubleClickSpeed = ival;

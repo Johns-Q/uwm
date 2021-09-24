@@ -1,7 +1,7 @@
 ///
 ///	@file background.c	@brief desktop background control.
 ///
-///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -485,7 +485,7 @@ void BackgroundConfig(const Config * config)
     //
     //	get array of background(s)
     //
-    if (ConfigGetArray(ConfigDict(config), &array, "background", NULL)) {
+    if (ConfigStringsGetArray(ConfigDict(config), &array, "background", NULL)) {
 	ssize_t ival;
 	const ConfigObject *index;
 	const ConfigObject *value;
@@ -509,17 +509,19 @@ void BackgroundConfig(const Config * config)
 		    }
 		}
 
-		if (ConfigGetString(table, &sval, "solid", NULL)) {
+		if (ConfigStringsGetString(table, &sval, "solid", NULL)) {
 		    BackgroundNew(ival, BACKGROUND_SOLID, sval);
-		} else if (ConfigGetString(table, &sval, "gradient", NULL)) {
+		} else if (ConfigStringsGetString(table, &sval, "gradient",
+			NULL)) {
 		    BackgroundNew(ival, BACKGROUND_GRADIENT, sval);
-		} else if (ConfigGetString(table, &sval, "execute", NULL)) {
+		} else if (ConfigStringsGetString(table, &sval, "execute",
+			NULL)) {
 		    BackgroundNew(ival, BACKGROUND_COMMAND, sval);
-		} else if (ConfigGetString(table, &sval, "image", NULL)) {
+		} else if (ConfigStringsGetString(table, &sval, "image", NULL)) {
 		    BackgroundNew(ival, BACKGROUND_IMAGE, sval);
-		} else if (ConfigGetString(table, &sval, "scale", NULL)) {
+		} else if (ConfigStringsGetString(table, &sval, "scale", NULL)) {
 		    BackgroundNew(ival, BACKGROUND_SCALE, sval);
-		} else if (ConfigGetString(table, &sval, "zoom", NULL)) {
+		} else if (ConfigStringsGetString(table, &sval, "zoom", NULL)) {
 		    BackgroundNew(ival, BACKGROUND_ZOOM, sval);
 		}
 	    } else {

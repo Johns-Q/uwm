@@ -355,12 +355,12 @@ void DesktopConfig(const Config * config)
     //
     //	array of desktop
     //
-    if (ConfigGetArray(ConfigDict(config), &array, "desktop", NULL)) {
+    if (ConfigStringsGetArray(ConfigDict(config), &array, "desktop", NULL)) {
 	ssize_t ival;
 	const ConfigObject *index;
 	const ConfigObject *value;
 
-	if (ConfigGetInteger(array, &ival, "count", NULL)) {
+	if (ConfigStringsGetInteger(array, &ival, "count", NULL)) {
 	    if (ival < DESKTOP_MINIMAL_COUNT || ival > DESKTOP_MAXIMAL_COUNT) {
 		Warning("invalid desktop count: \"%zd\"\n", ival);
 	    } else {

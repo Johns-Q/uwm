@@ -1,7 +1,7 @@
 ///
 ///	@file dia.c	@brief dia show application functions
 ///
-///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -1533,44 +1533,51 @@ void DiaConfig(const Config * config)
 
     // FIXME: get dia table first
     // FIXME: should write a config -> c
-    if (ConfigGetBoolean(ConfigDict(config), "dia", "label", NULL) > 0) {
+    if (ConfigStringsGetBoolean(ConfigDict(config), "dia", "label", NULL) > 0) {
 	DiaVars->IndexLabel = 1;
     }
-    if (ConfigGetBoolean(ConfigDict(config), "dia", "film-strip", NULL) > 0) {
+    if (ConfigStringsGetBoolean(ConfigDict(config), "dia", "film-strip",
+	    NULL) > 0) {
 	DiaVars->FilmStrip = 1;
     }
-    if (ConfigGetBoolean(ConfigDict(config), "dia", "slide-show", NULL) > 0) {
+    if (ConfigStringsGetBoolean(ConfigDict(config), "dia", "slide-show",
+	    NULL) > 0) {
 	DiaVars->SlideShow = 1;
     }
-    if (ConfigGetBoolean(ConfigDict(config), "dia", "back-drop", NULL) > 0) {
+    if (ConfigStringsGetBoolean(ConfigDict(config), "dia", "back-drop",
+	    NULL) > 0) {
 	DiaVars->Backdrop = 1;
     }
-    if (ConfigGetBoolean(ConfigDict(config), "dia", "fullscreen", NULL) > 0) {
+    if (ConfigStringsGetBoolean(ConfigDict(config), "dia", "fullscreen",
+	    NULL) > 0) {
 	DiaVars->Fullscreen = 1;
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "delay", NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival, "dia", "delay",
+	    NULL)) {
 	DiaVars->SlideShowDelay = ival;
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "aspect-num", NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival, "dia", "aspect-num",
+	    NULL)) {
 	DiaVars->AspectNum = ival;
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "aspect-den", NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival, "dia", "aspect-den",
+	    NULL)) {
 	DiaVars->AspectDen = ival;
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "film-strip-width",
-	    NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival, "dia",
+	    "film-strip-width", NULL)) {
 	DiaVars->FilmStripWidth = ival;
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "film-strip-height",
-	    NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival, "dia",
+	    "film-strip-height", NULL)) {
 	DiaVars->FilmStripHeight = ival;
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "index-page-width",
-	    NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival, "dia",
+	    "index-page-width", NULL)) {
 	DiaVars->IndexWidth = ival;
     }
-    if (ConfigGetInteger(ConfigDict(config), &ival, "dia", "index-page-height",
-	    NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival, "dia",
+	    "index-page-height", NULL)) {
 	DiaVars->IndexHeight = ival;
     }
 }

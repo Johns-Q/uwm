@@ -563,7 +563,7 @@ static void RuleConfigRule(const ConfigObject * array)
     //	options
     //
     rule->Options = NULL;
-    if (ConfigGetArray(array, &aval, "option", NULL)) {
+    if (ConfigStringsGetArray(array, &aval, "option", NULL)) {
 	int n;
 	const ConfigObject *oval;
 	const char *sval;
@@ -574,76 +574,76 @@ static void RuleConfigRule(const ConfigObject * array)
 	    malloc(sizeof(*rule->Options) + (n -
 		1) * sizeof(rule->Options->Values));
 	rule->Options->Actions = RULE_ACTION_INVALID;
-	if (ConfigGetObject(aval, &oval, "none", NULL)) {
+	if (ConfigStringsGetObject(aval, &oval, "none", NULL)) {
 	} else {
-	    if (ConfigGetBoolean(aval, "sticky", NULL) > 0) {
+	    if (ConfigStringsGetBoolean(aval, "sticky", NULL) > 0) {
 		rule->Options->Actions |= RULE_ACTION_STICKY;
 	    }
-	    if (ConfigGetBoolean(aval, "fullscreen", NULL) > 0) {
+	    if (ConfigStringsGetBoolean(aval, "fullscreen", NULL) > 0) {
 		rule->Options->Actions |= RULE_ACTION_FULLSCREEN;
 	    }
-	    if (ConfigGetBoolean(aval, "no-list", NULL) > 0) {
+	    if (ConfigStringsGetBoolean(aval, "no-list", NULL) > 0) {
 		rule->Options->Actions |= RULE_ACTION_NOLIST;
 	    }
-	    if (ConfigGetBoolean(aval, "no-pager", NULL) > 0) {
+	    if (ConfigStringsGetBoolean(aval, "no-pager", NULL) > 0) {
 		rule->Options->Actions |= RULE_ACTION_NOPAGER;
 	    }
 	    // FIXME: should support layer names!
 	    // FIXME: use ParseLayer
-	    if (ConfigGetInteger(aval, &ival, "layer", NULL)) {
+	    if (ConfigStringsGetInteger(aval, &ival, "layer", NULL)) {
 		RuleConfigAddOption(rule, n++, RULE_ACTION_LAYER, ival);
 	    }
-	    if (ConfigGetInteger(aval, &ival, "desktop", NULL)) {
+	    if (ConfigStringsGetInteger(aval, &ival, "desktop", NULL)) {
 		RuleConfigAddOption(rule, n++, RULE_ACTION_DESKTOP, ival);
 	    }
 #ifdef USE_ICON
-	    if (ConfigGetString(aval, &sval, "icon", NULL)) {
+	    if (ConfigStringsGetString(aval, &sval, "icon", NULL)) {
 		RuleConfigAddOption(rule, n, RULE_ACTION_ICON, 0);
 		rule->Options->Values[n++].String = strdup(sval);
 	    }
 #endif
 
-	    if (ConfigGetInteger(aval, &ival, "border", NULL)) {
+	    if (ConfigStringsGetInteger(aval, &ival, "border", NULL)) {
 		if (ival) {
 		    rule->Options->Actions |= RULE_ACTION_BORDER;
 		}
 	    }
-	    if (ConfigGetInteger(aval, &ival, "no-border", NULL)) {
+	    if (ConfigStringsGetInteger(aval, &ival, "no-border", NULL)) {
 		if (ival) {
 		    rule->Options->Actions |= RULE_ACTION_NOBORDER;
 		}
 	    }
-	    if (ConfigGetInteger(aval, &ival, "title", NULL)) {
+	    if (ConfigStringsGetInteger(aval, &ival, "title", NULL)) {
 		if (ival) {
 		    rule->Options->Actions |= RULE_ACTION_TITLE;
 		}
 	    }
-	    if (ConfigGetInteger(aval, &ival, "no-title", NULL)) {
+	    if (ConfigStringsGetInteger(aval, &ival, "no-title", NULL)) {
 		if (ival) {
 		    rule->Options->Actions |= RULE_ACTION_NOTITLE;
 		}
 	    }
-	    if (ConfigGetInteger(aval, &ival, "pignore", NULL)) {
+	    if (ConfigStringsGetInteger(aval, &ival, "pignore", NULL)) {
 		if (ival) {
 		    rule->Options->Actions |= RULE_ACTION_PIGNORE;
 		}
 	    }
-	    if (ConfigGetInteger(aval, &ival, "maximized", NULL)) {
+	    if (ConfigStringsGetInteger(aval, &ival, "maximized", NULL)) {
 		if (ival) {
 		    rule->Options->Actions |= RULE_ACTION_MAXIMIZED;
 		}
 	    }
-	    if (ConfigGetInteger(aval, &ival, "minimized", NULL)) {
+	    if (ConfigStringsGetInteger(aval, &ival, "minimized", NULL)) {
 		if (ival) {
 		    rule->Options->Actions |= RULE_ACTION_MINIMIZED;
 		}
 	    }
-	    if (ConfigGetInteger(aval, &ival, "shaded", NULL)) {
+	    if (ConfigStringsGetInteger(aval, &ival, "shaded", NULL)) {
 		if (ival) {
 		    rule->Options->Actions |= RULE_ACTION_SHADED;
 		}
 	    }
-	    if (ConfigGetDouble(aval, &dval, "opacity", NULL)) {
+	    if (ConfigStringsGetDouble(aval, &dval, "opacity", NULL)) {
 		uint32_t uval;
 
 		if (dval <= 0.0 || dval > 1.0) {
@@ -655,30 +655,32 @@ static void RuleConfigRule(const ConfigObject * array)
 		    RuleConfigAddOption(rule, n++, RULE_ACTION_OPACITY, uval);
 		}
 	    }
-	    if (ConfigGetInteger(aval, &ival, "maximize-horizontal", NULL)) {
+	    if (ConfigStringsGetInteger(aval, &ival, "maximize-horizontal",
+		    NULL)) {
 		if (ival) {
 		    rule->Options->Actions |= RULE_ACTION_MAXIMIZE_HORZ;
 		}
 	    }
-	    if (ConfigGetInteger(aval, &ival, "maximize-vertical", NULL)) {
+	    if (ConfigStringsGetInteger(aval, &ival, "maximize-vertical",
+		    NULL)) {
 		if (ival) {
 		    rule->Options->Actions |= RULE_ACTION_MAXIMIZE_VERT;
 		}
 	    }
 
-	    if (ConfigGetInteger(aval, &ival, "x", NULL)) {
+	    if (ConfigStringsGetInteger(aval, &ival, "x", NULL)) {
 		RuleConfigAddOption(rule, n++, RULE_ACTION_X, ival);
 	    }
-	    if (ConfigGetInteger(aval, &ival, "y", NULL)) {
+	    if (ConfigStringsGetInteger(aval, &ival, "y", NULL)) {
 		RuleConfigAddOption(rule, n++, RULE_ACTION_Y, ival);
 	    }
-	    if (ConfigGetInteger(aval, &ival, "width", NULL)) {
+	    if (ConfigStringsGetInteger(aval, &ival, "width", NULL)) {
 		RuleConfigAddOption(rule, n++, RULE_ACTION_WIDTH, ival);
 	    }
-	    if (ConfigGetInteger(aval, &ival, "height", NULL)) {
+	    if (ConfigStringsGetInteger(aval, &ival, "height", NULL)) {
 		RuleConfigAddOption(rule, n++, RULE_ACTION_HEIGHT, ival);
 	    }
-	    if (ConfigGetString(aval, &sval, "gravity", NULL)) {
+	    if (ConfigStringsGetString(aval, &sval, "gravity", NULL)) {
 		int i;
 
 		i = ParseGravity(sval, "rule");
@@ -692,7 +694,7 @@ static void RuleConfigRule(const ConfigObject * array)
 
     rule->Matches = 0;
     rule->Instances = INT_MAX;
-    if (ConfigGetInteger(array, &ival, "instances", NULL)) {
+    if (ConfigStringsGetInteger(array, &ival, "instances", NULL)) {
 	rule->Instances = ival;
     }
     //
@@ -719,15 +721,15 @@ static void RuleConfigRule(const ConfigObject * array)
 
 	    n = 3;
 	    name = NULL;
-	    if (ConfigGetString(aval, &name, "name", NULL)) {
+	    if (ConfigStringsGetString(aval, &name, "name", NULL)) {
 		n += strlen(name);
 	    }
 	    class = NULL;
-	    if (ConfigGetString(aval, &class, "class", NULL)) {
+	    if (ConfigStringsGetString(aval, &class, "class", NULL)) {
 		n += strlen(class);
 	    }
 	    title = NULL;
-	    if (ConfigGetString(aval, &title, "title", NULL)) {
+	    if (ConfigStringsGetString(aval, &title, "title", NULL)) {
 		n += strlen(title);
 	    }
 	    Debug(3, "	%s/%s/%s\n", name, class, title);
@@ -763,7 +765,7 @@ void RuleConfig(const Config * config)
     //
     //	array of rules
     //
-    if (ConfigGetArray(ConfigDict(config), &array, "rule", NULL)) {
+    if (ConfigStringsGetArray(ConfigDict(config), &array, "rule", NULL)) {
 	const ConfigObject *index;
 	const ConfigObject *value;
 

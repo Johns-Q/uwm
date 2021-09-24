@@ -2638,100 +2638,103 @@ void MenuCommandConfig(const ConfigObject * array, MenuCommand * command)
     //
     //	actions:
     //
-    if (ConfigGetObject(array, &oval, "none", NULL)) {
+    if (ConfigStringsGetObject(array, &oval, "none", NULL)) {
 	command->Type = MENU_ACTION_NONE;
 
 	//
 	//  window client commands
 	//
-    } else if (ConfigGetObject(array, &oval, "toggle-sticky", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "toggle-sticky", NULL)) {
 	command->Type = MENU_ACTION_TOGGLE_STICKY;
-    } else if (ConfigGetObject(array, &oval, "toggle-maximize", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "toggle-maximize", NULL)) {
 	command->Type = MENU_ACTION_TOGGLE_MAXIMIZE;
-    } else if (ConfigGetObject(array, &oval, "maximize-horizontal", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "maximize-horizontal",
+	    NULL)) {
 	command->Type = MENU_ACTION_MAXIMIZE_HORZ;
-    } else if (ConfigGetObject(array, &oval, "maximize-vertical", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "maximize-vertical", NULL)) {
 	command->Type = MENU_ACTION_MAXIMIZE_VERT;
-    } else if (ConfigGetObject(array, &oval, "minimize", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "minimize", NULL)) {
 	command->Type = MENU_ACTION_MINIMIZE;
-    } else if (ConfigGetObject(array, &oval, "restore", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "restore", NULL)) {
 	command->Type = MENU_ACTION_RESTORE;
-    } else if (ConfigGetObject(array, &oval, "toggle-shade", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "toggle-shade", NULL)) {
 	command->Type = MENU_ACTION_TOGGLE_SHADE;
-    } else if (ConfigGetObject(array, &oval, "move", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "move", NULL)) {
 	command->Type = MENU_ACTION_MOVE;
-    } else if (ConfigGetObject(array, &oval, "resize", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "resize", NULL)) {
 	command->Type = MENU_ACTION_RESIZE;
-    } else if (ConfigGetObject(array, &oval, "raise", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "raise", NULL)) {
 	command->Type = MENU_ACTION_RAISE;
-    } else if (ConfigGetObject(array, &oval, "lower", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "lower", NULL)) {
 	command->Type = MENU_ACTION_LOWER;
-    } else if (ConfigGetObject(array, &oval, "close", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "close", NULL)) {
 	command->Type = MENU_ACTION_CLOSE;
-    } else if (ConfigGetObject(array, &oval, "kill", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "kill", NULL)) {
 	command->Type = MENU_ACTION_KILL;
 	//
 	//  global commands
 	//
-    } else if (ConfigGetObject(array, &oval, "restart", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "restart", NULL)) {
 	command->Type = MENU_ACTION_RESTART;
-    } else if (ConfigGetObject(array, &oval, "exit", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "exit", NULL)) {
 	command->Type = MENU_ACTION_EXIT;
 	command->String = NULL;		// exit string is optional
 	if (ConfigCheckString(oval, &sval)) {
 	    command->String = strdup(sval);
 	}
-    } else if (ConfigGetString(array, &sval, "execute", NULL)) {
+    } else if (ConfigStringsGetString(array, &sval, "execute", NULL)) {
 	command->Type = MENU_ACTION_EXECUTE;
 	command->String = strdup(sval);
-    } else if (ConfigGetString(array, &sval, "file", NULL)) {
+    } else if (ConfigStringsGetString(array, &sval, "file", NULL)) {
 	command->Type = MENU_ACTION_FILE;
 	command->String = strdup(sval);
 
-    } else if (ConfigGetInteger(array, &ival, "set-layer", NULL)) {
+    } else if (ConfigStringsGetInteger(array, &ival, "set-layer", NULL)) {
 	command->Type = MENU_ACTION_SET_LAYER;
 	command->Integer = ival;
-    } else if (ConfigGetInteger(array, &ival, "set-desktop", NULL)) {
+    } else if (ConfigStringsGetInteger(array, &ival, "set-desktop", NULL)) {
 	command->Type = MENU_ACTION_SET_DESKTOP;
 	command->Integer = ival;
-    } else if (ConfigGetObject(array, &oval, "next-desktop", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "next-desktop", NULL)) {
 	command->Type = MENU_ACTION_NEXT_DESKTOP;
-    } else if (ConfigGetObject(array, &oval, "prev-desktop", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "prev-desktop", NULL)) {
 	command->Type = MENU_ACTION_PREV_DESKTOP;
-    } else if (ConfigGetInteger(array, &ival, "sendto-desktop", NULL)) {
+    } else if (ConfigStringsGetInteger(array, &ival, "sendto-desktop", NULL)) {
 	command->Type = MENU_ACTION_SENDTO_DESKTOP;
 	command->Integer = ival;
-    } else if (ConfigGetInteger(array, &ival, "root-menu", NULL)) {
+    } else if (ConfigStringsGetInteger(array, &ival, "root-menu", NULL)) {
 	command->Type = MENU_ACTION_ROOT_MENU;
 	command->Integer = ival;
 
-    } else if (ConfigGetObject(array, &oval, "toggle-show-desktop", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "toggle-show-desktop",
+	    NULL)) {
 	command->Type = MENU_ACTION_TOGGLE_SHOW_DESKTOP;
-    } else if (ConfigGetObject(array, &oval, "toggle-shade-desktop", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "toggle-shade-desktop",
+	    NULL)) {
 	command->Type = MENU_ACTION_TOGGLE_SHADE_DESKTOP;
 
-    } else if (ConfigGetObject(array, &oval, "task-next-window", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "task-next-window", NULL)) {
 	command->Type = MENU_ACTION_TASK_NEXT_WINDOW;
-    } else if (ConfigGetObject(array, &oval, "task-prev-window", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "task-prev-window", NULL)) {
 	command->Type = MENU_ACTION_TASK_PREV_WINDOW;
-    } else if (ConfigGetInteger(array, &ival, "hide-panel", NULL)) {
+    } else if (ConfigStringsGetInteger(array, &ival, "hide-panel", NULL)) {
 	command->Type = MENU_ACTION_HIDE_PANEL;
 	command->Integer = ival;
-    } else if (ConfigGetInteger(array, &ival, "show-panel", NULL)) {
+    } else if (ConfigStringsGetInteger(array, &ival, "show-panel", NULL)) {
 	command->Type = MENU_ACTION_SHOW_PANEL;
 	command->Integer = ival;
-    } else if (ConfigGetInteger(array, &ival, "toggle-panel", NULL)) {
+    } else if (ConfigStringsGetInteger(array, &ival, "toggle-panel", NULL)) {
 	command->Type = MENU_ACTION_TOGGLE_PANEL;
 	command->Integer = ival;
 
-    } else if (ConfigGetObject(array, &oval, "dia-show", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "dia-show", NULL)) {
 	command->Type = MENU_ACTION_DIA_SHOW;
 	// string is optional
 	command->String = NULL;
 	if (ConfigCheckString(oval, &sval)) {
 	    command->String = strdup(sval);
 	}
-    } else if (ConfigGetObject(array, &oval, "play-td", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "play-td", NULL)) {
 	command->Type = MENU_ACTION_PLAY_TD;
 	// string is optional
 	command->String = NULL;
@@ -2739,22 +2742,22 @@ void MenuCommandConfig(const ConfigObject * array, MenuCommand * command)
 	    command->String = strdup(sval);
 	}
 
-    } else if (ConfigGetArray(array, &oval, "menu", NULL)) {
+    } else if (ConfigStringsGetArray(array, &oval, "menu", NULL)) {
 	command->Type = MENU_ACTION_SUBMENU;
 	command->Submenu = MenuConfigMenu(oval);
-    } else if (ConfigGetObject(array, &oval, "desktop", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "desktop", NULL)) {
 	command->Type = MENU_ACTION_DESKTOP;
 	command->Submenu = NULL;
-    } else if (ConfigGetObject(array, &oval, "window", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "window", NULL)) {
 	command->Type = MENU_ACTION_WINDOW;
 	command->Submenu = NULL;
-    } else if (ConfigGetObject(array, &oval, "sendto", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "sendto", NULL)) {
 	command->Type = MENU_ACTION_SENDTO;
 	command->Submenu = NULL;
-    } else if (ConfigGetObject(array, &oval, "layer", NULL)) {
+    } else if (ConfigStringsGetObject(array, &oval, "layer", NULL)) {
 	command->Type = MENU_ACTION_LAYER;
 	command->Submenu = NULL;
-    } else if (ConfigGetString(array, &sval, "dir", NULL)) {
+    } else if (ConfigStringsGetString(array, &sval, "dir", NULL)) {
 	// FIXME: path is optional
 	command->Type = MENU_ACTION_DIR;
 	command->String = strdup(sval);
@@ -2790,13 +2793,13 @@ static void MenuButtonConfig(const ConfigObject * array, MenuButton ** button)
     //	Config of pointer button
     //
     b = 1;
-    if (ConfigGetInteger(array, &ival, "button", NULL)) {
+    if (ConfigStringsGetInteger(array, &ival, "button", NULL)) {
 	if (1 > ival || ival > 16) {
 	    Warning("only button 1-16 supported\n");
 	    ival = 1;
 	}
 	b = ival;
-    } else if (ConfigGetInteger(array, &ival, "double-click", NULL)) {
+    } else if (ConfigStringsGetInteger(array, &ival, "double-click", NULL)) {
 	if (1 > ival || ival > 16) {
 	    Warning("only button 1-16 supported\n");
 	    ival = 1;
@@ -2883,19 +2886,19 @@ MenuItem *MenuItemConfig(const ConfigObject * array)
 
     item = MenuNewItem(NULL, NULL);
     // separator ignore all other parameters
-    if (ConfigGetBoolean(array, "separator", NULL) > 0) {
+    if (ConfigStringsGetBoolean(array, "separator", NULL) > 0) {
 	// item->Text & item->IconName = NULL flags separator
 	return item;
     }
 #ifdef USE_ICON
-    if (ConfigGetString(array, &sval, "icon", NULL)) {
+    if (ConfigStringsGetString(array, &sval, "icon", NULL)) {
 	item->IconName = strdup(sval);
     }
-    if (ConfigGetBoolean(array, "icon-or-text", NULL) > 0) {
+    if (ConfigStringsGetBoolean(array, "icon-or-text", NULL) > 0) {
 	item->IconOrText = 1;
     }
 #endif
-    if (ConfigGetString(array, &sval, "text", NULL)) {
+    if (ConfigStringsGetString(array, &sval, "text", NULL)) {
 	item->Text = strdup(sval);
     }
     //
@@ -2930,10 +2933,10 @@ static Menu *MenuConfigMenu(const ConfigObject * array)
 
     menu = MenuNew();
 
-    if (ConfigGetString(array, &sval, "label", NULL)) {
+    if (ConfigStringsGetString(array, &sval, "label", NULL)) {
 	menu->Label = MenuStrdup(menu, sval);
     }
-    if (ConfigGetInteger(array, &ival, "height", NULL)) {
+    if (ConfigStringsGetInteger(array, &ival, "height", NULL)) {
 	menu->UserHeight = ival;
     }
     //
@@ -2967,24 +2970,24 @@ void MenuConfig(const Config * config)
     int i;
 
     ShowExitConfirmation = 1;
-    if ((i = ConfigGetBoolean(ConfigDict(config), "show-exit-confirmation",
-		NULL)) >= 0) {
+    if ((i = ConfigStringsGetBoolean(ConfigDict(config),
+		"show-exit-confirmation", NULL)) >= 0) {
 	ShowExitConfirmation = i;
     }
     ShowKillConfirmation = 1;
-    if ((i = ConfigGetBoolean(ConfigDict(config), "show-kill-confirmation",
-		NULL)) >= 0) {
+    if ((i = ConfigStringsGetBoolean(ConfigDict(config),
+		"show-kill-confirmation", NULL)) >= 0) {
 	ShowKillConfirmation = i;
     }
 #endif
-    if (ConfigGetInteger(ConfigDict(config), &ival, "window-menu-user-height",
-	    NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival,
+	    "window-menu-user-height", NULL)) {
 	WindowMenuUserHeight = ival;
     }
     //
     //	array of menus
     //
-    if (ConfigGetArray(ConfigDict(config), &array, "root-menu", NULL)) {
+    if (ConfigStringsGetArray(ConfigDict(config), &array, "root-menu", NULL)) {
 	const ConfigObject *index;
 	const ConfigObject *value;
 	double opacity;
@@ -2993,7 +2996,7 @@ void MenuConfig(const Config * config)
 	//	opacity
 	//
 	MenuOpacity = UINT32_MAX;
-	if (ConfigGetDouble(array, &opacity, "opacity", NULL)) {
+	if (ConfigStringsGetDouble(array, &opacity, "opacity", NULL)) {
 	    if (opacity <= 0.0 || opacity > 1.0) {
 		Warning("invalid menu opacity: %g\n", opacity);
 		opacity = 1.0;
@@ -3214,7 +3217,7 @@ void RootMenuConfig(const Config * config)
 {
     const ConfigObject *array;
 
-    if (ConfigGetArray(ConfigDict(config), &array, "root", NULL)) {
+    if (ConfigStringsGetArray(ConfigDict(config), &array, "root", NULL)) {
 	MenuButtonsConfig(array, &RootButtons);
     }
 }
@@ -3232,10 +3235,10 @@ void WindowMenuConfig(const Config * config)
     static MenuButton *BorderButtons;	///< border window buttons
     static MenuButton *ClientButtons;	///< client window buttons
 
-    if (ConfigGetArray(ConfigDict(config), &array, "border", NULL)) {
+    if (ConfigStringsGetArray(ConfigDict(config), &array, "border", NULL)) {
 	MenuButtonsConfig(array, &BorderButtons);
     }
-    if (ConfigGetArray(ConfigDict(config), &array, "client", NULL)) {
+    if (ConfigStringsGetArray(ConfigDict(config), &array, "client", NULL)) {
 	MenuButtonsConfig(array, &ClientButtons);
     }
 }

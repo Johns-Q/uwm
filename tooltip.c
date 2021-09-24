@@ -1,7 +1,7 @@
 ///
 ///	@file tooltip.c		@brief tooltip functions.
 ///
-///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -319,7 +319,8 @@ void TooltipConfig(const Config * config)
     int i;
 
     TooltipDelay = TOOLTIP_DEFAULT_DELAY;
-    if (ConfigGetInteger(ConfigDict(config), &ival, "tooltip", "delay", NULL)) {
+    if (ConfigStringsGetInteger(ConfigDict(config), &ival, "tooltip", "delay",
+	    NULL)) {
 	if (ival < 0) {
 	    Warning("invalid tooltip delay specified: %zd\n", ival);
 	} else {
@@ -327,7 +328,7 @@ void TooltipConfig(const Config * config)
 	}
     }
     TooltipEnabled = 1;
-    if ((i = ConfigGetBoolean(ConfigDict(config), "tooltip", "enabled",
+    if ((i = ConfigStringsGetBoolean(ConfigDict(config), "tooltip", "enabled",
 		NULL)) >= 0) {
 	TooltipEnabled = i;
     }

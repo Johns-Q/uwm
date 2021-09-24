@@ -435,8 +435,8 @@ Plugin *SwallowConfig(const ConfigObject * array)
 
     name = NULL;
     sval = NULL;
-    if (!ConfigGetString(array, &name, "name", NULL)
-	&& !ConfigGetString(array, &sval, "class", NULL)) {
+    if (!ConfigStringsGetString(array, &name, "name", NULL)
+	&& !ConfigStringsGetString(array, &sval, "class", NULL)) {
 	Warning("cannot swallow a client with no name\n");
 	return NULL;
     }
@@ -460,13 +460,13 @@ Plugin *SwallowConfig(const ConfigObject * array)
     if (sval) {
 	swallow_plugin->Class = strdup(sval);
     }
-    if (ConfigGetString(array, &sval, "execute", NULL)) {
+    if (ConfigStringsGetString(array, &sval, "execute", NULL)) {
 	swallow_plugin->Command = strdup(sval);
     }
-    if (ConfigGetBoolean(array, "use-old", NULL) > 0) {
+    if (ConfigStringsGetBoolean(array, "use-old", NULL) > 0) {
 	swallow_plugin->UseOld = 1;
     }
-    if (ConfigGetInteger(array, &ival, "border", NULL)) {
+    if (ConfigStringsGetInteger(array, &ival, "border", NULL)) {
 	if (0 <= ival && ival <= 32) {
 	    swallow_plugin->Border = ival;
 	}

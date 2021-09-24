@@ -203,7 +203,7 @@ static void CommandAdd(const Config * config, Commands * head,
 {
     const ConfigObject *array;
 
-    if (ConfigGetArray(ConfigDict(config), &array, index, NULL)) {
+    if (ConfigStringsGetArray(ConfigDict(config), &array, index, NULL)) {
 	const ConfigObject *index;
 	const ConfigObject *value;
 	int len;

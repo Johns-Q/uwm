@@ -776,7 +776,7 @@ void ColorConfig(const Config * config)
 	const char *value;
 
 	if (color->Name
-	    && ConfigGetString(ConfigDict(config), &value, "color",
+	    && ConfigStringsGetString(ConfigDict(config), &value, "color",
 		color->Name, NULL)) {
 	    color->Value = strdup(value);
 	}
@@ -1206,7 +1206,7 @@ void FontConfig(const Config * config)
     for (font = &Fonts.Titlebar; font <= &Fonts.Fallback; ++font) {
 	const char *value;
 
-	if (ConfigGetString(ConfigDict(config), &value, "font",
+	if (ConfigStringsGetString(ConfigDict(config), &value, "font",
 		font->ModuleName, NULL)) {
 	    font->FontName = strdup(value);
 	}

@@ -566,7 +566,7 @@ void KeyboardConfig(const Config * config)
 {
     const ConfigObject *array;
 
-    if (ConfigGetArray(ConfigDict(config), &array, "key-binding", NULL)) {
+    if (ConfigStringsGetArray(ConfigDict(config), &array, "key-binding", NULL)) {
 	const ConfigObject *index;
 	const ConfigObject *value;
 

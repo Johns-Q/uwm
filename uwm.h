@@ -1,7 +1,7 @@
 ///
 ///	@file uwm.h	@brief uwm main header file
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///		based on jwm from Joe Wingbermuehle
@@ -30,6 +30,7 @@
 //
 #if defined(DOXYGEN) || !defined(NO_RC) && !defined(USE_RC)
 #define USE_RC				///< include runtime configuration
+#define USE_CORE_RC_GET_STRINGS		///< include string support
 #endif
 #if defined(DOXYGEN) || !defined(NO_OUTLINE) && !defined(USE_OUTLINE)
 #define USE_OUTLINE			///< include outline window move/resize
