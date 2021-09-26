@@ -42,7 +42,7 @@ DEPEND=">=x11-libs/libxcb-1.7
 src_compile() {
 	local myconf
 
-	myconf="'-DSYSTEM_CONFIG=\"/etc/system.uwmrc\"'"
+	myconf="'-DSYSTEM_CONFIG=\"/etc/system.uwmrc\"' -DUSE_CORE_RC_GET_STRINGS"
 	use png && myconf="${myconf} -DUSE_PNG"
 	use jpeg && myconf="${myconf} -DUSE_JPEG"
 	use xinerama && myconf="${myconf} -DUSE_XINERAMA"
