@@ -188,7 +188,7 @@ HDRS	= uwm.h command.h pointer.h keyboard.h draw.h image.h icon.h \
 	readable_bitmap.h dia.h td.h uwm-config.h queue.h
 
 FILES=	Makefile u.xpm contrib/uwm-helper.sh.in uwm.1 uwmrc.5 CODINGSTYLE.txt \
-	README.txt ChangeLog contrib/uwm.doxyfile \
+	README.txt ChangeLog contrib/uwm.doxyfile LICENSE.md AGPL-v3.0.md \
 	contrib/uwm16x16.xpm contrib/x.xpm contrib/uwmrc.example
 
 all:	uwm #udm
