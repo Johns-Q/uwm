@@ -555,21 +555,21 @@ static void ParseConfig(const char *filename)
 {
     char *name;
     Config *config;
-    ConfigImport import[1];
 
     //
     //	build our constants passed to core-rc
     //
-    import[0].Index = "UWM-VERSION";
-    import[0].Value = VERSION;
+    config = ConfigNewConfig(NULL);
+    ConfigDefine(config, ConfigNewString("UWM-VERSION"),
+    	ConfigNewString(VERSION));
 
     name = ExpandPath(filename);
-    config = ConfigReadFile(1, import, name);
+    config = ConfigReadFile2(config, name);
     free(name);
 
     if (!config) {
 	Error("error parsing user config file '%s'\n", filename);
-	config = ConfigReadFile(1, import, SYSTEM_CONFIG);
+	config = ConfigReadFile2(config, SYSTEM_CONFIG);
 	if (!config) {
 	    Error("error parsing system config file '%s'\n", SYSTEM_CONFIG);
 	    // return;

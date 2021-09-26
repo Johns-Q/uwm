@@ -1201,7 +1201,7 @@ void DiscardMotionEvents(xcb_motion_notify_event_t ** event,
 void EventHandleEvent(xcb_generic_event_t * event)
 {
     switch (XCB_EVENT_RESPONSE_TYPE(event)) {
-	case 0:			// error code
+	case 0:				// error code
 	    HandleDebugEvent(event);
 	    break;
 	case XCB_KEY_PRESS:		// keyboard press
