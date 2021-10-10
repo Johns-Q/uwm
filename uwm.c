@@ -561,7 +561,7 @@ static void ParseConfig(const char *filename)
     //
     config = ConfigNewConfig(NULL);
     ConfigDefine(config, ConfigNewString("UWM-VERSION"),
-    	ConfigNewString(VERSION));
+	ConfigNewString(VERSION));
 
     name = ExpandPath(filename);
     config = ConfigReadFile2(config, name);
@@ -631,6 +631,7 @@ static void SendClientMessage(const char *string)
     event.response_type = XCB_CLIENT_MESSAGE;
     event.format = 32;
     event.window = XcbScreen->root;
+
     if ((reply = xcb_intern_atom_reply(Connection, cookies, NULL))) {
 	event.type = reply->atom;
 	free(reply);
@@ -706,7 +707,28 @@ int main(int argc, char *const argv[])
 {
     const char *config_filename;
 
+#ifdef XDG_CONFIG_HOME
+    const char *xdg_config_home;
+    const char *config_dir;
+    char *config_pathname;
+
+    //
+    //	Parse config dir.
+    //
+    xdg_config_home = getenv("XDG_CONFIG_HOME");
+    if (xdg_config_home) {
+	config_dir = xdg_config_home;
+    } else {
+	config_dir = "~/.config";
+    }
+    config_pathname = malloc(strlen(config_dir) + strlen(DEFAULT_CONFIG) + 2);
+    strcpy(config_pathname, config_dir);
+    config_pathname[strlen(config_dir)] = '/';
+    strcpy(config_pathname + strlen(config_dir) + 1, DEFAULT_CONFIG);
+    config_filename = config_pathname;
+#else
     config_filename = DEFAULT_CONFIG;
+#endif
     //
     //	Parse command line arguments
     //

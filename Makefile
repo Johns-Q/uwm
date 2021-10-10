@@ -32,6 +32,8 @@
 
 #	global default uwm system configuration file
 #CONFIG += '-DSYSTEM_CONFIG="/etc/system.uwmrc"'
+#	support xdg config home
+#CONFIG += -DXDG_CONFIG_HOME
 #	enable/disable runtime configuration
 CONFIG += -DUSE_RC -DUSE_CORE_RC_GET_STRINGS
 #CONFIG += -DNO_RC
@@ -141,7 +143,7 @@ DEFS = $(CONFIG) #### $(addprefix -D, $(CONFIG))
 
 #----------------------------------------------------------------------------
 
-VERSION	=	"0.32"
+VERSION	=	"0.33"
 GIT_REV =	$(shell git describe --always 2>/dev/null)
 
 #CC=	gcc

@@ -164,8 +164,13 @@
 #define SYSTEM_CONFIG "/usr/local/etc/system.uwmrc"
 #endif
 #ifndef DEFAULT_CONFIG
+#ifdef XDG_CONFIG_HOME
+    /// default uwm user configuration file
+#define DEFAULT_CONFIG "uwm/uwmrc"
+#else
     /// default uwm user configuration file
 #define DEFAULT_CONFIG "~/.uwm/uwmrc"
+#endif
 #endif
 
 #ifndef SHELL
