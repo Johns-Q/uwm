@@ -248,6 +248,25 @@ void TaskFocusPrevious(void)
 }
 
 /**
+**	Focus nth client in task.
+**
+**	@param nth	select this nth (from 0) client.
+*/
+void TaskFocusNth(int n)
+{
+    Client *client;
+
+    // find nth window in task, skip all non-focus clients
+    SLIST_FOREACH(client, &ClientNetList, NetClient) {
+	if (ClientShouldFocus(client) && n-- == 0) {
+	    ClientRestore(client, 1);
+	    ClientFocus(client);
+	    break;
+	}
+    }
+}
+
+/**
 **	Determine if a client should be shown on task.
 **
 **	@param client	client in task list

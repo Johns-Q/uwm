@@ -230,6 +230,7 @@ typedef enum
     // keyboard actions
     MENU_ACTION_TASK_NEXT_WINDOW,	///< next window, in task order
     MENU_ACTION_TASK_PREV_WINDOW,	///< previous window, in task order
+    MENU_ACTION_TASK_FOCUS_WINDOW,	///< focus window # in task order
     MENU_ACTION_HIDE_PANEL,		///< hide panel #
     MENU_ACTION_SHOW_PANEL,		///< show panel #
     MENU_ACTION_TOGGLE_PANEL,		///< toggle panel #

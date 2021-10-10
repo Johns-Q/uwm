@@ -1,7 +1,7 @@
 ///
 ///	@file task.h	@brief task panel plugin header file.
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -33,6 +33,9 @@ extern void TaskFocusNext(void);
 
     /// Focus previous client in task.
 extern void TaskFocusPrevious(void);
+
+    /// Focus nth client in task.
+extern void TaskFocusNth(int);
 
     /// Update all task plugin(s).
 extern void TaskUpdate(void);

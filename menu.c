@@ -2329,6 +2329,9 @@ void MenuCommandExecute(const MenuCommand * command, int x, int y)
 	case MENU_ACTION_TASK_PREV_WINDOW:
 	    TaskFocusPrevious();
 	    break;
+	case MENU_ACTION_TASK_FOCUS_WINDOW:
+	    TaskFocusNth(command->Integer);
+	    break;
 	case MENU_ACTION_HIDE_PANEL:
 	    PanelToggle(command->Integer, 0);
 	    break;
@@ -2717,6 +2720,9 @@ void MenuCommandConfig(const ConfigObject * array, MenuCommand * command)
 	command->Type = MENU_ACTION_TASK_NEXT_WINDOW;
     } else if (ConfigStringsGetObject(array, &oval, "task-prev-window", NULL)) {
 	command->Type = MENU_ACTION_TASK_PREV_WINDOW;
+    } else if (ConfigStringsGetInteger(array, &ival, "task-focus-window", NULL)) {
+	command->Type = MENU_ACTION_TASK_FOCUS_WINDOW;
+	command->Integer = ival;
     } else if (ConfigStringsGetInteger(array, &ival, "hide-panel", NULL)) {
 	command->Type = MENU_ACTION_HIDE_PANEL;
 	command->Integer = ival;

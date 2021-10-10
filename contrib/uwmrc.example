@@ -2,7 +2,7 @@
 
 	@file uwmrc	@brief µwm µ window manager resource config file
 
-	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 
 	Contributor(s):
 
@@ -29,7 +29,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;	Constants
 
-DEFAULT_TERM = "rxvt"
+DEFAULT_TERM = "urxvt"
+DEFAULT_APPL = {dmenu_run -b -fn "-*-dejavu sans-*-*-*-*-18-*-*-*-*-*-*-u"}
+UWM_USER_HOME = "~/.uwm"		; FIXME: should be imported
 ; imported UWM-VERSION = "z.xy"
 
 LAYER_BOTTOM = 0			; layer names
@@ -253,7 +255,7 @@ border = [
 ; add as many paths as you like (with slowdown for each added path)
 ; first path has highest priority
 icon-path = [
-    "~/.uwm/icons"
+    UWM_USER_HOME ~ "/icons"
     "/usr/share/icons/uwm"
     ; default place of pixmaps
     "/usr/share/pixmaps"
@@ -332,15 +334,14 @@ root-menu = [
 	[ text = "reboot" exit = "reboot" ]
     ]]
 
-    [ text = "Diashow" dia-show = "~/.uwm/backgrounds" ]
+    [ text = "Diashow" dia-show = UWM_USER_HOME ~ "/backgrounds" ]
     [ text = "Show directory" menu = [
 	    [text = "root" dir = "/"]
 	    [text = "home" dir = "~/"]
 	    [text = "work" dir = "."]
 	]
     ]
-    [ text = "Run" execute =
-	{dmenu_run -b -fn "-*-dejavu sans-*-*-*-*-18-*-*-*-*-*-*-u"} ]
+    [ text = "Run" execute = DEFAULT_APPL ]
   ]
 
   [1] = [
@@ -829,6 +830,17 @@ key-binding = [
     [ [ mod4 tab ] task-next-window = true ]
     ; switch to previous window in task order
     [ [ mod4 shift tab ] task-prev-window = true ]
+    ; focus window # in task list
+    [ [ mod4 '1 ] task-focus-window = 0 ]
+    [ [ mod4 '2 ] task-focus-window = 1 ]
+    [ [ mod4 '3 ] task-focus-window = 2 ]
+    [ [ mod4 '4 ] task-focus-window = 3 ]
+    [ [ mod4 '5 ] task-focus-window = 4 ]
+    [ [ mod4 '6 ] task-focus-window = 5 ]
+    [ [ mod4 '7 ] task-focus-window = 6 ]
+    [ [ mod4 '8 ] task-focus-window = 7 ]
+    [ [ mod4 '9 ] task-focus-window = 8 ]
+    [ [ mod4 '0 ] task-focus-window = 9 ]
     ; switch to desktop #
     [ [ mod4 f1 ] set-desktop = 0 ]
     [ [ mod4 f2 ] set-desktop = 1 ]
@@ -844,6 +856,8 @@ key-binding = [
     [ [ mod4 f12 ] set-desktop = 11 ]
     ; execute shell
     [ [ mod4 return ] execute = DEFAULT_TERM ]
+    ; open application launcher
+    [ [ mod4 'd ] execute = DEFAULT_APPL ]
 ]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
