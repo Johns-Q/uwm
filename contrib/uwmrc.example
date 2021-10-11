@@ -794,6 +794,19 @@ button5 = 0x20001000
 tab = 0xff09
 return = 0xff0d
 space = 0x0020
+
+home = 0xff50
+left = 0xff51
+up = 0xff52
+right = 0xff53
+down = 0xff54
+prior = 0xff55
+page_up = 0xff55
+next = 0xff56
+page_down = 0xff56
+end = 0xff57
+begin = 0xff58
+
 f1 = 0xffbe
 f2 = 0xffbf
 f3 = 0xffc0
@@ -841,6 +854,16 @@ key-binding = [
     [ [ mod4 '8 ] task-focus-window = 7 ]
     [ [ mod4 '9 ] task-focus-window = 8 ]
     [ [ mod4 '0 ] task-focus-window = 9 ]
+    ; tile window 1/2 (: for the magic codes look into ClientTile :)
+    [ [ mod4 left ] maximize-tile = 86 ]
+    [ [ mod4 right ] maximize-tile = 90 ]
+    [ [ mod4 up ] maximize-tile = 101 ]
+    [ [ mod4 down ] maximize-tile = 165 ]
+    ; tile window 1/4
+    [ [ mod4 home ] maximize-tile = 102 ]
+    [ [ mod4 page_up ] maximize-tile = 106 ]
+    [ [ mod4 end ] maximize-tile = 166 ]
+    [ [ mod4 page_down ] maximize-tile = 170 ]
     ; switch to desktop #
     [ [ mod4 f1 ] set-desktop = 0 ]
     [ [ mod4 f2 ] set-desktop = 1 ]

@@ -85,6 +85,7 @@ typedef enum
     BORDER_MOVE = 1 << 8,		///< window supports moving
     BORDER_MAXIMIZE_VERT = 1 << 9,	///< " supports maximize vertically
     BORDER_MAXIMIZE_HORZ = 1 << 10,	///< " supports maximize horizontally
+    BORDER_MAXIMIZE_TILE = 1 << 11,	///< window supports tileing
 } WmBorder;
 
 /**
@@ -109,7 +110,8 @@ typedef enum
 #define BORDER_DEFAULT \
     (BORDER_OUTLINE | BORDER_TITLE | BORDER_MINIMIZE | BORDER_STICKY \
     | BORDER_CLOSE | BORDER_RESIZE | BORDER_MOVE | BORDER_LOWER \
-    | BORDER_RAISE | BORDER_MAXIMIZE_VERT | BORDER_MAXIMIZE_HORZ)
+    | BORDER_RAISE | BORDER_MAXIMIZE_VERT | BORDER_MAXIMIZE_HORZ | \
+    BORDER_MAXIMIZE_TILE )
 
 /**
 **	Client window structure typedef.
@@ -260,6 +262,9 @@ extern void ClientRestore(Client *, int);
     /// Maximize client window.
 extern void ClientMaximize(Client *, int, int);
 
+    /// Tile client window.
+extern void ClientTile(Client *, int);
+
     /// Maximize client using its default maximize settings.
 extern void ClientMaximizeDefault(Client *);
 
@@ -277,6 +282,9 @@ extern void ClientSetDesktop(Client *, int);
 
     /// Set client's sticky status.
 extern void ClientSetSticky(Client *, int);
+
+    /// Get current active client.
+extern Client *ClientGetActive(void);
 
     /// Find a client by parent (frame) window.
 extern Client *ClientFindByFrame(xcb_window_t);
@@ -328,6 +336,10 @@ extern void ClientPlace(Client *, int);
 
     /// Place maximized client on screen.
 extern void ClientPlaceMaximized(Client *, int, int);
+
+    //
+    /// Place tiled client on screen.
+extern void ClientPlaceTiled(Client *, int);
 
     /// Constrain size of client to available screen space.
 extern void ClientConstrainSize(Client *);

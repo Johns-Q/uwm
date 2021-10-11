@@ -320,7 +320,7 @@ void KeyboardHandler(int pressed, const xcb_key_press_event_t * event)
 		KeyboardBindings[i].Command.Type);
 
 	    MenuCommandExecute(&KeyboardBindings[i].Command, event->root_x,
-		event->root_y);
+		event->root_y, ClientGetActive());
 	    break;
 	}
     }

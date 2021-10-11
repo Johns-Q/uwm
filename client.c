@@ -651,18 +651,18 @@ void ClientPlace(Client * client, int already_mapped)
 }
 
 /**
-**	Place maximized client on screen.
+**	Place tiled client on screen.
 **
 **	@param client	client to place
-**	@param horz	true if maximizing horizontally
-**	@param vert	true if maximizing vertically
+**	@param type	type of tile
 */
-void ClientPlaceMaximized(Client * client, int horz, int vert)
+void ClientPlaceTiled(Client * client, int type)
 {
     int north;
     int south;
     int east;
     int west;
+    int t;
     const Screen *screen;
     Rectangle rectangle;
 
@@ -718,20 +718,54 @@ void ClientPlaceMaximized(Client * client, int horz, int vert)
 	}
 
     }
+    // YYHHXXWW
     // if maximizing horizontally, update width
-    if (horz) {
-	client->X = rectangle.X;
-	client->Width =
-	    rectangle.Width - (rectangle.Width % client->SizeHints.width_inc);
+    // 00: -- 01: 100% 10: 50% 11: 33%
+    if (type & 3) {
+	t = rectangle.Width / (type & 3);
+	client->Width = t - (t % client->SizeHints.width_inc);
 	client->State |= WM_STATE_MAXIMIZED_HORZ;
     }
+    type >>= 2;
+
+    // 00: -- 01: right 10: left: 11: center
+    switch (type & 3) {
+	case 0:
+	    break;
+	case 1:
+	    client->X = rectangle.X;
+	    break;
+	case 2:
+	    client->X = rectangle.X + rectangle.Width - client->Width;
+	    break;
+	case 3:
+	    client->X = rectangle.X + rectangle.Width / 2 - client->Width / 2;
+	    break;
+    }
+    type >>= 2;
+
     // if maximizing vertically, update height
-    if (vert) {
-	client->Y = rectangle.Y;
-	client->Height =
-	    rectangle.Height -
-	    (rectangle.Height % client->SizeHints.height_inc);
+    // 00: -- 01: 100% 10: 50% 11: 33%
+    if (type & 3) {
+	t = rectangle.Height / (type & 3);
+	client->Height = t - (t % client->SizeHints.height_inc);
 	client->State |= WM_STATE_MAXIMIZED_VERT;
+    }
+    type >>= 2;
+
+    switch (type & 3) {
+	case 0:
+	    break;
+	case 1:
+	    client->Y = rectangle.Y;
+	    break;
+	case 2:
+	    client->Y = rectangle.Y + rectangle.Height - client->Height;
+	    break;
+	case 3:
+	    client->Y =
+		rectangle.Y + rectangle.Height / 2 - client->Height / 2;
+	    break;
     }
 }
 
@@ -1659,8 +1693,69 @@ void ClientMaximize(Client * client, int horz, int vert)
 	client->Height = client->OldHeight;
 	client->State &= ~(WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT);
     } else {
-	ClientPlaceMaximized(client, horz, vert);
+	ClientPlaceTiled(client,
+	    0 | (horz ? 0 b0101 : 0) | (vert ? 0 b01010000 : 0));
     }
+
+    ClientUpdateShape(client);
+
+    BorderGetSize(client, &north, &south, &east, &west);
+    values[0] = client->X - west;
+    values[1] = client->Y - north;
+    values[2] = client->Width + east + west;
+    values[3] = client->Height + north + south;
+    xcb_configure_window(Connection, client->Parent,
+	XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y | XCB_CONFIG_WINDOW_WIDTH |
+	XCB_CONFIG_WINDOW_HEIGHT, values);
+
+    values[0] = west;
+    values[1] = north;
+    values[2] = client->Width;
+    values[3] = client->Height;
+    xcb_configure_window(Connection, client->Window,
+	XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y | XCB_CONFIG_WINDOW_WIDTH |
+	XCB_CONFIG_WINDOW_HEIGHT, values);
+
+    HintSetAllStates(client);
+    ClientSendConfigureEvent(client);
+}
+
+/**
+**	Tile client window.
+**
+**	@param client	client to maximize
+**	@param type	type of tile
+**
+**	Type is a bit field: YyHhXxWw
+**
+**	- Yy encodes y 00=unchanged 01=top 10=bottom 11=center
+**	- Hh encodes hight 00=unchanged 01=100% 10=50% 11=33%
+**	- Xx encodes x 00=unchanged 01=right 10=left 11=center
+**	- Ww encodes width 00=unchanged 01=100% 10=50% 11=33%
+*/
+void ClientTile(Client * client, int type)
+{
+    int north;
+    int south;
+    int east;
+    int west;
+    uint32_t values[4];
+
+    // we don't want to mess with full screen clients
+    if (client->State & WM_STATE_FULLSCREEN) {
+	return;
+    }
+    if (client->State & WM_STATE_SHADED) {
+	ClientUnshade(client);
+    }
+
+    if (client->State & (WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT)) {
+	client->X = client->OldX;
+	client->Y = client->OldY;
+	client->Width = client->OldWidth;
+	client->Height = client->OldHeight;
+    }
+    ClientPlaceTiled(client, type);
 
     ClientUpdateShape(client);
 
@@ -1969,6 +2064,16 @@ static void ClientReparent(Client * client, int not_owner)
     }
 #endif
     // FIXME: should i use frame window for frameless windows?
+}
+
+/**
+**	Get current active client.
+**
+**	@returns client (NULL if none active).
+*/
+Client *ClientGetActive(void)
+{
+    return ClientActive;
 }
 
 /**

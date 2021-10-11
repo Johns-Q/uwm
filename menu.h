@@ -203,6 +203,7 @@ typedef enum
     MENU_ACTION_TOGGLE_MAXIMIZE,	///< toggle maximize client
     MENU_ACTION_MAXIMIZE_HORZ,		///< maximize client only horizontal
     MENU_ACTION_MAXIMIZE_VERT,		///< maximize client only vertical
+    MENU_ACTION_MAXIMIZE_TILE,		///< maximize client tiled
     MENU_ACTION_MINIMIZE,		///< minimize client (iconify)
     MENU_ACTION_RESTORE,		///< restore client old size/position
     MENU_ACTION_TOGGLE_SHADE,		///< toggle shade of client
@@ -241,8 +242,9 @@ typedef enum
     // menu actions
     MENU_ACTION_SUBMENU,		///< menu item is sub - menu
     MENU_ACTION_DESKTOP,		///< autogen desktop sub - menu
-    MENU_ACTION_WINDOW,			///< autogen window sub - menu
+    MENU_ACTION_WINDOW,			///< FIXME: autogen window sub - menu
     MENU_ACTION_SENDTO,			///< autogen sendto sub - menu
+    MENU_ACTION_TILE,			///< autogen tile sub - menu
     MENU_ACTION_LAYER,			///< autogen layer sub - menu
     MENU_ACTION_DIR,			///< autogen dir sub - menu
     MENU_ACTION_DIR_PREPARED,		///< prepared dir sub - menu
@@ -312,7 +314,7 @@ extern Menu *MenuNew(void);
 extern void MenuDel(Menu *);
 
     /// Execute a menu command.
-extern void MenuCommandExecute(const MenuCommand *, int, int);
+extern void MenuCommandExecute(const MenuCommand *, int, int, void *);
 
     /// Free memory of menu command.
 extern void MenuCommandDel(MenuCommand *);

@@ -1068,8 +1068,10 @@ static void RootMenuExecute(void
 
 static void RootMenuShow(int, int, int);
 
+static void WindowMenuExecute(void *client, const MenuCommand *);
 static void WindowMenuChoose(const MenuCommand *);
 static Menu *WindowMenuCreateLayer(int);
+static Menu *WindowMenuCreateTile(void);
 
 ///@}
 
@@ -2224,6 +2226,9 @@ static void MenuCommandPrepare(MenuCommand * command)
 	    }
 	    command->Submenu = WindowMenuCreateLayer(i);
 	    break;
+	case MENU_ACTION_TILE:
+	    command->Submenu = WindowMenuCreateTile();
+	    break;
 #ifdef USE_MENU_DIR
 	case MENU_ACTION_DIR:
 	    if ((submenu = RootMenuFromDirectory(command->String))) {
@@ -2253,6 +2258,7 @@ static void MenuCommandCleanup(MenuCommand * command)
 	case MENU_ACTION_WINDOW:
 	case MENU_ACTION_SENDTO:
 	case MENU_ACTION_LAYER:
+	case MENU_ACTION_TILE:
 	    MenuDel(command->Submenu);
 	    command->Submenu = NULL;
 	    break;
@@ -2274,10 +2280,12 @@ static void MenuCommandCleanup(MenuCommand * command)
 **	@param command	menu command action and parameter
 **	@param x	x-coordinate of hot-spot for visual commands
 **	@param y	x-coordinate of hot-spot for visual commands
+**	@param client	client for window commands.
 **
 **	@todo opaque argument?
 */
-void MenuCommandExecute(const MenuCommand * command, int x, int y)
+void MenuCommandExecute(const MenuCommand * command, int x, int y,
+    void *client)
 {
     char *s;
     char *p;
@@ -2354,6 +2362,9 @@ void MenuCommandExecute(const MenuCommand * command, int x, int y)
 	case MENU_ACTION_SENDTO_DESKTOP:
 	case MENU_ACTION_SET_LAYER:
 	case MENU_ACTION_TOGGLE_MAXIMIZE:
+	case MENU_ACTION_MAXIMIZE_HORZ:
+	case MENU_ACTION_MAXIMIZE_VERT:
+	case MENU_ACTION_MAXIMIZE_TILE:
 	case MENU_ACTION_MINIMIZE:
 	case MENU_ACTION_RESTORE:
 	case MENU_ACTION_TOGGLE_SHADE:
@@ -2363,7 +2374,13 @@ void MenuCommandExecute(const MenuCommand * command, int x, int y)
 	case MENU_ACTION_LOWER:
 	case MENU_ACTION_CLOSE:
 	case MENU_ACTION_KILL:
-	    WindowMenuChoose(command);
+	    // use active window or choose one
+	    if (client) {
+		MenuClient = client;
+		WindowMenuExecute(client, command);
+	    } else {
+		WindowMenuChoose(command);
+	    }
 	    break;
 
 	case MENU_ACTION_ROOT_MENU:
@@ -2373,6 +2390,7 @@ void MenuCommandExecute(const MenuCommand * command, int x, int y)
 	case MENU_ACTION_WINDOW:
 	case MENU_ACTION_SENDTO:
 	case MENU_ACTION_LAYER:
+	case MENU_ACTION_TILE:
 	case MENU_ACTION_DIR_PREPARED:
 	    Debug(3, "action for %d\n", command->Type);
 	    if (MenuIsValid(command->Submenu)) {
@@ -2447,6 +2465,7 @@ void MenuCommandDel(MenuCommand * command)
 	case MENU_ACTION_WINDOW:
 	case MENU_ACTION_SENDTO:
 	case MENU_ACTION_LAYER:
+	case MENU_ACTION_TILE:
 	case MENU_ACTION_DIR_PREPARED:
 	    if (command->Submenu) {
 		MenuDel(command->Submenu);
@@ -2495,7 +2514,7 @@ void MenuButtonExecute(MenuButton * button, int mask, int x, int y, void
 	command =
 	    button->Commands + xcb_popcount(button->Buttons & xcb_mask(b));
 	MenuCommandPrepare(command);
-	MenuCommandExecute(command, x, y);
+	MenuCommandExecute(command, x, y, NULL);
 	MenuCommandCleanup(command);
     } else {
 	Debug(3, " button %d undefined\n", b);
@@ -2656,6 +2675,9 @@ void MenuCommandConfig(const ConfigObject * array, MenuCommand * command)
 	command->Type = MENU_ACTION_MAXIMIZE_HORZ;
     } else if (ConfigStringsGetObject(array, &oval, "maximize-vertical", NULL)) {
 	command->Type = MENU_ACTION_MAXIMIZE_VERT;
+    } else if (ConfigStringsGetInteger(array, &ival, "maximize-tile", NULL)) {
+	command->Type = MENU_ACTION_MAXIMIZE_TILE;
+	command->Integer = ival;
     } else if (ConfigStringsGetObject(array, &oval, "minimize", NULL)) {
 	command->Type = MENU_ACTION_MINIMIZE;
     } else if (ConfigStringsGetObject(array, &oval, "restore", NULL)) {
@@ -2720,7 +2742,8 @@ void MenuCommandConfig(const ConfigObject * array, MenuCommand * command)
 	command->Type = MENU_ACTION_TASK_NEXT_WINDOW;
     } else if (ConfigStringsGetObject(array, &oval, "task-prev-window", NULL)) {
 	command->Type = MENU_ACTION_TASK_PREV_WINDOW;
-    } else if (ConfigStringsGetInteger(array, &ival, "task-focus-window", NULL)) {
+    } else if (ConfigStringsGetInteger(array, &ival, "task-focus-window",
+	    NULL)) {
 	command->Type = MENU_ACTION_TASK_FOCUS_WINDOW;
 	command->Integer = ival;
     } else if (ConfigStringsGetInteger(array, &ival, "hide-panel", NULL)) {
@@ -2762,6 +2785,9 @@ void MenuCommandConfig(const ConfigObject * array, MenuCommand * command)
 	command->Submenu = NULL;
     } else if (ConfigStringsGetObject(array, &oval, "layer", NULL)) {
 	command->Type = MENU_ACTION_LAYER;
+	command->Submenu = NULL;
+    } else if (ConfigStringsGetObject(array, &oval, "tile", NULL)) {
+	command->Type = MENU_ACTION_TILE;
 	command->Submenu = NULL;
     } else if (ConfigStringsGetString(array, &sval, "dir", NULL)) {
 	// FIXME: path is optional
@@ -3058,7 +3084,7 @@ static void RootMenuExecute(void
     int y;
 
     PointerGetPosition(&x, &y);
-    MenuCommandExecute(command, x, y);
+    MenuCommandExecute(command, x, y, NULL);
 }
 
 /**
@@ -3375,6 +3401,50 @@ static Menu *WindowMenuCreateLayer(int on_layer)
 }
 
 /**
+**	Create a window tile submenu.
+**
+**	@returns for client created tile menu.
+*/
+static Menu *WindowMenuCreateTile(void)
+{
+    Menu *submenu;
+
+    submenu = MenuNew();
+    submenu->UserHeight = WindowMenuUserHeight;
+
+    // YYHHXXWW : 0b00000000
+    WindowMenuAppend(submenu, NULL, "left", MENU_ACTION_MAXIMIZE_TILE,
+	0 b01010110);
+    WindowMenuAppend(submenu, NULL, "top", MENU_ACTION_MAXIMIZE_TILE,
+	0 b01100101);
+    WindowMenuAppend(submenu, NULL, "bottom", MENU_ACTION_MAXIMIZE_TILE,
+	0 b10100101);
+    WindowMenuAppend(submenu, NULL, "right", MENU_ACTION_MAXIMIZE_TILE,
+	0 b01011010);
+
+    // the old maximize
+    WindowMenuAppend(submenu, NULL, NULL, MENU_ACTION_NONE, 0);
+    WindowMenuAppend(submenu, NULL, "max", MENU_ACTION_MAXIMIZE_TILE,
+	0 b01010101);
+    WindowMenuAppend(submenu, NULL, "max-x", MENU_ACTION_MAXIMIZE_TILE,
+	0 b00000101);
+    WindowMenuAppend(submenu, NULL, "max-y", MENU_ACTION_MAXIMIZE_TILE,
+	0 b01010000);
+
+    WindowMenuAppend(submenu, NULL, NULL, MENU_ACTION_NONE, 0);
+    WindowMenuAppend(submenu, NULL, "top left", MENU_ACTION_MAXIMIZE_TILE,
+	0 b01100110);
+    WindowMenuAppend(submenu, NULL, "top right", MENU_ACTION_MAXIMIZE_TILE,
+	0 b01101010);
+    WindowMenuAppend(submenu, NULL, "bottom left", MENU_ACTION_MAXIMIZE_TILE,
+	0 b10100110);
+    WindowMenuAppend(submenu, NULL, "bottom right", MENU_ACTION_MAXIMIZE_TILE,
+	0 b10101010);
+
+    return submenu;
+}
+
+/**
 **	Create a new window menu.
 **
 **	@param client	menu for this client
@@ -3391,8 +3461,8 @@ static Menu *WindowMenuCreate(const Client * client)
     menu = MenuNew();
     menu->UserHeight = WindowMenuUserHeight;
 
-    if ((client->Border & (BORDER_MAXIMIZE_HORZ | BORDER_MAXIMIZE_VERT))
-	&& (client->State & WM_STATE_MAPPED)) {
+    if ((client->Border & (BORDER_MAXIMIZE_HORZ | BORDER_MAXIMIZE_VERT |
+		BORDER_MAXIMIZE_TILE)) && (client->State & WM_STATE_MAPPED)) {
 
 	if (!(client->State & (WM_STATE_MAXIMIZED_HORZ |
 		    WM_STATE_MAXIMIZED_VERT))) {
@@ -3413,6 +3483,9 @@ static Menu *WindowMenuCreate(const Client * client)
 	} else {
 	    WindowMenuAppend(menu, NULL, "Maximize",
 		MENU_ACTION_TOGGLE_MAXIMIZE, 0);
+	}
+	if (client->Border & BORDER_MAXIMIZE_TILE) {
+	    WindowMenuAppend(menu, NULL, "Tile to", MENU_ACTION_TILE, 0);
 	}
     }
 
@@ -3499,6 +3572,9 @@ static void WindowMenuExecute(void *client, const MenuCommand * command)
 	case MENU_ACTION_MAXIMIZE_VERT:
 	    ClientMaximize(client, 0, 1);
 	    break;
+	case MENU_ACTION_MAXIMIZE_TILE:
+	    ClientTile(client, command->Integer);
+	    break;
 	case MENU_ACTION_MINIMIZE:
 	    ClientMinimize(client);
 	    break;
@@ -3545,6 +3621,7 @@ static void WindowMenuExecute(void *client, const MenuCommand * command)
 	case MENU_ACTION_DESKTOP:
 	case MENU_ACTION_SENDTO:
 	case MENU_ACTION_LAYER:
+	case MENU_ACTION_TILE:
 	case MENU_ACTION_DIR:
 	    Debug(2, "wrong window command: %d\n", command->Type);
 	    break;
