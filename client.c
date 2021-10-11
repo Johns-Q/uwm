@@ -1693,8 +1693,7 @@ void ClientMaximize(Client * client, int horz, int vert)
 	client->Height = client->OldHeight;
 	client->State &= ~(WM_STATE_MAXIMIZED_HORZ | WM_STATE_MAXIMIZED_VERT);
     } else {
-	ClientPlaceTiled(client,
-	    0 | (horz ? 0 b0101 : 0) | (vert ? 0 b01010000 : 0));
+	ClientPlaceTiled(client, 0 | (horz ? 0x05 : 0) | (vert ? 0x50 : 0));
     }
 
     ClientUpdateShape(client);

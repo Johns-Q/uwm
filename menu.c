@@ -3413,33 +3413,26 @@ static Menu *WindowMenuCreateTile(void)
     submenu->UserHeight = WindowMenuUserHeight;
 
     // YYHHXXWW : 0b00000000
-    WindowMenuAppend(submenu, NULL, "left", MENU_ACTION_MAXIMIZE_TILE,
-	0 b01010110);
-    WindowMenuAppend(submenu, NULL, "top", MENU_ACTION_MAXIMIZE_TILE,
-	0 b01100101);
-    WindowMenuAppend(submenu, NULL, "bottom", MENU_ACTION_MAXIMIZE_TILE,
-	0 b10100101);
-    WindowMenuAppend(submenu, NULL, "right", MENU_ACTION_MAXIMIZE_TILE,
-	0 b01011010);
+    WindowMenuAppend(submenu, NULL, "left", MENU_ACTION_MAXIMIZE_TILE, 0x56);
+    WindowMenuAppend(submenu, NULL, "top", MENU_ACTION_MAXIMIZE_TILE, 0x65);
+    WindowMenuAppend(submenu, NULL, "bottom", MENU_ACTION_MAXIMIZE_TILE, 0xA5);
+    WindowMenuAppend(submenu, NULL, "right", MENU_ACTION_MAXIMIZE_TILE, 0x5A);
 
     // the old maximize
     WindowMenuAppend(submenu, NULL, NULL, MENU_ACTION_NONE, 0);
-    WindowMenuAppend(submenu, NULL, "max", MENU_ACTION_MAXIMIZE_TILE,
-	0 b01010101);
-    WindowMenuAppend(submenu, NULL, "max-x", MENU_ACTION_MAXIMIZE_TILE,
-	0 b00000101);
-    WindowMenuAppend(submenu, NULL, "max-y", MENU_ACTION_MAXIMIZE_TILE,
-	0 b01010000);
+    WindowMenuAppend(submenu, NULL, "max", MENU_ACTION_MAXIMIZE_TILE, 0x55);
+    WindowMenuAppend(submenu, NULL, "max-x", MENU_ACTION_MAXIMIZE_TILE, 0x05);
+    WindowMenuAppend(submenu, NULL, "max-y", MENU_ACTION_MAXIMIZE_TILE, 0x50);
 
     WindowMenuAppend(submenu, NULL, NULL, MENU_ACTION_NONE, 0);
     WindowMenuAppend(submenu, NULL, "top left", MENU_ACTION_MAXIMIZE_TILE,
-	0 b01100110);
+	0x66);
     WindowMenuAppend(submenu, NULL, "top right", MENU_ACTION_MAXIMIZE_TILE,
-	0 b01101010);
+	0x6A);
     WindowMenuAppend(submenu, NULL, "bottom left", MENU_ACTION_MAXIMIZE_TILE,
-	0 b10100110);
+	0xA6);
     WindowMenuAppend(submenu, NULL, "bottom right", MENU_ACTION_MAXIMIZE_TILE,
-	0 b10101010);
+	0xAA);
 
     return submenu;
 }
