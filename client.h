@@ -127,6 +127,9 @@ struct _client_
     LIST_ENTRY(_client_) FrameList;	///< in list of frames
     TAILQ_ENTRY(_client_) LayerQueue;	///< in list queue of layers
 
+    int16_t Deleted;			///< client is already deleted
+    int16_t RefCount;			///< reference counter
+
     xcb_window_t Window;		///< client window
     xcb_window_t Parent;		///< frame window
     xcb_window_t Owner;			///< owner window

@@ -2069,6 +2069,7 @@ Client *ClientAddWindow(xcb_window_t window,
 
     // prepare client structure for this window
     client = calloc(1, sizeof(*client));
+    client->RefCount = 1;
     client->Window = window;
     ++ClientN;
 
@@ -2273,7 +2274,10 @@ void ClientDelWindow(Client * client)
     IconDel(client->Icon);
 #endif
 
-    free(client);
+    client->Deleted = 1;
+    if (--client->RefCount <= 0) {
+	free(client);
+    }
 
     xcb_flush(Connection);
     xcb_ungrab_server(Connection);
@@ -2288,6 +2292,13 @@ void ClientDelWindow(Client * client)
 */
 static void ClientKillHandler(Client * client)
 {
+    --client->RefCount;
+    if (client->Deleted) {		// already deleted
+	if (client->RefCount <= 0) {
+	    free(client);
+	}
+	return;
+    }
     if (client == ClientActive) {
 	ClientFocusNextStacked(client);
     }
@@ -2311,6 +2322,7 @@ static void ClientKillHandler(Client * client)
 void ClientKill(Client * client)
 {
     if (ShowKillConfirmation) {
+	++client->RefCount;
 	DialogShowConfirm(client, ClientKillHandler, "Kill this window?",
 	    "This may cause data to be lost!", NULL);
     } else {
