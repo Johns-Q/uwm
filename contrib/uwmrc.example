@@ -839,6 +839,8 @@ f12 = 0xffc9
 ;
 
 key-binding = [
+    ; mod1 should be left ALT key
+    ; mod4 should be left+right Win/Gui/Meta key
     ; switch to next window in task order
     [ [ mod4 tab ] task-next-window = true ]
     ; switch to previous window in task order
@@ -854,6 +856,15 @@ key-binding = [
     [ [ mod4 '8 ] task-focus-window = 7 ]
     [ [ mod4 '9 ] task-focus-window = 8 ]
     [ [ mod4 '0 ] task-focus-window = 9 ]
+    ; *ALT* window commands:
+    [ [ mod1 space ] window-menu = true ]
+    [ [ mod1 f4 ] close = true ]
+    [ [ mod1 f5 ] toggle-maximize = true ]
+    [ [ mod1 f7 ] move = true ]
+    [ [ mod1 f8 ] resize = true ]
+    ; *ALT* minimize/hide window
+    [ [ mod1 f9 ] minimize = true ]
+    [ [ mod1 f10 ] restore = true ]
     ; tile window 1/2 (: for the magic codes look into ClientTile :)
     [ [ mod4 left ] maximize-tile = 86 ]
     [ [ mod4 right ] maximize-tile = 90 ]

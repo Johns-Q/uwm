@@ -241,8 +241,9 @@ typedef enum
 
     // menu actions
     MENU_ACTION_SUBMENU,		///< menu item is sub - menu
-    MENU_ACTION_DESKTOP,		///< autogen desktop sub - menu
-    MENU_ACTION_WINDOW,			///< FIXME: autogen window sub - menu
+    MENU_ACTION_DESKTOP,		///< autogen desktop(s) sub  menu
+    MENU_ACTION_WINDOW,			///< FIXME: autogen window(s) sub - menu
+    MENU_ACTION_WINDOW_MENU,		///< autogen window functions
     MENU_ACTION_SENDTO,			///< autogen sendto sub - menu
     MENU_ACTION_TILE,			///< autogen tile sub - menu
     MENU_ACTION_LAYER,			///< autogen layer sub - menu

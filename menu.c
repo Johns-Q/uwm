@@ -1070,6 +1070,7 @@ static void RootMenuShow(int, int, int);
 
 static void WindowMenuExecute(void *client, const MenuCommand *);
 static void WindowMenuChoose(const MenuCommand *);
+static Menu *WindowMenuCreate(const Client *);
 static Menu *WindowMenuCreateLayer(int);
 static Menu *WindowMenuCreateTile(void);
 
@@ -2218,6 +2219,14 @@ static void MenuCommandPrepare(MenuCommand * command)
 	    command->Submenu = DesktopCreateMenu(i);
 	    command->Submenu->UserHeight = WindowMenuUserHeight;
 	    break;
+	case MENU_ACTION_WINDOW:
+	    Debug(2, "FIXME: window list menu not yet supported\n");
+	    break;
+	case MENU_ACTION_WINDOW_MENU:
+	    if (MenuClient) {
+		command->Submenu = WindowMenuCreate(MenuClient);
+	    }
+	    break;
 	case MENU_ACTION_LAYER:
 	    if (MenuClient) {
 		i = MenuClient->OnLayer;
@@ -2256,6 +2265,7 @@ static void MenuCommandCleanup(MenuCommand * command)
     switch (command->Type) {
 	case MENU_ACTION_DESKTOP:
 	case MENU_ACTION_WINDOW:
+	case MENU_ACTION_WINDOW_MENU:
 	case MENU_ACTION_SENDTO:
 	case MENU_ACTION_LAYER:
 	case MENU_ACTION_TILE:
@@ -2386,6 +2396,11 @@ void MenuCommandExecute(const MenuCommand * command, int x, int y,
 	case MENU_ACTION_ROOT_MENU:
 	    RootMenuShow(command->Integer, x, y);
 	    break;
+	case MENU_ACTION_WINDOW_MENU:
+	    if (client) {
+		WindowMenuShow(NULL, x, y, client);
+	    }
+	    break;
 	case MENU_ACTION_DESKTOP:
 	case MENU_ACTION_WINDOW:
 	case MENU_ACTION_SENDTO:
@@ -2463,6 +2478,7 @@ void MenuCommandDel(MenuCommand * command)
 	case MENU_ACTION_SUBMENU:
 	case MENU_ACTION_DESKTOP:
 	case MENU_ACTION_WINDOW:
+	case MENU_ACTION_WINDOW_MENU:
 	case MENU_ACTION_SENDTO:
 	case MENU_ACTION_LAYER:
 	case MENU_ACTION_TILE:
@@ -2779,6 +2795,9 @@ void MenuCommandConfig(const ConfigObject * array, MenuCommand * command)
 	command->Submenu = NULL;
     } else if (ConfigStringsGetObject(array, &oval, "window", NULL)) {
 	command->Type = MENU_ACTION_WINDOW;
+	command->Submenu = NULL;
+    } else if (ConfigStringsGetObject(array, &oval, "window-menu", NULL)) {
+	command->Type = MENU_ACTION_WINDOW_MENU;
 	command->Submenu = NULL;
     } else if (ConfigStringsGetObject(array, &oval, "sendto", NULL)) {
 	command->Type = MENU_ACTION_SENDTO;
@@ -3612,6 +3631,8 @@ static void WindowMenuExecute(void *client, const MenuCommand * command)
 	    Debug(2, "unknown window command: %d\n", command->Type);
 	    break;
 	case MENU_ACTION_DESKTOP:
+	case MENU_ACTION_WINDOW:
+	case MENU_ACTION_WINDOW_MENU:
 	case MENU_ACTION_SENDTO:
 	case MENU_ACTION_LAYER:
 	case MENU_ACTION_TILE:
