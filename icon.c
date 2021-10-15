@@ -168,69 +168,87 @@ static ScaledIcon *IconCreateRenderScaled(Icon * icon, int width, int height)
     scaled->Width = width;
     scaled->Height = height;
 
-    // icon picture already created
-    if (icon->UseRender != ~0U) {
-    }
-    // create a temporary xcb_image for render picture
-    // FIXME: native 32?
-    image =
-	xcb_image_create(icon->Image->Width, icon->Image->Height,
-	XCB_IMAGE_FORMAT_Z_PIXMAP, 32, 32, 32, 32, XCB_IMAGE_ORDER_LSB_FIRST,
-	XCB_IMAGE_ORDER_LSB_FIRST, NULL, ~0L, NULL);
-    image->data = icon->Image->Data;
+    // icon picture already created?
+    if (icon->UseRender == ~0U) {
+	// create a temporary xcb_image for render picture
+	// FIXME: native 32?
+	image =
+	    xcb_image_create(icon->Image->Width, icon->Image->Height,
+	    XCB_IMAGE_FORMAT_Z_PIXMAP, 32, 32, 32, 32,
+	    XCB_IMAGE_ORDER_LSB_FIRST, XCB_IMAGE_ORDER_LSB_FIRST, NULL, ~0L,
+	    NULL);
+	image->data = icon->Image->Data;
 
-    // create pixmap
-    pixmap = xcb_generate_id(Connection);
-    xcb_create_pixmap(Connection, 32, pixmap, XcbScreen->root,
-	icon->Image->Width, icon->Image->Height);
-    gc = xcb_generate_id(Connection);
-    xcb_create_gc(Connection, gc, pixmap, 0, NULL);
+	// create pixmap
+	pixmap = xcb_generate_id(Connection);
+	xcb_create_pixmap(Connection, 32, pixmap, XcbScreen->root,
+	    icon->Image->Width, icon->Image->Height);
+	gc = xcb_generate_id(Connection);
+	xcb_create_gc(Connection, gc, pixmap, 0, NULL);
 
-    // copy data to pixmap
-    xcb_image_put(Connection, pixmap, gc, image, 0, 0, 0);
-    xcb_image_destroy(image);
-    xcb_free_gc(Connection, gc);
+	// copy data to pixmap
+	xcb_image_put(Connection, pixmap, gc, image, 0, 0, 0);
+	xcb_image_destroy(image);
+	xcb_free_gc(Connection, gc);
 
-    // create render picture
-    if (1) {				// our ARGB isn't ARGB32
-	// FIXME: use x11 argb format, than this is easier
-	xcb_render_pictforminfo_t template;
+	// create render picture
+	if (1) {			// our ARGB isn't ARGB32
+	    // FIXME: use x11 argb format, than this is easier
+	    xcb_render_pictforminfo_t template;
 
-	template.type = XCB_RENDER_PICT_TYPE_DIRECT;
-	template.depth = 32;
-	template.direct.alpha_shift = 0;
-	template.direct.alpha_mask = 0xFF;
-	template.direct.red_shift = 8;
-	template.direct.red_mask = 0xFF;
-	template.direct.green_shift = 16;
-	template.direct.green_mask = 0xFF;
-	template.direct.blue_shift = 24;
-	template.direct.blue_mask = 0xFF;
-	pictforminfo =
-	    xcb_render_util_find_format(xcb_render_util_query_formats
-	    (Connection),
-	    XCB_PICT_FORMAT_TYPE | XCB_PICT_FORMAT_DEPTH | XCB_PICT_FORMAT_RED
-	    | XCB_PICT_FORMAT_RED_MASK | XCB_PICT_FORMAT_GREEN |
-	    XCB_PICT_FORMAT_GREEN_MASK | XCB_PICT_FORMAT_BLUE |
-	    XCB_PICT_FORMAT_BLUE_MASK | XCB_PICT_FORMAT_ALPHA |
-	    XCB_PICT_FORMAT_ALPHA_MASK, &template, 0);
+	    template.type = XCB_RENDER_PICT_TYPE_DIRECT;
+	    template.depth = 32;
+	    template.direct.alpha_shift = 0;
+	    template.direct.alpha_mask = 0xFF;
+	    template.direct.red_shift = 8;
+	    template.direct.red_mask = 0xFF;
+	    template.direct.green_shift = 16;
+	    template.direct.green_mask = 0xFF;
+	    template.direct.blue_shift = 24;
+	    template.direct.blue_mask = 0xFF;
+	    pictforminfo =
+		xcb_render_util_find_format(xcb_render_util_query_formats
+		(Connection),
+		XCB_PICT_FORMAT_TYPE | XCB_PICT_FORMAT_DEPTH |
+		XCB_PICT_FORMAT_RED | XCB_PICT_FORMAT_RED_MASK |
+		XCB_PICT_FORMAT_GREEN | XCB_PICT_FORMAT_GREEN_MASK |
+		XCB_PICT_FORMAT_BLUE | XCB_PICT_FORMAT_BLUE_MASK |
+		XCB_PICT_FORMAT_ALPHA | XCB_PICT_FORMAT_ALPHA_MASK, &template,
+		0);
+	} else {
+	    pictforminfo =
+		xcb_render_util_find_standard_format
+		(xcb_render_util_query_formats(Connection),
+		XCB_PICT_STANDARD_ARGB_32);
+	}
+	// pictforminfo is xcb cached data
+	if (!pictforminfo) {
+	    Debug(2, "can't find pictforminfo %s(%x)\n", __FUNCTION__,
+		icon->UseRender);
+	    // free temporary pixmap
+	    xcb_free_pixmap(Connection, pixmap);
+
+	    SLIST_REMOVE_HEAD(&icon->Scaled, Next);
+	    free(scaled);
+	    icon->UseRender = 0;
+
+	    return NULL;
+	}
+
+	// use global picture for all icons of any size
+	icon->UseRender = xcb_generate_id(Connection);
+	xcb_render_create_picture(Connection, icon->UseRender, pixmap,
+	    pictforminfo->id, 0, NULL);
+
+	// free temporary pixmap
+	xcb_free_pixmap(Connection, pixmap);
     } else {
-	pictforminfo =
-	    xcb_render_util_find_standard_format(xcb_render_util_query_formats
-	    (Connection), XCB_PICT_STANDARD_ARGB_32);
+	Debug(3, "reuse render picture %s(%x)\n", __FUNCTION__,
+	    icon->UseRender);
     }
-    // pictforminfo is xcb cached data
-
-    // use global picture for all icons of any size
-    icon->UseRender = xcb_generate_id(Connection);
-    xcb_render_create_picture(Connection, icon->UseRender, pixmap,
-	pictforminfo->id, 0, NULL);
 
     scaled->Image.Picture = XCB_NONE;
     scaled->Mask.Picture = XCB_NONE;
-
-    // free temporary pixmap
-    xcb_free_pixmap(Connection, pixmap);
 
     return scaled;
 #if 0
@@ -519,6 +537,7 @@ static ScaledIcon *IconGetScaled(Icon * icon, int width, int height)
     }
 
     Debug(3, "new scaled icon from %dx%d\n", width, height);
+
     // create a new ScaledIcon old-fashioned way
     scaled = malloc(sizeof(*scaled));
     SLIST_INSERT_HEAD(&icon->Scaled, scaled, Next);
@@ -634,6 +653,7 @@ void IconDraw(Icon * icon, xcb_drawable_t drawable, int x, int y,
 	if (IconDrawRenderScaled(icon, scaled, drawable, x, y)) {
 	    return;
 	}
+
 	// draw icon old way
 	if (scaled->Image.Pixmap) {
 	    // set clip mask
