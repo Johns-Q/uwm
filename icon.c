@@ -186,6 +186,7 @@ static ScaledIcon *IconCreateRenderScaled(Icon * icon, int width, int height)
 	gc = xcb_generate_id(Connection);
 	xcb_create_gc(Connection, gc, pixmap, 0, NULL);
 
+	// FIXME: use slices like the slow version
 	// copy data to pixmap
 	xcb_image_put(Connection, pixmap, gc, image, 0, 0, 0);
 	xcb_image_destroy(image);
@@ -606,9 +607,44 @@ static ScaledIcon *IconGetScaled(Icon * icon, int width, int height)
     scaled->Image.Pixmap = xcb_generate_id(Connection);
     xcb_create_pixmap(Connection, XcbScreen->root_depth, scaled->Image.Pixmap,
 	XcbScreen->root, width, height);
-    // render xcb_image to color data pixmap
-    xcb_image_put(Connection, scaled->Image.Pixmap, RootGC, xcb_image, 0, 0,
-	0);
+    // must split image into slices
+    if (width * height * 4U > MaximumRequestLength) {
+	int rows_per_req;
+
+	// We must make sure that each request is not larger than
+	// max_req_size.
+	rows_per_req = MaximumRequestLength - sizeof(xcb_put_image_request_t);
+	rows_per_req /= xcb_image->stride;
+	if (rows_per_req) {
+	    int h;
+
+	    y = 0;
+	    h = height;
+	    while (h > 0) {
+		xcb_image_t *subimage;
+
+		if (rows_per_req > h) {
+		    rows_per_req = h;
+		}
+
+		subimage =
+		    xcb_image_subimage(xcb_image, 0, y, width, rows_per_req,
+		    NULL, 0, NULL);
+		xcb_image_put(Connection, scaled->Image.Pixmap, RootGC,
+		    subimage, 0, y, 0);
+		xcb_image_destroy(subimage);
+
+		y += rows_per_req;
+		h -= rows_per_req;
+	    }
+	} else {
+	    Debug(1, "scaled icon %dx%d too big\n", width, height);
+	}
+    } else {
+	// render xcb_image to color data pixmap
+	xcb_image_put(Connection, scaled->Image.Pixmap, RootGC, xcb_image, 0,
+	    0, 0);
+    }
     // release xcb_image
     xcb_image_destroy(xcb_image);
 
