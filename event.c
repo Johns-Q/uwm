@@ -266,6 +266,7 @@ static inline int HandleButtonPress(xcb_button_press_event_t * event)
 		// wm standard ALT moves window
 		// FIXME: don't ignore other MODS?
 		if ((event->state & XCB_MOD_MASK_1)) {
+		    Debug(3, "move loop %x\n", event->state);
 		    BorderGetSize(client, &north, &south, &east, &west);
 
 		    ClientMoveLoop(client, XCB_BUTTON_INDEX_2,
@@ -275,7 +276,7 @@ static inline int HandleButtonPress(xcb_button_press_event_t * event)
 	    case XCB_BUTTON_INDEX_3:
 		// wm standard ALT resizes window
 		// FIXME: don't ignore other MODS?
-		Debug(3, "resize on alt %x\n", event->state);
+		Debug(3, "resize on alt %x?\n", event->state);
 		if (event->state & XCB_MOD_MASK_1) {
 		    Debug(3, "resize loop %x\n", event->state);
 		    BorderGetSize(client, &north, &south, &east, &west);
@@ -295,8 +296,7 @@ static inline int HandleButtonPress(xcb_button_press_event_t * event)
 	}
 	// FIXME: when handled don't replay!
 	// send grabed event to client
-	xcb_allow_events(Connection, XCB_ALLOW_REPLAY_POINTER,
-	    XCB_CURRENT_TIME);
+	xcb_allow_events(Connection, XCB_ALLOW_REPLAY_POINTER, event->time);
 	// FIXME: should be done by functions PagerUpdate();
 	return 1;
     }
@@ -1119,6 +1119,7 @@ xcb_generic_event_t *PollNextEvent(void)
 	PushedEvent = NULL;
 	return event;
     }
+    xcb_flush(Connection);
     return xcb_poll_for_event(Connection);
 }
 

@@ -1876,7 +1876,8 @@ static int MenuLoop(Runtime * runtime)
 			default:	// selection made
 			    // FIXME: but back event?
 			    xcb_allow_events(Connection,
-				XCB_ALLOW_REPLAY_KEYBOARD, XCB_CURRENT_TIME);
+				XCB_ALLOW_REPLAY_KEYBOARD,
+				((const xcb_key_press_event_t *)event)->time);
 			    free(event);
 			    return 1;
 		    }
@@ -1894,7 +1895,8 @@ static int MenuLoop(Runtime * runtime)
 			default:	// selection made
 			    // FIXME: but back event?
 			    xcb_allow_events(Connection,
-				XCB_ALLOW_REPLAY_POINTER, XCB_CURRENT_TIME);
+				XCB_ALLOW_REPLAY_POINTER,
+				((xcb_motion_notify_event_t *) event)->time);
 			    free(event);
 			    return 1;
 		    }
