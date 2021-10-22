@@ -39,7 +39,7 @@
 ///			http://kai.vm.bytemark.co.uk/~arashi/wmsystray/
 ///		- x11-misc/stalonetray
 ///			http://stalonetray.sourceforge.net/
-/// @{
+///< @{
 
 #include <xcb/xcb.h>
 #include "uwm.h"
@@ -480,7 +480,7 @@ int SystrayHandleDestroyNotify(xcb_window_t window)
 **	Handle a selection clear event.
 **
 **	@param event	X11 selection clear event
-++
+**
 **	@returns 1 if handled, 0 otherwise.
 */
 int SystrayHandleSelectionClear(const xcb_selection_clear_event_t * event)

@@ -1,7 +1,7 @@
 ///
 ///	@file screen.c	@brief physical screen management functions
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -28,7 +28,7 @@
 ///
 ///	@todo adding / removing monitors during session is not supported.
 ///
-/// @{
+///< @{
 
 #include <stdio.h>
 #include <stdlib.h>

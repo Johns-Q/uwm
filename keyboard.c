@@ -1,7 +1,7 @@
 ///
 ///	@file keyboard.c	@brief keyboard functions.
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -27,7 +27,7 @@
 ///
 ///	@todo parse keyboard config, grab keys.
 ///
-/// @{
+///< @{
 
 #include <xcb/xcb.h>
 #include "uwm.h"

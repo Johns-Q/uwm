@@ -1,7 +1,7 @@
 ///
 ///	@file swallow.c		@brief swallow panel plugin functions.
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -27,7 +27,7 @@
 ///	This module add swallows to the panel.	Also called dock or slit in
 ///	other window managers.
 ///
-/// @{
+///< @{
 
 #include <xcb/xcb.h>
 #include "uwm.h"

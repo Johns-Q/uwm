@@ -1,7 +1,7 @@
 ///
 ///	@file event.h		@brief x11 event handler header file
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010, 2021 by Lutz Sammer.	All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -44,8 +44,8 @@ extern void WaitForEvent(void);
     /// Poll for next event.
 extern xcb_generic_event_t *PollNextEvent(void);
 
-    /// Look if there is a event.
-extern int IsNextEventAvail(void);
+// Look if there is a event.
+//extern int IsNextEventAvail(void);
 
     /// Peek window event.
 extern xcb_generic_event_t *PeekWindowEvent(xcb_window_t, int);

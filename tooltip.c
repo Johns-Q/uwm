@@ -30,7 +30,7 @@
 ///		#TOOLTIP_DEFAULT_DELAY from config section
 ///		#TOOLTIP_MAXIMAL_MOVE from config section
 ///
-/// @{
+///< @{
 
 #include <xcb/xcb.h>
 #include "uwm.h"

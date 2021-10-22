@@ -33,7 +33,7 @@
 ///
 ///	@todo drawing two lines isn't the best code
 ///
-/// @{
+///< @{
 
 #include <xcb/xcb.h>
 #include "uwm.h"

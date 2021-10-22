@@ -1,7 +1,7 @@
 ///
 ///	@file pointer.c		@brief Pointer/Cursor functions
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -25,7 +25,7 @@
 ///
 ///	This module handles pointers and cursors.
 ///
-/// @{
+///< @{
 
 #include <xcb/xcb.h>
 #include "uwm.h"

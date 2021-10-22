@@ -25,7 +25,7 @@
 ///
 ///	This module contains the functions wich didn't fit in other modules.
 ///
-/// @{
+///< @{
 
 #define _GNU_SOURCE	1		///< fix stpcpy strchrnul
 

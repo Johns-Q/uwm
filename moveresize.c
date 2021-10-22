@@ -71,7 +71,7 @@
 ///
 ///	This module is only available, if compiled with #USE_STATUS.
 ///
-/// @{
+///< @{
 
 #ifdef USE_STATUS			// {
 
@@ -464,7 +464,8 @@ void StatusConfig(const Config * config)
 ///	This module handles outline for client window move and resize.
 ///
 ///	This module is only available, if compiled with #USE_OUTLINE.
-/// @{
+///
+///< @{
 
 /**
 **	Window move modes enumeration.
@@ -628,7 +629,8 @@ void OutlineConfig(const Config * config)
 ///	This module is only available, if compiled with #USE_SNAP.
 ///
 ///	@todo FIXME: disable isn't supported yet.
-/// @{
+///
+///< @{
 
 #ifdef USE_SNAP				// {
 
@@ -1134,7 +1136,7 @@ void SnapConfig(const Config * config)
 ///
 ///	This module contains the client window move functions.
 ///
-/// @{
+///< @{
 
 /**
 **	Stop client move.
@@ -1518,7 +1520,7 @@ int ClientMoveKeyboard(Client * client)
 ///
 ///	This module contains the client window resize functions.
 ///
-/// @{
+///< @{
 
 /**
 **	Stop resize action.

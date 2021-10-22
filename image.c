@@ -58,7 +58,7 @@ extern int ColorGetByName(const char *, xcb_coloritem_t *);
 ///
 ///	@see #USE_JPEG #USE_PNG #USE_XPM for supported "image" formats.
 ///
-/// @{
+///< @{
 
 /**
 **	Create a new random filled image.
@@ -471,8 +471,10 @@ static Image *ImageLoadPNG(const char *name)
 **	Parse XPM data.
 **
 **	@param data	an array of strings with XPM image data
+**
+**	@returns A new image or NULL if there were errors.
 */
-static void *ImageParseXPM(const char *const *data)
+static Image *ImageParseXPM(const char *const *data)
 {
     int width;
     int height;

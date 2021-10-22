@@ -1,7 +1,7 @@
 ///
 ///	@file draw.c	@brief drawing functions
 ///
-///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -24,7 +24,7 @@
 ///
 ///	This modules contains all X11 drawing functions.
 ///
-/// @{
+///< @{
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -147,6 +147,8 @@ xcb_void_cookie_t xcb_poly_text_8_simple(xcb_connection_t * c,
 **
 **	@param len	text length
 **	@param str	string to draw
+**
+**	@returns a cookie
 */
 xcb_void_cookie_t xcb_poly_text_16_simple(xcb_connection_t * c,
     xcb_drawable_t drawable, xcb_gcontext_t gc, int16_t x, int16_t y,
@@ -200,7 +202,7 @@ xcb_void_cookie_t xcb_poly_text_16_simple(xcb_connection_t * c,
 ///
 ///	Depends on xcb.
 ///
-/// @{
+///< @{
 
 #define COLOR_DELTA 45			///< for lighten / darken
 
@@ -581,6 +583,9 @@ static void ColorDarken(const Color * orig, Color * dest)
 
 /**
 **	Compute the mask for computing colors in a linear RGB colormap.
+**
+**	@param mask		mask for the RGB fields
+**	@param[out] shift	shift value for the mask
 */
 static void ColorShiftMask(uint32_t mask, int *shift)
 {
@@ -807,7 +812,7 @@ void ColorConfig(const Config * config)
 ///
 ///	Depends on xcb.
 ///
-/// @{
+///< @{
 
 FontTable Fonts = {			///< contains all our used fonts
     .Titlebar = {.ModuleName = "titlebar"}
@@ -1234,7 +1239,7 @@ void FontConfig(const Config * config)
 ///
 ///	This modules contains the gradient drawing functions.
 ///
-/// @{
+///< @{
 
 /**
 **	Draw a horizontal gradient.

@@ -38,7 +38,7 @@
 ///		- x11-misc/fbpanel
 ///			@n light-weight X11 desktop panel
 ///			@n http://fbpanel.sourceforge.net
-/// @{
+///< @{
 
 #include <xcb/xcb.h>
 #include "uwm.h"

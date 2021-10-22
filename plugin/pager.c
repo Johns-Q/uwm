@@ -28,7 +28,7 @@
 ///
 ///	@todo sticky flag didn't work
 ///
-/// @{
+///< @{
 
 #define _GNU_SOURCE	1		///< fix stpcpy strchrnul
 

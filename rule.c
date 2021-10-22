@@ -1,7 +1,7 @@
 ///
 ///	@file rule.c	@brief client/window rule functions
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -38,7 +38,7 @@
 ///	@todo regex are compiled for each rule/client, try other: peg (Parsing
 ///	expression grammer) or simple shell pattern matching.
 ///
-/// @{
+///< @{
 
 #define _GNU_SOURCE	1		///< fix stpcpy strchrnul
 

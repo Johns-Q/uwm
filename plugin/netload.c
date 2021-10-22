@@ -32,7 +32,7 @@
 ///
 ///	The tooltip show the average RX/TX traffic and the maximal traffic.
 ///
-/// @{
+///< @{
 
 #include <xcb/xcb.h>
 #include "uwm.h"

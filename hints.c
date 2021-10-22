@@ -40,7 +40,7 @@
 ///		- _NET_WM_STATE_DEMANDS_ATTENTION isn't supported
 ///		- can use functions, types from xcb_ewmh.h
 ///
-/// @{
+///< @{
 
 #include <xcb/xcb.h>
 #include "uwm.h"
@@ -75,7 +75,7 @@
 ///
 ///	This module contains the lowlevel atom reading/writing functions.
 ///
-/// @{
+///< @{
 
 /**
 **	Table of all atom used in the windowmanger, which are not defined in
@@ -433,7 +433,7 @@ void AtomExit(void)
 #define MWM_INPUT_FULL_APPLICATION_MODAL    3
 
 #define MWM_TEAROFF_WINDOW (1L << 0)
-//@}
+///@}
 
 /**
 **	Motif window manager hints structure.

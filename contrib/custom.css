@@ -1,0 +1,77 @@
+/* custom.css */
+
+html {
+    /* define light-mode variable overrides here */
+    --primary-color: #3c3836;
+    --primary-dark-color: #282828;
+    --primary-light-color: #504945;
+    --primary-lighter-color: #665c54;
+    --primary-lightest-color: #7c6f64;
+
+    /* page base colors */
+    --page-background-color: #fbf1c7;
+    --page-foreground-color: #3c3836;
+    --page-secondary-foreground-color: #458588;
+
+    /* color for all separators on the website: hr, borders, ... */
+    --separator-color: #dedede;
+
+    /* colors for various content boxes: @warning, @note, @deprecated @bug */
+    --warning-color: #fbd1b7;
+    --warning-color-dark: #9d0006;
+    --warning-color-darker: #cc241d;
+    --note-color: rgba(255,229,100,.3);
+    --note-color-dark: #c39900;
+    --note-color-darker: #8d7400;
+    --deprecated-color: rgb(214, 216, 224);
+    --deprecated-color-dark: #5b6269;
+    --deprecated-color-darker: #43454a;
+    --bug-color: rgb(246, 208, 178);
+    --bug-color-dark: #a53a00;
+    --bug-color-darker: #5b1d00;
+    --invariant-color: #b7f8d0;
+    --invariant-color-dark: #00ba44;
+    --invariant-color-darker: #008622;
+
+    /* blockquote colors */
+    --blockquote-background: #ebdbb2;
+    --blockquote-foreground: #727272;
+
+    /* table colors */
+    --tablehead-background: #d5c4a1;
+    --tablehead-foreground: var(--page-foreground-color);
+
+    /* code block colors */
+    --code-background: #ebdbb2;
+    --code-foreground: var(--page-foreground-color);
+
+    /* fragment colors */
+    --fragment-background: #282c34;
+    --fragment-foreground: #ffffff;
+    --fragment-keyword: #cc99cd;
+    --fragment-keywordtype: #ab99cd;
+    --fragment-keywordflow: #e08000;
+    --fragment-token: #7ec699;
+    --fragment-comment: #999999;
+    --fragment-link: #98c0e3;
+    --fragment-preprocessor: #65cabe;
+    --fragment-linenumber-color: #cccccc;
+    --fragment-linenumber-background: #35393c;
+    --fragment-linenumber-border: #1f1f1f;
+
+    /* sidebar navigation (treeview) colors */
+    --side-nav-background: #d5c4a1;
+    --side-nav-foreground: var(--page-foreground-color);
+
+}
+
+@media (prefers-color-scheme: dark) {
+    html:not(.light-mode) {
+        /* define dark-mode variable overrides here if you DON'T use doxygen-awesome-darkmode-toggle.js */
+    }
+}
+
+html.dark-mode {
+    /* define dark-mode variable overrides here if you DO use doxygen-awesome-darkmode-toggle.js */
+}
+

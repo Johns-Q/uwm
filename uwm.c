@@ -22,7 +22,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 /**
-**	@mainpage
+**	@page oldmainpage
 **
 **	@section about
 **
@@ -74,7 +74,7 @@
 ///
 ///	This module contains main, init, config and exit functions.
 ///
-/// @{
+///< @{
 
 #define _GNU_SOURCE	1		///< fix stpcpy strchrnul
 
@@ -360,6 +360,10 @@ static void ConnectionClose(void)
 
 /**
 **	Signal handler.
+**
+**	handle SIGTERM, SIGINT, SIGHUP.
+**
+**	@param signum	unused signal number
 */
 static void SignalHandler(int __attribute__((unused)) signum)
 {

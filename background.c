@@ -42,7 +42,7 @@
 ///	@note Is XSETROOT_ID still needed to be supported?
 ///	If you need it, compile with #USE_XSETROOT_ID.
 ///
-/// @{
+///< @{
 
 #include <xcb/xcb.h>
 #include "uwm.h"

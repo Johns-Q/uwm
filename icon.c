@@ -1,7 +1,7 @@
 ///
 ///	@file icon.c		@brief icon handling functions.
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.	 All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -28,7 +28,7 @@
 ///	These functions and all dependencies are only available if compiled
 ///	widh #USE_ICON.
 ///
-/// @{
+///< @{
 
 #define _GNU_SOURCE	1		///< fix stpcpy strchrnul
 
@@ -930,6 +930,8 @@ static Icon *IconNewFromData(const char *name, const char *const *data)
 
 /**
 **	Create default icon.
+**
+**	@returns default icon structure, NULL if not found.
 */
 static Icon *IconGetDefault(void)
 {
@@ -1193,7 +1195,7 @@ void IconExit(void)
 #ifdef USE_RC				// {
 
 /**
-**	Parse icon config
+**	Parse icon module configuration.
 **
 **	@param config	global config dictionary
 */

@@ -26,7 +26,7 @@
 ///
 ///	This module handles the window borders.
 ///
-/// @{
+///< @{
 
 #include <xcb/xcb.h>
 #include "uwm.h"

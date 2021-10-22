@@ -337,7 +337,6 @@ extern void ClientPlace(Client *, int);
     /// Place maximized client on screen.
 extern void ClientPlaceMaximized(Client *, int, int);
 
-    //
     /// Place tiled client on screen.
 extern void ClientPlaceTiled(Client *, int);
 

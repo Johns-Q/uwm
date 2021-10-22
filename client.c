@@ -69,7 +69,7 @@
 ///
 ///	Support for EWMH _NET_WM_STRUT_PARTIAL and _NET_WM_STRUT.
 ///
-/// @{
+///< @{
 
 /**
 **	typedef for rectangle.
@@ -884,7 +884,7 @@ void PlacementExit(void)
 ///
 ///	This module contains client control functions.
 ///
-/// @{
+///< @{
 
 FocusModel FocusModus;			///< current focus model
 
@@ -1262,6 +1262,10 @@ void ClientUpdateShape(const Client * client)
 
 /**
 **	Determine if window uses shape extension prefetch.
+**
+**	@param client	client to check for shape
+**
+**	@returns xcb request cookie
 */
 static xcb_shape_query_extents_cookie_t ClientCheckShapeRequest(const Client *
     client)
@@ -1271,6 +1275,9 @@ static xcb_shape_query_extents_cookie_t ClientCheckShapeRequest(const Client *
 
 /**
 **	Determine if window uses shape extension.
+**
+**	@param cookie	xcb cookie from @see ClientCheckShapeRequest
+**	@param client	client to check for shape
 */
 static void ClientCheckShape(xcb_shape_query_extents_cookie_t cookie,
     Client * client)

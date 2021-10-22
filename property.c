@@ -29,7 +29,7 @@
 ///
 ///	@todo FIXME: many properties are not yet watched and handled.
 ///
-/// @{
+///< @{
 
 #include <xcb/xcb.h>
 #include "uwm.h"

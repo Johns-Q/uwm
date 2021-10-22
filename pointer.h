@@ -1,7 +1,7 @@
 ///
 ///	@file pointer.h		@brief Pointer/Cursor header file
 ///
-///	Copyright (c) 2009, 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2011, 2021 by Lutz Sammer.	All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -66,8 +66,8 @@ extern void PointerSetPosition(int, int);
     /// Get current pointer position.
 extern void PointerGetPosition(int *, int *);
 
-    /// Get current button mask.
-extern xcb_button_mask_t PointerGetButtonMask(void);
+// Get current button mask.
+//extern xcb_button_mask_t PointerGetButtonMask(void);
 
     /// Grab pointer request.
 extern xcb_grab_pointer_cookie_t PointerGrabRequest(xcb_window_t,

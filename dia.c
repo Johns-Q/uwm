@@ -53,7 +53,7 @@
 ///	`---------'------'---------------------------------------'------'
 ///	</tt>
 ///
-/// @{
+///< @{
 
 #define _GNU_SOURCE	1		///< fix stpcpy strchrnul
 
@@ -993,6 +993,8 @@ static void DiaScrollDown(void)
 
 /**
 **	Dia scroll index page up.
+**
+**	@param n	number of images to scroll
 */
 static void DiaIndexScrollUp(int n)
 {
@@ -1025,6 +1027,8 @@ static void DiaIndexScrollUp(int n)
 
 /**
 **	Dia scroll index page down.
+**
+**	@param n	number of images to scroll
 */
 static void DiaIndexScrollDown(int n)
 {

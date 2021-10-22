@@ -1,7 +1,7 @@
 ///
 ///	@file command.c @brief command functions.
 ///
-///	Copyright (c) 2009, 2010 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009, 2010, 2021 by Lutz Sammer.	All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -26,7 +26,7 @@
 ///	This module handles running startup, exiting, and restart commands,
 ///	And starting external commands.
 ///
-/// @{
+///< @{
 
 #define _GNU_SOURCE	1		///< fix stpcpy strchrnul
 

@@ -35,7 +35,7 @@
 ///		not supported.
 ///	@todo support mouse over raise or focus
 ///
-/// @{
+///< @{
 
 #include <xcb/xcb.h>
 #include "uwm.h"
@@ -100,7 +100,7 @@ static struct _task_head_ Tasks = SLIST_HEAD_INITIALIZER(Tasks);
 
 /**
 **	Minimized arrow, 5x5 pixels
-*@{
+**@{
 */
 #define TASK_MINIMIZED_WIDTH 5
 #define TASK_MINIMIZED_HEIGHT 5
@@ -114,7 +114,7 @@ static const uint8_t MinimizedBitmap[TASK_MINIMIZED_HEIGHT] = {
 // *INDENT-ON*
 };
 
-//@}
+///@}
 
 static xcb_pixmap_t MinimizedPixmap;	///< cached pixmap for bitmap
 
@@ -252,13 +252,13 @@ void TaskFocusPrevious(void)
 **
 **	@param nth	select this nth (from 0) client.
 */
-void TaskFocusNth(int n)
+void TaskFocusNth(int nth)
 {
     Client *client;
 
     // find nth window in task, skip all non-focus clients
     SLIST_FOREACH(client, &ClientNetList, NetClient) {
-	if (ClientShouldFocus(client) && n-- == 0) {
+	if (ClientShouldFocus(client) && nth-- == 0) {
 	    ClientRestore(client, 1);
 	    ClientFocus(client);
 	    break;

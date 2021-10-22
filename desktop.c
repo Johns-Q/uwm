@@ -26,7 +26,7 @@
 ///	This module handles multiple desktops, which is our name for
 ///	virtual screens / workspace.
 ///
-/// @{
+///< @{
 
 #define _GNU_SOURCE	1		///< fix stpcpy strchrnul
 

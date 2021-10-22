@@ -32,7 +32,7 @@
 ///	@todo support build without menu-module: keyboard, panel, clock,
 ///		netload, task and button all need the menu module.
 ///
-/// @{
+///< @{
 
 #include <xcb/xcb.h>
 #include "uwm.h"
@@ -82,11 +82,6 @@
 
 #include "readable_bitmap.h"
 
-#ifndef XCB_EVENT_ERROR_SUCESS
-    /// Function not defined until xcb-util-0.3.4.
-extern const char *xcb_event_get_label(uint8_t);
-#endif
-
 // ------------------------------------------------------------------------ //
 // Dialog
 // ------------------------------------------------------------------------ //
@@ -102,7 +97,7 @@ extern const char *xcb_event_get_label(uint8_t);
 ///
 ///	@todo add support for keyboard
 ///
-/// @{
+///< @{
 
 #ifdef USE_DIALOG			// {
 
@@ -601,7 +596,7 @@ void DialogExit(void)
 ///
 ///	Labels are used to draw task item, menu items and button items.
 ///
-/// @{
+///< @{
 
 #ifdef USE_ICON
 
@@ -1048,10 +1043,10 @@ static const uint8_t MenuSubmenuArrowBitmap[SUB_MENU_ARROW_HEIGHT] = {
 // *INDENT-ON*
 };
 
-//@}
+///@}
 
 ///	locale forward definitions
-///@{
+//@{
 
 static int WindowMenuUserHeight;
 
@@ -1074,7 +1069,7 @@ static Menu *WindowMenuCreate(const Client *);
 static Menu *WindowMenuCreateLayer(int);
 static Menu *WindowMenuCreateTile(void);
 
-///@}
+//@}
 
 // ---------------------------------------------------------------------------
 
@@ -3088,7 +3083,7 @@ void MenuConfig(const Config * config)
 ///
 ///	This module handles root (window) menus and commands.
 ///
-/// @{
+///< @{
 
 static MenuButton *RootButtons;		///< root window buttons
 
@@ -3314,7 +3309,7 @@ void WindowMenuConfig(const Config * config)
 ///	@todo	support of user configurable menu
 ///	@todo	icons, perhaps this can be combined with above.
 ///
-/// @{
+///< @{
 
 static int WindowMenuUserHeight;	///< user height of menus
 

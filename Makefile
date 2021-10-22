@@ -189,9 +189,11 @@ HDRS	= uwm.h command.h pointer.h keyboard.h draw.h image.h icon.h \
 	plugin/systray.h plugin/clock.h plugin/netload.h \
 	readable_bitmap.h dia.h td.h uwm-config.h queue.h
 
-FILES=	Makefile u.xpm contrib/uwm-helper.sh.in uwm.1 uwmrc.5 CODINGSTYLE.txt \
-	README.txt ChangeLog contrib/uwm.doxyfile LICENSE.md AGPL-v3.0.md \
-	contrib/uwm16x16.xpm contrib/x.xpm contrib/uwmrc.example
+FILES=	Makefile u.xpm uwm.1 uwmrc.5 CODINGSTYLE.txt README.md ChangeLog \
+	LICENSE.md AGPL-v3.0.md \
+	contrib/uwm.doxyfile contrib/doxygen-awesome.css contrib/custom.css \
+	contrib/uwm.svg contrib/uwm16x16.xpm contrib/x.xpm \
+	contrib/uwmrc.example contrib/uwm-helper.sh.in
 
 all:	uwm #udm
 
@@ -242,7 +244,7 @@ contrib/uwm-helper:	contrib/uwm-helper.sh.in
 
 doc:	$(SRCS) $(HDRS) contrib/uwm.doxyfile
 	(cat contrib/uwm.doxyfile; \
-	echo 'PROJECT_NUMBER=${VERSION} $(if $(GIT_REV), (GIT-$(GIT_REV)))') \
+	echo 'PROJECT_NUMBER="$(patsubst "%",%,$(VERSION))$(if $(GIT_REV), (GIT-$(GIT_REV)))"') \
 	| doxygen -
 
 indent:

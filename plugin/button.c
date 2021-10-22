@@ -28,8 +28,9 @@
 ///	text.  Commands can be configured to be run on pointer button clicks.
 ///
 ///	@todo desktop name is shown if icon and text of button aren't set.
-///	This is a hack. Add desktop name plugin?
-/// @{
+///	This is a hack.	 Add desktop name plugin?
+///
+///< @{
 
 #include <xcb/xcb.h>
 #include "uwm.h"

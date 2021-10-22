@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="55"
+   height="55"
+   viewBox="0 0 14.552084 14.552084"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   sodipodi:docname="uwm.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="px"
+     showgrid="false"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:snap-global="true"
+     inkscape:snap-to-guides="false"
+     inkscape:zoom="11.35612"
+     inkscape:cx="-8.4976207"
+     inkscape:cy="27.254027"
+     inkscape:window-width="1782"
+     inkscape:window-height="1021"
+     inkscape:window-x="85"
+     inkscape:window-y="8"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1"
+     units="px"
+     width="55px">
+    <sodipodi:guide
+       position="110.97701,242.22713"
+       orientation="0,-1"
+       id="guide59769" />
+    <sodipodi:guide
+       position="128.74703,204.93706"
+       orientation="0,-1"
+       id="guide60211" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g316"
+       transform="translate(0.03886151,0.25243275)"
+       style="stroke:#000000;stroke-opacity:1;stroke-width:0.05291667;stroke-miterlimit:4;stroke-dasharray:none">
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:10.2491px;line-height:1.25;font-family:sans-serif;fill:#00ffff;fill-opacity:1;stroke:#000000;stroke-width:0.05291667;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+         x="5.6680999"
+         y="8.2250414"
+         id="text38145"><tspan
+           sodipodi:role="line"
+           id="tspan38143"
+           style="font-size:10.2491px;fill:#00ffff;stroke-width:0.05291667;stroke:#000000;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+           x="5.6680999"
+           y="8.2250414">M</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:10.2491px;line-height:1.25;font-family:sans-serif;fill:#008000;fill-opacity:1;stroke:#000000;stroke-width:0.05291667;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+         x="2.8655949"
+         y="13.293811"
+         id="text46145"><tspan
+           sodipodi:role="line"
+           id="tspan46143"
+           style="font-size:10.2491px;fill:#008000;stroke-width:0.05291667;stroke:#000000;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+           x="2.8655949"
+           y="13.293811">W</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.2491px;line-height:1.25;font-family:'Fira Code';-inkscape-font-specification:'Fira Code';fill:#00ff00;fill-opacity:1;stroke:#000000;stroke-width:0.05291667;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+         x="0.033995662"
+         y="8.0734196"
+         id="text4983"><tspan
+           sodipodi:role="line"
+           id="tspan4981"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.2491px;font-family:'Fira Code';-inkscape-font-specification:'Fira Code';fill:#00ff00;stroke-width:0.05291667;stroke:#000000;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+           x="0.033995662"
+           y="8.0734196">µ</tspan></text>
+    </g>
+  </g>
+</svg>
