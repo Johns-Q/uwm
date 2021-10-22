@@ -1,7 +1,7 @@
 ///
 ///	@file draw.c	@brief drawing functions
 ///
-///	Copyright (c) 2009 - 2011 by Lutz Sammer.  All Rights Reserved.
+///	Copyright (c) 2009 - 2011, 2021 by Lutz Sammer.  All Rights Reserved.
 ///
 ///	Contributor(s):
 ///
@@ -516,7 +516,7 @@ void ColorGetIndex(xcb_coloritem_t * c)
 **	@param orig		orignal base color
 **	@param[out] dest	lighter color result
 */
-static void ColorLighten(Color * orig, Color * dest)
+static void ColorLighten(const Color * orig, Color * dest)
 {
     xcb_coloritem_t temp;
     unsigned u;
@@ -525,7 +525,12 @@ static void ColorLighten(Color * orig, Color * dest)
 	ColorParse(orig->Value, &temp);
     } else if (orig->Default) {
 	ColorParse(orig->Default, &temp);
+    } else {
+	temp.red = 65535;
+	temp.green = 65535;
+	temp.blue = 65535;
     }
+
     // temp contains now r/g/b
 
     // * 1.45
@@ -546,7 +551,7 @@ static void ColorLighten(Color * orig, Color * dest)
 **	@param orig		orignal base color
 **	@param[out] dest	darker color result
 */
-static void ColorDarken(Color * orig, Color * dest)
+static void ColorDarken(const Color * orig, Color * dest)
 {
     xcb_coloritem_t temp;
     unsigned u;
@@ -555,6 +560,10 @@ static void ColorDarken(Color * orig, Color * dest)
 	ColorParse(orig->Value, &temp);
     } else if (orig->Default) {
 	ColorParse(orig->Default, &temp);
+    } else {
+	temp.red = 65535;
+	temp.green = 65535;
+	temp.blue = 65535;
     }
     // temp contains now r/g/b
 
