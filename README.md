@@ -63,7 +63,7 @@ features
    - multiple screen (xinerama)
    - 64-bit and 32-bit clean
    - little-endian and big-endian clean
-   - compatible with uclibc and libc6
+   - compatible with musl, uclibc and libc6
    - compatible with GCC 4.5.3-11.2.0, Clang 2.9-13.0 and ekopath 4.0.11
    - many features can be compile time enabled / disabled
 
@@ -115,7 +115,8 @@ Requires: {#requires}
    - x11-libs/xcb-util,
    - x11-libs/xcb-util-wm,
    - x11-libs/xcb-util-image,
-   - x11-libs/xcb-util-keysyms
+   - x11-libs/xcb-util-keysyms,
+   - x11-libs/xcb-util-renderutil
 
       X C-language Bindings library
       http://xcb.freedesktop.org/
@@ -125,6 +126,10 @@ Requires: {#requires}
 
       X.Org X11 library
       http://xorg.freedesktop.org/
+ 
+   - bsd-compat-headers
+
+      for /usr/include/sys/queue.h and older musl
 
    - POSIX regex functions
 
