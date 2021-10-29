@@ -162,7 +162,7 @@ int HaveRender;				///< xrender extension found
 #endif
 
 char KeepRunning;			///< keep running
-char KeepLooping;			///< keep looping
+volatile char KeepLooping;		///< keep looping
 
 //static char Initializing;		///< init state
 

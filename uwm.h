@@ -344,7 +344,7 @@ extern int HaveRender;			///< xrender extension found
 #endif
 
 extern char KeepRunning;		///< keep running
-extern char KeepLooping;		///< keep looping
+extern volatile char KeepLooping;	///< keep looping
 
 //////////////////////////////////////////////////////////////////////////////
 //	Prototypes
