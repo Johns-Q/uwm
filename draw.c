@@ -343,7 +343,7 @@ static uint32_t *ColorReverseMap;
 **
 **	xcb_coloritem_t.red + ... -> xcb_coloritem_t.pixel
 **
-**	@param c	X11 color item (rgb + pixel)
+**	@param[in,out] c	X11 color item (rgb + pixel)
 */
 static void ColorGetDirectPixel(xcb_coloritem_t * c)
 {
@@ -402,7 +402,7 @@ void ColorGetPixel(xcb_coloritem_t * c)
 **	Look up a color by name.
 **
 **	@param color_name	color name
-**	@param c		X11 color item (rgb + pixel)
+**	@param[out] c		X11 color item (rgb + pixel)
 **
 **	@returns true if the color name was found, false if not.
 **

@@ -89,6 +89,9 @@ Install:
    1. git
 ```
       git clone git://uwm.git.sourceforge.net/gitroot/uwm/uwm
+      -or-
+      git clone https://github.com/Johns-Q/uwm.git
+
       cd uwm
       # make should automatic pull the submodules from git.
       make
@@ -96,6 +99,7 @@ Install:
 ```
    2. tarball
 
+      *this versions are very outdated!*
       Download latest version from:
 	 http://sourceforge.net/projects/uwm/files/
 ```
@@ -105,6 +109,14 @@ Install:
       make
       ./xephyr.sh ./uwm -c contrib/uwmrc.example
 ```
+More:
+-----
+   - To build and see the source code documentation use:
+```
+      make doc
+      firefox doc/html/index.html
+```
+
 
 Requires: {#requires}
 ---------
@@ -118,9 +130,8 @@ Requires: {#requires}
    - x11-libs/xcb-util-keysyms,
    - x11-libs/xcb-util-renderutil
 
-      X C-language Bindings library
+      extra X C-language Bindings library
       http://xcb.freedesktop.org/
-      Only versions >= 0.3.8 are supported
 
    - x11-libs/libX11 (for header files missing in xcb)
 
