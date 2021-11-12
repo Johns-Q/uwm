@@ -141,6 +141,9 @@
 #if defined(DOXYGEN) || !defined(NO_XMU) && !defined(USE_XMU)
 #define USE_XMU				///< xmu emulation support
 #endif
+#if defined(DOXYGEN) || !defined(NO_XCURSOR) && !defined(USE_XCURSOR)
+#define USE_XCURSOR			///< xcursor support
+#endif
 #if defined(DOXYGEN) || !defined(NO_COLORMAPS) && !defined(USE_COLORMAPS)
 #define USE_COLORMAPS			///< x11 colormaps support
 #undef USE_COLORMAPS

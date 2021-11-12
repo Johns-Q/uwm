@@ -206,6 +206,19 @@ Requires: {#requires}
       X.Org miscellaneous fonts
       http://xorg.freedesktop.org/
 
+   - x11-libs/xcb-util-cursor
+
+      extra X C-language Bindings library
+      port of libXcursor
+      https://gitlab.freedesktop.org/xorg/lib/libxcb-cursor
+      used with USE_XCURSOR
+
+   - x11-themes/xcursor-themes
+
+      https://www.x.org/wiki/
+      X.Org cursor themes: whiteglass, redglass and handhelds
+      used with USE_XCURSOR
+
    - Doxygen Awesome
 
       Doxygen Awesome is a custom CSS theme for doxygen html-documentation

@@ -25,6 +25,21 @@
 ///
 ///	This module handles pointers and cursors.
 ///
+///	enable #USE_XCURSOR to use the xcursor-themes support:
+///	@section Configuration
+///		Edit the user's ~/.Xresources file:
+///		@code{.unparsed}
+///		! Choose a cursor theme
+///		Xcursor.theme: redglass
+///		@endcode
+///		Cursor size can be optionally chosen as well: 
+///		@code{.unparsed}
+///		! Choose the cursor size
+///		Xcursor.size: 16
+///		@endcode
+///		Note:
+///		`Xft.dpi: 192` is used to quess the cursor size, if not given.
+///
 ///< @{
 
 #include <xcb/xcb.h>
@@ -33,7 +48,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef USE_XCURSOR
+#include <xcb/xcb_cursor.h>
+#else
 #include <X11/cursorfont.h>		// cursor font XC_
+#endif
 
 #include "pointer.h"
 
@@ -41,6 +60,10 @@
 
     /// query pointer cookie for init
 static xcb_query_pointer_cookie_t PointerCookie;
+
+#ifdef USE_XCURSOR
+static xcb_cursor_context_t *CursorCtx;	///< xcb cursor context
+#endif
 static int PointerX;			///< cached current pointer x position
 static int PointerY;			///< cached current pointer y position
 
@@ -207,6 +230,8 @@ void PointerSetDefaultCursor(xcb_window_t window)
 
 // ---------------------------------------------------------------------------
 
+#ifndef USE_XCURSOR
+
 /**
 **	Create pointer
 **
@@ -225,6 +250,7 @@ static xcb_cursor_t CursorCreate(xcb_font_t font, int index)
 
     return cursor;
 }
+#endif
 
 /**
 **	Prepare initialize pointers.
@@ -239,7 +265,6 @@ void PointerPreInit(void)
 */
 void PointerInit(void)
 {
-    xcb_font_t font;
     unsigned u;
 
     // check if the order in Cursors changed
@@ -249,20 +274,44 @@ void PointerInit(void)
 	FatalError("Order of elements in CursorTable changed\n");}
     ) ;
 
-    font = xcb_generate_id(Connection);
-    xcb_open_font(Connection, font, sizeof(CURSOR_FONT) - 1, CURSOR_FONT);
-
+#ifdef USE_XCURSOR
+    if (xcb_cursor_context_new(Connection, XcbScreen, &CursorCtx) < 0) {
+	Error("Could not initialize xcb-cursor");
+	return;
+    }
     for (u = 0; u < sizeof(Cursors) / sizeof(Cursors.Default); ++u) {
 	// must fit to CursorTable
-	static const uint32_t table[] = { XC_left_ptr, XC_fleur, XC_top_side,
-	    XC_bottom_side, XC_right_side, XC_left_side, XC_top_right_corner,
-	    XC_top_left_corner, XC_bottom_right_corner, XC_bottom_left_corner,
-	    XC_tcross
+	static const char *table[] = { "left_ptr", "fleur", "top_side",
+	    "bottom_side", "right_side", "left_side", "top_right_corner",
+	    "top_left_corner", "bottom_right_corner", "bottom_left_corner",
+	    "tcross"
 	};
-	((xcb_cursor_t *) & Cursors)[u] = CursorCreate(font, table[u]);
+	((xcb_cursor_t *) & Cursors)[u] =
+	    xcb_cursor_load_cursor(CursorCtx, table[u]);
     }
+#else
+    if (1) {
+	xcb_font_t font;
 
-    xcb_close_font(Connection, font);
+	font = xcb_generate_id(Connection);
+	xcb_open_font(Connection, font, sizeof(CURSOR_FONT) - 1, CURSOR_FONT);
+
+	for (u = 0; u < sizeof(Cursors) / sizeof(Cursors.Default); ++u) {
+	    // must fit to CursorTable
+	    static const uint32_t table[] =
+		{ XC_left_ptr, XC_fleur, XC_top_side,
+		XC_bottom_side, XC_right_side, XC_left_side,
+		XC_top_right_corner,
+		XC_top_left_corner, XC_bottom_right_corner,
+		XC_bottom_left_corner,
+		XC_tcross
+	    };
+	    ((xcb_cursor_t *) & Cursors)[u] = CursorCreate(font, table[u]);
+	}
+
+	xcb_close_font(Connection, font);
+    }
+#endif
 
     PointerQueryReply(PointerCookie);
 }
@@ -278,6 +327,9 @@ void PointerExit(void)
 	xcb_free_cursor(Connection, *cursor);
 	*cursor = XCB_NONE;
     }
+#ifdef USE_XCURSOR
+    xcb_cursor_context_free(CursorCtx);
+#endif
 }
 
 /// @}

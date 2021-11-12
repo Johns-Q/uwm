@@ -1083,7 +1083,7 @@ void WaitForEvent(void)
 	fflush(NULL);
 #endif
 	// events without fd ready
-	if( (PushedEvent = xcb_poll_for_event(Connection)) ) {
+	if ((PushedEvent = xcb_poll_for_event(Connection))) {
 	    return;
 	}
 	// FIXME: need to configure the timeout base

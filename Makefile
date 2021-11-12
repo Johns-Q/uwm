@@ -128,6 +128,9 @@ CONFIG += -DUSE_XINERAMA
 #	use XMU emulation (needed for rounded corners)
 #CONFIG += -DUSE_XMU
 #CONFIG += -DNO_XMU
+#	use xcursor (nicer bigger cursor on HiDPI displays)
+#CONFIG += -DUSE_XCURSOR
+#CONFIG += -DNO_XCURSOR
 #	enable/disable colormap support
 #CONFIG += -DUSE_COLORMAPS
 #CONFIG += -DNO_COLORMAPS
@@ -167,7 +170,7 @@ else
 endif
 LIBS=	`pkg-config --static --libs xcb-keysyms xcb-aux xcb-atom xcb-util \
 	xcb-event xcb-icccm xcb-shape xcb-renderutil xcb-render xcb-image \
-	xcb-shm xcb` \
+	xcb-cursor xcb-shm xcb` \
 	$(if $(findstring USE_XINERAMA,$(CONFIG)), \
 	    `pkg-config --static --libs xcb-xinerama`) \
 	$(if $(findstring USE_PNG,$(CONFIG)), \
