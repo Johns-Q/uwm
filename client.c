@@ -2010,8 +2010,8 @@ static void ClientReparent(Client * client, int not_owner)
     //	grab what is used
     //
     xcb_grab_button(Connection, 1, client->Window, XCB_EVENT_MASK_BUTTON_PRESS,
-	XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_NONE, XCB_NONE,
-	XCB_GRAB_ANY, XCB_BUTTON_MASK_ANY);
+	XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
+	XCB_CURSOR_NONE, XCB_GRAB_ANY, XCB_BUTTON_MASK_ANY);
     KeyboardGrabBindings(client);
 
     //
