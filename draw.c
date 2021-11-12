@@ -223,7 +223,7 @@ ColorTable Colors = {
     ,
     .TitleActiveBG1 = {"title-active-bg1", NULL, 0UL, "gray22"}
     ,
-    .TitleActiveBG2 = {"title-active-bg1", NULL, 0UL, "gray55"}
+    .TitleActiveBG2 = {"title-active-bg2", NULL, 0UL, "gray55"}
     ,
 
     .BorderLine = {"border-line", NULL, 0UL, "black"}

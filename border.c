@@ -423,14 +423,14 @@ static void BorderDrawTitleButton(xcb_drawable_t window, xcb_gcontext_t gc,
     xcb_rectangle_t rectangle;
 
     values[0] = pixel;
-    values[1] = xoffset + yoffset;
+    values[1] = xoffset;
     values[2] = yoffset;
     values[3] = pixmap;
     xcb_change_gc(Connection, gc,
 	XCB_GC_FOREGROUND | XCB_GC_CLIP_ORIGIN_X | XCB_GC_CLIP_ORIGIN_Y |
 	XCB_GC_CLIP_MASK, values);
 
-    rectangle.x = xoffset + yoffset;
+    rectangle.x = xoffset;
     rectangle.y = yoffset;
     rectangle.width = BORDER_BUTTON_WIDTH;
     rectangle.height = BORDER_BUTTON_HEIGHT;
@@ -506,13 +506,20 @@ static void BorderDrawBorder(const Client * client, int draw_icon)
 	int title_width;
 	int yoffset;
 
+	// draw title bar
+	if (title_pixel1 != title_pixel2) {
+	    // keep 1 pixel border
+	    GradientDrawHorizontal(client->Parent, BorderGC, title_pixel1,
+		title_pixel2, 1, 1, width - 2, BorderTitleHeight - 2);
+	}
+
 	yoffset = BorderTitleHeight / 2 - BORDER_BUTTON_HEIGHT / 2;
 
 	// draw buttons and determine how many pixels may be used for title
 	// [space] [icon] [space] [title...] [space] [buttons...] [space]
 
 	// caclulate starting position of rightmost title icon
-	title_width = width - 1 - BORDER_TITLE_SPACE - BorderButtonWidth;
+	title_width = width - BORDER_TITLE_SPACE - BorderButtonWidth;
 
 	// window close button
 	if (title_width > BorderButtonWidth && (client->Border & BORDER_CLOSE)) {
@@ -552,12 +559,6 @@ static void BorderDrawBorder(const Client * client, int draw_icon)
 	title_width += 1 + BORDER_TITLE_SPACE + BorderButtonWidth;
 	title_width -= icon_size + 4 * BORDER_TITLE_SPACE;
 
-	// draw title bar
-	if (title_pixel1 != title_pixel2) {
-	    // keep 1 pixel border
-	    GradientDrawHorizontal(client->Parent, BorderGC, title_pixel1,
-		title_pixel2, 1, 1, width - 2, BorderTitleHeight - 2);
-	}
 #ifdef USE_ICON
 	// draw client icon
 	if (client->Icon && width >= (unsigned)BorderTitleHeight && draw_icon) {

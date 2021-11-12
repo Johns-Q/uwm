@@ -55,7 +55,7 @@ color = [
 
     title-active-fg = "white"
     title-active-bg1 = "gray22"
-    title-active-bg1 = "gray55"
+    title-active-bg2 = "gray55"
 
     border-line = "black"
     border-active-line = "gray22"
