@@ -1082,6 +1082,10 @@ void WaitForEvent(void)
 #ifdef DEBUG
 	fflush(NULL);
 #endif
+	// events without fd ready
+	if( (PushedEvent = xcb_poll_for_event(Connection)) ) {
+	    return;
+	}
 	// FIXME: need to configure the timeout base
 	n = poll(fds, 1, 50);
 	if (n < 0) {
